@@ -5,8 +5,9 @@
 #-   Binning and CSS transformation   - #
 ###-----------------------------------###
 # This script processes the meta data of the whole La Romaine project to extract the necessary information
-# for chapter 1.
-# First, it takes all samples above and inclusive of RO2, to take a continuum from headwater lakes to RO2
+# for the first paper of this thesis.
+
+# First we take all samples except those from Bioassays and 2018 (as RNA data is not avaialable at this moment)
 
 # Second, we split the data set into ID groups (Year, Season, DnaType, ASV) and evaluate whether
 # there is an actual observation or if that particular ASV is absent in that ID group.
@@ -19,6 +20,7 @@
 
 # Finally, we calculate the relative abundances based on the css read numbers for completeness.
 #setwd("/media/shared/Documents/University/PhD/Analyses/Molecular/lr.chapter1")
+setwd("/home/bioinf/data/Molecular/Masumi/Bioinf.LaRomaine/catchment_microbial_community")
 #----------#
 # PACKAGES #
 #----------#
@@ -113,8 +115,11 @@ sample_data(pb)$LibrarySize <- sample_sums(pb)
 # Subset only shallow samples
 pb <- subset_samples(pb, SeqDepth == "Shallow")
 
-# Subset only 2015 and 2016
+# Subset only 2015 to 2017
 pb <- subset_samples(pb, Year == 2015 | Year == 2016 | Year == 2017)
+
+# Omit balnk and Bioassay
+pb <- subset_samples(pb, !(sample.type.year == "Bioassay" | sample.type.year == "Blank"))
 
 # remove ASVs that do not appear in this dataset
 pb <- prune_taxa(taxa_sums(pb) != 0, pb)
@@ -385,7 +390,8 @@ data.frame(
   )
 )
 
-# Almost all are soily samples. How many samples do we still have for each factor combination if we remove them?
+# Almost all are sample with low library size are soily samples.
+# How many samples do we still have for each factor combination if we remove them?
 sample_data(subset_samples(cor.pb, LibrarySize >= 25000)) %>%
   group_by(year, Season, DnaType, soilorwater) %>% dplyr::summarise(n())
 # the sample sizes are acceptable for now. We'll go for rarefaction at 25000.
