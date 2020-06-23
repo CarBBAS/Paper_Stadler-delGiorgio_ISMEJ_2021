@@ -482,8 +482,10 @@ alpha <- llply(as.list(perm.rar), function(x){
   return(alpha)
 }, .parallel = T)
 
-names(alpha) <- paste0("lib", min_lib)
-alpha.df <- bind_rows(alpha, .id = "Rarefy")
+names(alpha) <- c(paste0("lib", min_lib), "css")
+alpha.df <- bind_rows(alpha, .id = "Data")
+
+write.table(alpha.df, "./Output/alpha_div_summary.csv", sep = ";", dec = ".", row.names = F)
 
 #------------------------------------------------------------------------------------------------#
 # Combine with bray distance data
