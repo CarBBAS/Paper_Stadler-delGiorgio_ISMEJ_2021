@@ -2,7 +2,7 @@
 #-   Multivariate exploration   - #
 ###-----------------------------###
 
-# This script will execute a overall multivariate analysis to get a first grasp of the data set
+# This script will execute an overall multivariate analysis to get a first grasp of the data set
 #setwd("/media/shared/Documents/University/PhD/Analyses/Molecular/lr.chapter1")
 
 #----------#
@@ -13,7 +13,7 @@ library(tidyverse)
 library(data.table)
 library(plyr)
 library(ggpubr) # arrange ggplots
-library(ggnewscale) # two aes scales
+library(ggnewscale) # two aesthetic scales
 library(doMC) # parallel computing
 library(vegan) #vegdist, diversity
 library(ape) #pcoa
@@ -92,68 +92,84 @@ pb <- phyloseq(otu_table(asv.tab, taxa_are_rows = T),
 ############
 # make ordinations
 # tried NMDS stress does not reach convergence
-dist <- "bray"
-ord_meths <- "PCoA"
 
 ####################
 # Both DNA and RNA #
 ####################
+# extract species table with species in columns
+pb.mat <- t(otu_mat(pb))
 
-plist <- llply(as.list(ord_meths), function(i, physeq, dist) {
-  ordi = ordinate(physeq = physeq,
-                  method = i ,
-                  distance = dist)
-  plot_ordination(physeq = physeq, ordi)
-}, pb, dist)
+# 1. PCoA with Bray-Curtis
+pb.bray <- vegdist(pb.mat, method = "bray")
+is.euclid(pb.bray) # FALSE
+pb.bray.pcoa <- ape::pcoa(pb.bray)
 
-names(plist) <- ord_meths
+# 2. PCoA with Jaccard (presence-absence)
+pb.jac <- vegdist(pb.mat, method = "jaccard", binary = T)
+is.euclid(pb.jac) # TRUE
+pb.jac.pcoa <- ape::pcoa(pb.jac)
 
-pdataframe <- ldply(plist, function(x){
-  df <- x$data[, 1:2]
-  return(cbind(df, x$data[,-c(1:2)]))
-})
+#cl <-
+# Mantel test to see if matrices are different
+#mantel(pb.bray, pb.jax, method = "pearson", permutations = 999, parallel = )
 
-var.exp <- ldply(plist, function(z) {
-  data.frame(x = str_extract(z$labels$x, "\\[.+?\\]"),
-             y = str_extract(z$labels$y, "\\[.+?\\]"))
-})
+# extract scores and variance explained
+pb.scores <- rbind(data.frame(Sample = as.character(row.names(pb.bray.pcoa$vectors)),
+                        Metric = "Bray", pb.bray.pcoa$vectors[,1:2], stringsAsFactors = F),
+                   data.frame(Sample = as.character(row.names(pb.jac.pcoa$vectors)),
+                              Metric = "Jaccard", pb.jac.pcoa$vectors[,1:2], stringsAsFactors = F))  # get first two axes
+pb.var <- rbind(data.frame(x = round(100 * pb.bray.pcoa$values$Eigenvalues[1] / sum(pb.bray.pcoa$values$Eigenvalues), 2),
+                           y = round(100 * pb.bray.pcoa$values$Eigenvalues[2] / sum(pb.bray.pcoa$values$Eigenvalues), 2),
+                           Metric = "Bray", stringsAsFactors = F),
+                data.frame(x = round(100 * pb.jac.pcoa$values$Eigenvalues[1] / sum(pb.jac.pcoa$values$Eigenvalues), 2),
+                           y = round(100 * pb.jac.pcoa$values$Eigenvalues[2] / sum(pb.jac.pcoa$values$Eigenvalues), 2),
+                           Metric = "Jaccard", stringsAsFactors = F))
+pb.scores <- merge(pb.scores, pb.var, by = "Metric")
 
-pdataframe <- merge(pdataframe, var.exp, by = ".id")
+# merge with a selection of meta data
+meta <- data.frame(Sample = as.character(row.names(sample_df(pb))),
+                   sample_df(pb) %>% dplyr::select(sample.type.year, Season, Year, DnaType, LibrarySize,
+                                                   bact.abundance, bact.production,catchment.area, lat, long), 
+                   stringsAsFactors = F)
+pdataframe <- merge(pb.scores, meta, by = "Sample")
+pdataframe$Sample <- as.character(pdataframe$Sample)
 
-############
-# Plotting #
-############
-# put factor order and rename for plotting
+#View(data.frame(pb.scores$Sample, str_replace(pb.scores$Sample, "D$", ""),
+#           str_replace(pb.scores$Sample, "R$", ""), pb.scores$DnaType))
+
+# overwrite factor levels
 pdataframe$sample.type.year <- factor(pdataframe$sample.type.year, levels = c("Soil","Sediment",
-                                                                              "Soilwater","Hyporheicwater", 
-                                                                              "Wellwater","Stream", "Tributary",
-                                                                              "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
-                                                                              "Upriver","RO3", "RO2", "RO1","Deep","Downriver",
-                                                                              "Marine", "Bioassay", "Blank"),
-                                      labels = c("Soil","Sediment",
-                                                 "Soilwater","Hyporheicwater", 
-                                                 "Wellwater","Stream", "Tributary",
-                                                 "Headwater \nLakes", "Upstream \nPonds", "Lake", "Island \nLakes",
-                                                 "Upriver","RO3","RO2", "RO1","Hypolimnion","Downriver",
-                                                 "Estuary", "Bioassay", "Blank"))
-pdataframe$Season <- factor(pdataframe$Season, levels = c("spring", "summer", "autumn"), labels = c("Spring", "Summer", "Autumn"))
+                                                                            "Soilwater","Hyporheicwater", 
+                                                                            "Wellwater","Stream", "Tributary",
+                                                                            "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
+                                                                            "Upriver","RO3", "RO2", "RO1","Deep",
+                                                                            "Downriver",
+                                                                            "Marine"),
+                                     labels = c("Soil","Sediment",
+                                                "Soilwater","Hyporheicwater", 
+                                                "Wellwater","Stream", "Tributary",
+                                                "Headwater \nLake", "Upstream \nPond", "Lake", "Lake",
+                                                "Upriver","RO3","RO2", "RO1","Hypolimnion","Downriver",
+                                                "Estuary"))
+pdataframe$Season <- factor(pdataframe$Season, levels = c("spring", "summer", "autumn"), 
+                           labels = c("Spring", "Summer","Autumn"))
 pdataframe$DnaType <- factor(pdataframe$DnaType, levels = c("DNA", "cDNA"), labels = c("DNA", "RNA"))
 
 # create colour vector for plotting
 colvec <- c("red4","chocolate3","orangered2","orange3",
             "khaki","cadetblue","darksalmon",
-            "darkolivegreen","darkolivegreen3", "chartreuse3","yellow3",
+            "darkolivegreen","darkolivegreen3","gold",
             "royalblue","mediumorchid4", "violet","palevioletred2","navy","skyblue",
-            "seagreen3","black", "beige")
+            "seagreen3")
 #"chocolate4","seagreen3","azure","gold"
 # separate legends for plotting
 (
   bot.leg <-
     get_legend(
-      ggplot(pdataframe, aes(x = Axis.1, y = Axis.2)) +
+      ggplot(pdataframe %>% filter(Metric == "Bray"), aes(x = Axis.1, y = Axis.2)) +
         theme_bw() +
         geom_point(aes(shape = Season, alpha = DnaType),
-                   size = 3) +
+                   size = 2.5) +
         theme(legend.position = "bottom") +
         scale_shape_manual(values = c(21, 23, 25)) +
         scale_alpha_manual(values = c(1, 0.5), name = "Nucleic Acid Type") +
@@ -163,17 +179,36 @@ colvec <- c("red4","chocolate3","orangered2","orange3",
 )
 
 # main plot
-(pcoa <- ggplot(pdataframe, aes(x = Axis.1, y = Axis.2)) +
+(pcoa.bray <- ggplot(pdataframe %>% filter(Metric == "Bray"), aes(x = Axis.1, y = Axis.2)) +
     theme_bw() +
     geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
     geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
     geom_point(aes(fill = sample.type.year, shape = Season, alpha = DnaType),
-               size = 3) +
+               size = 2.5) +
     #scale_fill_viridis_d(name = "Sample Type") +
     scale_fill_manual(values = colvec, name = "Sample Type") +
     scale_shape_manual(values = c(21,23,25)) +
     scale_alpha_manual(values = c(1,0.5), name = "Nucleic Acid \nType") +
-    labs(x = paste("PCoA 1 ", pdataframe$x), y = paste("PCoA 2 ", pdataframe$y)) +
+    labs(x = paste("PCoA 1 [", pdataframe[pdataframe$Metric == "Bray",]$x,"%]"), 
+         y = paste("PCoA 2 [", pdataframe[pdataframe$Metric == "Bray",]$y,"%]")) +
+    theme(legend.key.size = unit(1.5, "lines"),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank()) +
+    guides(fill = guide_legend(override.aes=list(shape=21)),
+           alpha = "none", shape = "none"))
+
+(pcoa.jac <- ggplot(pdataframe %>% filter(Metric == "Jaccard"), aes(x = Axis.1, y = Axis.2)) +
+    theme_bw() +
+    geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
+    geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
+    geom_point(aes(fill = sample.type.year, shape = Season, alpha = DnaType),
+               size = 2.5) +
+    #scale_fill_viridis_d(name = "Sample Type") +
+    scale_fill_manual(values = colvec, name = "Sample Type") +
+    scale_shape_manual(values = c(21,23,25)) +
+    scale_alpha_manual(values = c(1,0.5), name = "Nucleic Acid \nType") +
+    labs(x = paste("PCoA 1 [", pdataframe[pdataframe$Metric == "Jaccard",]$x,"%]"), 
+         y = paste("PCoA 2 [", pdataframe[pdataframe$Metric == "Jaccard",]$y,"%]")) +
     theme(legend.key.size = unit(1.5, "lines"),
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank()) +
@@ -181,177 +216,107 @@ colvec <- c("red4","chocolate3","orangered2","orange3",
            alpha = "none", shape = "none"))
 
 # arrange main plot and legend
-(pcoa.arr <- ggarrange(pcoa, bot.leg,
-          nrow = 2,
-          heights = c(3,0.2)))
-#save
-ggsave("./Figures/General/All_DNARNA_SampleType_PCoA.png", pcoa.arr,
-       width = 23, height = 18, unit = "cm")
+(pcoa.arr <- ggarrange(ggarrange(pcoa.bray, pcoa.jac,
+                       ncol = 2,
+                       common.legend = T,
+                       labels = c("a", "b"),
+                       legend = "right"
+                      ), bot.leg,
+                      nrow = 2, heights = c(3, 0.2)))
 
-(pcoa <- ggplot(pdataframe, aes(x = Axis.1, y = Axis.2)) +
-    theme_bw() +
-    geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
-    geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
-    geom_point(aes(fill = Season, alpha = DnaType),
-               size = 3, shape = 21) +
-    #scale_fill_viridis_d(name = "Sample Type") +
-    scale_fill_viridis_d(name = "Season") +
-    scale_alpha_manual(values = c(1,0.5), name = "Nucleic Acid \nType") +
-    labs(x = paste("PCoA 1 ", pdataframe$x), y = paste("PCoA 2 ", pdataframe$y)) +
-    theme(legend.key.size = unit(1.5, "lines"),
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank()) +
-    guides(fill = guide_legend(override.aes=list(shape=21)),
-           alpha = "none", shape = "none"))
-ggsave("./Figures/General/All_DNARNA_Season_PCoA.png", pcoa,
-       width = 23, height = 18, unit = "cm")
+ggsave("./Figures/Final/All_DNARNA_SampleType_PCoA.tiff", pcoa.arr,
+       width = 30, height = 15, unit = "cm")
+#############
 
-# PCoA does not show horseshoe or arch effect, move on to next step
-
+rm(pcoa.bray, pcoa.jac, pcoa.arr,bot.leg)
 ####################################################################################
 #-----------------------------------------------#
 # Calculate distance between DNA and RNA points #
 #-----------------------------------------------#
-# extract species table with species in columns
-pb.mat <- t(otu_mat(pb))
-
-# 1. PCoA with Bray-Curtis
-pb.bray <- vegdist(pb.mat, method = "bray")
-is.euclid(pb.bray) # FALSE
-pb.bray.pcoa <- ape::pcoa(pb.bray)
-
-# extract scores and variance explained
-pb.scores <- data.frame(Sample = row.names(pb.bray.pcoa$vectors),
-                        pb.bray.pcoa$vectors[,1:2]) # get first two axes
-pb.var <- pb.bray.pcoa$values$Eigenvalues[1:2]
-
-###########################
-
-# 2. Bray-Curtis with log+1
-pb.log <- log1p(pb.mat)
-pb.bray.log <- vegdist(pb.log, method = "bray")
-is.euclid(pb.bray.log) # FALSE
-pb.bray.log.pcoa <- ape::pcoa(pb.bray.log)
-
-# extract scores and variance explained
-pb.scores <- data.frame(Sample = row.names(pb.bray.log.pcoa$vectors),
-                        pb.bray.log.pcoa$vectors[,1:2]) # get first two axes
-pb.var <- pb.bray.log.pcoa$values$Eigenvalues[1:2]
-
-############################
-
-# merge with a selection of meta data
-meta <- data.frame(Sample = row.names(sample_df(pb)),
-                   sample_df(pb) %>% dplyr::select(sample.type.year, Season, Year, DnaType, LibrarySize,
-                                                   bact.abundance, bact.production,catchment.area, lat, long))
-pb.scores <- merge(pb.scores, meta, by = "Sample")
-pb.scores$Sample <- as.character(pb.scores$Sample)
-
-#View(data.frame(pb.scores$Sample, str_replace(pb.scores$Sample, "D$", ""),
-#           str_replace(pb.scores$Sample, "R$", ""), pb.scores$DnaType))
-
-# overwrite factor levels
-pb.scores$sample.type.year <- factor(pb.scores$sample.type.year, levels = c("Soil","Sediment",
-                                                                            "Soilwater","Hyporheicwater", 
-                                                                            "Wellwater","Stream", "Tributary",
-                                                                            "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
-                                                                            "Upriver","RO3", "RO2", "RO1","Deep",
-                                                                            "Downriver",
-                                                                            "Marine", "Bioassay", "Blank"),
-                                    labels = c("Soil","Sediment",
-                                               "Soilwater","Hyporheicwater", 
-                                               "Wellwater","Stream", "Tributary",
-                                               "Headwater \nLakes", "Upstream \nPonds", "Lake", "Island \nLakes",
-                                               "Upriver","RO3","RO2", "RO1","Hypolimnion","Downriver",
-                                               "Estuary", "Bioassay", "Blank"))
-pb.scores$Season <- factor(pb.scores$Season, levels = c("spring", "summer", "autumn"), 
-                           labels = c("Spring", "Summer","Autumn"))
-pb.scores$DnaType <- factor(pb.scores$DnaType, levels = c("DNA", "cDNA"), labels = c("DNA", "RNA"))
 
 #View(data.frame(pb.scores$Sample, pb.scores$sample.type.year, pb.scores$Year))
 
 # correct a few wrong sample names for matching DNA and RNA
-pb.scores[pb.scores$Sample == "RO2R52R", "Sample"] <- "RO2.52R"
-pb.scores[pb.scores$Sample == "SWR34R", "Sample"] <- "SW34R"
-pb.scores[pb.scores$Sample == "RO2.36pD", "Sample"] <- "RO2.36D"
-pb.scores[pb.scores$Sample == "RO2.36pR", "Sample"] <- "RO2.36R"
-pb.scores[pb.scores$Sample == "RO2111.60mD", "Sample"] <- "RO2111.90mD"
-pb.scores[pb.scores$Sample == "RO2.30DR", "Sample"] <- "RO2.30R" # two DNA
-#pb.scores[pb.scores$Sample == "TR49", "Sample"] <- # two DNA
+pdataframe[pdataframe$Sample == "RO2R52R", "Sample"] <- "RO2.52R"
+pdataframe[pdataframe$Sample == "SWR34R", "Sample"] <- "SW34R"
+pdataframe[pdataframe$Sample == "RO2.36pD", "Sample"] <- "RO2.36D"
+pdataframe[pdataframe$Sample == "RO2.36pR", "Sample"] <- "RO2.36R"
+pdataframe[pdataframe$Sample == "RO2111.60mD", "Sample"] <- "RO2111.90mD"
+pdataframe[pdataframe$Sample == "RO2.30DPR", "Sample"] <- "RO2.30R" # two DNA
+pdataframe[pdataframe$Sample == "RO301.HypoR", "Sample"] <- "RO31.HypoR"
+pdataframe[pdataframe$Sample == "RO301R", "Sample"] <- "RO31R" 
+pdataframe[pdataframe$Sample == "RO304R", "Sample"] <- "RO34R" 
+pdataframe[pdataframe$Sample == "RO307R", "Sample"] <- "RO37R" 
+
+pdataframe[pdataframe$Sample == "L230R", "Sample"] <- "L330R" # L230 does not exist
+#pdataframe[pdataframe$Sample == "TR49", "Sample"] <- # two DNA
 
 # remove Ds and Rs to match counterpart samples
-pb.scores$ID[pb.scores$DnaType == "DNA"] <- str_replace(pb.scores$Sample[pb.scores$DnaType == "DNA"], "D$", "")
-pb.scores$ID[pb.scores$DnaType == "RNA"] <- str_replace(pb.scores$Sample[pb.scores$DnaType == "RNA"], "R$", "")
+pdataframe$ID[pdataframe$DnaType == "DNA"] <- str_replace(pdataframe$Sample[pdataframe$DnaType == "DNA"], "D$", "")
+pdataframe$ID[pdataframe$DnaType == "RNA"] <- str_replace(pdataframe$Sample[pdataframe$DnaType == "RNA"], "R$", "")
 
 # export table to look at point positions in GIS
 #write.table(pb.scores, "./Output/BrayCurtis_scores_withmeta.csv", sep = ",", dec = ".", row.names = F)
 
 # calculate mean coordinates for duplicates
-sum <- pb.scores %>% 
+sum <- pdataframe %>% 
   filter(!Year == 2015) %>% 
-  dplyr::group_by(ID, DnaType) %>%
+  dplyr::group_by(ID, DnaType, Metric) %>%
   dplyr::summarise(x = mean(Axis.1), y = mean(Axis.2),
-                   sample.type.year = unique(sample.type.year),
-                   Season = unique(Season),
-                   Year = unique(Year), 
-                   bact.abundance = unique(bact.abundance),
-                   bact.production = unique(bact.production),
-                   catchment.area = unique(catchment.area),
                    n = n()) %>%
   ungroup()
 
-# exctract only those samples that have both DNA and RNA
-dnarna <- sum[sum$ID %in% sum$ID[duplicated(sum$ID)],]
-
+setDT(sum)
 # Calculate distance
-setDT(dnarna)
-temp <- dcast(dnarna, ID ~ DnaType, value.var = c("x","y"))
+temp <- dcast(sum, ID + Metric ~ DnaType, value.var = c("x","y"))
+temp <- dcast(sum, ID + Metric ~ DnaType, value.var = c("x","y"))
 temp[, distance := sqrt((x_DNA - x_RNA)^2 + (y_DNA - y_RNA)^2)]
 
 # combine back with categories
-dist.dr <- merge(unique(dnarna, by = "ID"), temp, by = "ID")
-
+dist.dr <- temp[pdataframe, c("sample.type.year",
+                  "Year", "Season" ) := list(i.sample.type.year,
+                                             i.Year, i.Season), on = .(ID)]
 # add new column to split plot into main and side panel
 dist.dr[, panels := "main"]
 dist.dr[sample.type.year == "Tributary" |
           sample.type.year == "Lake" |
-          sample.type.year == "Headwater \nLakes" |
+          sample.type.year == "Headwater \nLake" |
           sample.type.year == "Sediment", panels := "side"]
 
 write.table(dist.dr, "./Output/bray_pcoa_dnarna_distance.csv",
             sep = ";", dec = ".", row.names = F)
 
+# Bray Curtis
 # plot main plot
 (
-  main <-
-    dr.dist <-
-    ggplot(dist.dr[panels == "main", ], aes(
+  main.b <-
+    ggplot(dist.dr[panels == "main" & Metric == "Bray", ], aes(
       x = sample.type.year, y = distance, fill = Season
     )) +
     theme_pubr() +
-    geom_boxplot(width = 0.5) + # outlier.alpha = 0
+    geom_boxplot(width = 0.5, outlier.size = 0.5, size = 0.3) + # outlier.alpha = 0
     scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
     new_scale_fill() +
     #geom_point(aes(fill = as.character(Year)), position = position_jitterdodge(), colour = "black", shape = 21) + #alpha = 0.5,
     #scale_fill_manual(name = "Year", values = c("white","gray20")) +
-    labs(x = "Sample type", y = "Distance between DNA and RNA \nin PCoA space (log+1 Bray-Curtis)") +
+    labs(x = "Sample type", y = "Distance between DNA and RNA \nin PCoA space (Bray-Curtis)") +
     #facet_grid(.~Year, scales = "free") +
     theme(
       axis.text.x = element_text(angle = 45, hjust = 1),
-      axis.text = element_text(size = 10),
-      axis.title.x = element_blank()
+      axis.text = element_text(size = 8),
+      axis.title.x = element_blank(),
+      axis.title = element_text(size = 10)
     )
 )
 
 # side panel
 (
-  side <-
-    dr.dist <-
-    ggplot(dist.dr[panels == "side", ], aes(
+  side.b <-
+    ggplot(dist.dr[panels == "side" & Metric == "Bray", ], aes(
       x = sample.type.year, y = distance, fill = Season
     )) +
     theme_pubr() +
-    geom_boxplot(width = 0.5) + # outlier.alpha = 0
+    geom_boxplot(width = 0.5, outlier.size = 0.5, size = .3) + # outlier.alpha = 0
     scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
     new_scale_fill() +
     #geom_point(
@@ -361,13 +326,13 @@ write.table(dist.dr, "./Output/bray_pcoa_dnarna_distance.csv",
     #  shape = 21
     #) + #alpha = 0.5,
     #scale_fill_manual(name = "Year", values = c("white", "gray20")) +
-    labs(x = "Sample type", y = "Distance between DNA and RNA \nin PCoA space (log+1 Bray-Curtis)") +
+    labs(x = "Sample type", y = "Distance between DNA and RNA \nin PCoA space") +
     lims(y = c(0, 0.6)) +
     #facet_grid(.~Year, scales = "free") +
     theme(
       axis.title.x = element_blank(),
       axis.text.x = element_text(angle = 45, hjust = 1),
-      axis.text = element_text(size = 10),
+      axis.text = element_text(size = 8),
       axis.title.y = element_blank(),
       axis.text.y = element_blank(),
       axis.line.y = element_blank(),
@@ -375,22 +340,86 @@ write.table(dist.dr, "./Output/bray_pcoa_dnarna_distance.csv",
     )
 )
 
+# Jaccard
+# plot main plot
+(
+  main.j <-
+    ggplot(dist.dr[panels == "main" & Metric == "Jaccard", ], aes(
+      x = sample.type.year, y = distance, fill = Season
+    )) +
+    theme_pubr() +
+    geom_boxplot(width = 0.5, outlier.size = 0.5, size = 0.3) + # outlier.alpha = 0
+    scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
+    new_scale_fill() +
+    #geom_point(aes(fill = as.character(Year)), position = position_jitterdodge(), colour = "black", shape = 21) + #alpha = 0.5,
+    #scale_fill_manual(name = "Year", values = c("white","gray20")) +
+    labs(x = "Sample type", y = "Distance between DNA and RNA \nin PCoA space (Jaccard)") +
+    #facet_grid(.~Year, scales = "free") +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      axis.text = element_text(size = 8),
+      axis.title.x = element_blank(),
+      axis.title = element_text(size = 10)
+    )
+)
+
+# side panel
+(
+  side.j <-
+    ggplot(dist.dr[panels == "side" & Metric == "Jaccard", ], aes(
+      x = sample.type.year, y = distance, fill = Season
+    )) +
+    theme_pubr() +
+    geom_boxplot(width = 0.5, outlier.size = 0.5, size = .3) + # outlier.alpha = 0
+    scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
+    new_scale_fill() +
+    #geom_point(
+    #  aes(fill = as.character(Year)),
+    #  position = position_jitterdodge(),
+    #  colour = "black",
+    #  shape = 21
+    #) + #alpha = 0.5,
+    #scale_fill_manual(name = "Year", values = c("white", "gray20")) +
+    labs(x = "Sample type", y = "Distance between DNA and RNA \nin PCoA space") +
+    lims(y = c(0, 0.6)) +
+    #facet_grid(.~Year, scales = "free") +
+    theme(
+      axis.title.x = element_blank(),
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      axis.text = element_text(size = 8),
+      axis.title.y = element_blank(),
+      axis.text.y = element_blank(),
+      axis.line.y = element_blank(),
+      axis.ticks.y = element_blank()
+    )
+)
+
+
 # combine both plots
-(p <- ggarrange(main, 
-          side,
+(p <- ggarrange(
+  ggarrange(main.b, 
+          side.b,
           widths = c(3,1),
           ncol = 2, nrow = 1, 
           common.legend = T,
           legend = "top",
-          align = "h"))
+          align = "h",
+          font.label = list(size = 10)),
+  ggarrange(main.j, 
+            side.j,
+            widths = c(3,1),
+            ncol = 2, nrow = 1, 
+            common.legend = F,
+            legend = "none",
+            align = "h",
+            font.label = list(size = 10)),
+  nrow = 2))
 # add x axis title to be in the middle of two panels
 (p <- annotate_figure(p, bottom = text_grob("Sample Type")))
 
 # save
-ggsave("./Figures/General/All_log_DNARNA_withinPCoA_distance.png", 
-       p, width = 20, height = 12, unit = "cm")
-
-# run once for log+1 and once without transformation
+ggsave("./Figures/Final/All_log_DNARNA_withinPCoA_distance.tiff", 
+       p, width = 18, height = 15, unit = "cm")
 
 ##########################################################################
 #-----------------------#
@@ -402,13 +431,24 @@ min_lib <- c(15000, 25000, 50000)
 perm.rar <- select_newest("./Output",
               "perm.rar_lib", by = min_lib)
 
+perm.rar <- c(perm.rar, select_newest("./Output", "201520162017_CSS_asvtab"))
+
 # register number of cores for parallel computing
 detectCores() #24, we do not have 24. It's 12 cores, 24 threads.
 registerDoMC()
 getDoParWorkers() # 12
 
 alpha <- llply(as.list(perm.rar), function(x){
-  rar <- read.csv(paste0("./Output/", x), sep = ";", stringsAsFactors = F)
+  if(grepl(x, pattern = "asvtab") == T){
+    rar <- read.csv(paste0("./Output/", x), sep = "\t", dec = ".", stringsAsFactors = F)
+    colnames(rar)[1] <- "ASV"
+    rar <- melt.data.table(setDT(rar),
+                    id.vars = "ASV", # skip measure.var, takes all columns
+                    variable.name = "Sample",
+                    value.name = "iter.mean")
+  } else {
+    rar <- read.csv(paste0("./Output/", x), sep = ";", stringsAsFactors = F)
+  }
   data.table::setDT(rar)
   # make mean column to count
   rar[, iter.mean := round(iter.mean, 0)]

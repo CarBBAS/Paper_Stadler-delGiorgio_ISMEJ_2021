@@ -30,13 +30,15 @@ library(tidyverse)
 library(data.table)
 library(doMC)
 library(plyr)
-library(openair)
+# allow progress bar
+library(svMisc)
+library(pbapply)
+
 #-----------#
 # FUNCTIONS #
 #-----------#
-source("./Functions/big_data.R")
 source("./Functions/phyloseq_index.R")
-source("./Functions/peak_identification.R")
+#source("./Functions/peak_identification.R")
 
 #---------------------#
 # Raw data processing #
@@ -156,9 +158,9 @@ write.table(
 # remove unnecessary objects
 rm(asv_id, meta, ps, seqtab, tax)
 
-#####################
-#- Bin and correct -#
-#####################
+###########################
+#- Correct too few reads -#
+###########################
 # transform ASV table into data.table
 asv.tab <- setDT(as.data.frame(asv.tab, strings.As.Factors = F), keep.rownames = "Sample")
 
@@ -206,6 +208,7 @@ sumdf[, ID := paste(Year, Season, DnaType, ASV, sep = ".")]
 sumdf <- sumdf[order(ID, catchment.area)]
 
 # split data frame in present and absent
+# (Otherwise computational power is overwhelmed)
 sumdf[, n := .N, by = .(ID)] # number of samples by factorial combination
 sumdf[, n.obs := nrow(.SD[reads > 0]), by = .(ID)] # how many of those have an actual observation of ASV?
 
@@ -216,7 +219,7 @@ sumdf[is.na(PA) &
 sumdf[is.na(PA) & n.obs > 0, PA := "Present", by = .(ID)]
 # all observations above 0 are present
 
-#- Actual bin and remove quality control -#
+#- Actual quality control -#
 
 # register number of cores
 detectCores() #24, we do not have 24. It's 12 cores, 24 threads.
@@ -236,7 +239,7 @@ present[, bin := paste(sample.type.year, Year, Season, DnaType, ASV, sep = "_")]
 present[, n.bin := .N, by = .(bin)]
 present[n.bin == 1 & reads < 10, cor.reads := 0] # select all with only one observation by bin, overwrite all reads less than 10 with 0
 present[is.na(cor.reads), cor.reads := reads] # fill in rest
-present[, bin := NULL][, n.bin := NULL]
+present[, bin := NULL][, n.bin := NULL] # remove unncessary columns for downstream analysis
 
 # add 0 column to absent for cor.reads
 absent[, cor.reads := 0]
@@ -404,9 +407,6 @@ trials <- 100  #set number of permutation
 min_lib <- c(15000, 25000, 50000) # set minimum library size
 
 permlist <- list() #empty list to fill by loop
-
-library(svMisc) # allow progress bar
-library(pbapply)
 
 # Loop 100 times and rarefy
 for (j in 1:length(min_lib)) {
