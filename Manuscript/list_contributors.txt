@@ -1,0 +1,12 @@
+List of contributors (field and lab)
+
+Main project organisers:
+Annick St-Pierre, Alice H. Parkes, Serge Paquet
+
+Field & Lab:
+Until 2017
+Felipe Rust, Ryan Hutchins, Marie Laure Gérardin, Clara Ruiz-Gonzàlez, Trista Vick-Majors, Erin Hotchkiss, Alexandre Ducharme, Francesca del Giorgio, Karelle Desrosiers, Martin Demers, Sara Mercier Blais, Julia Jakobsson, Brenden Chabot, Sebastian Dugas, Pascale Ouimet
+
+2018  Rachelle Sauvé, Étienne Gauthier Dufour, Jean-Christophe Sicotte-Brisson, Gabriel Bastien-Beaudet, Nathalie Larochelle, Sophie Crevecoeur, Joan P. Casas-Ruiz, Mathilde Couturier, Pascal Bodmer
+
+If I include some nutrient, DOC, Chla data: Katherine Velghe, Marilyne Robidoux, ... ?

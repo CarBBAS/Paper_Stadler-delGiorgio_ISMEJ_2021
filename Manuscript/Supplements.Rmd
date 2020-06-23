@@ -1,0 +1,32 @@
+---
+title: 'Supplementary material: Title of paper'
+author: "Masumi Stadler and Paul A. del Giorgio"
+output:
+  pdf_document:
+    toc: true
+    toc_depth: 3
+---
+
+---
+
+The following file contains the supplementary material for the publication "Title of publication" (DOI: ).
+
+# Supplementary Methods
+
+# Supplementary Figures
+
+### Figure S1: Landscape within the La Romaine catchment
+```{r, echo=FALSE,fig.show='hold',fig.align='center'}
+knitr::include_graphics(c("./Figures/LR_photo_collage.png"))
+``` 
+
+(a) Northern area with shrubs and moss-lichen, (b) Mountainous section close to Reservoir 3, (c) Lower coastal plain with peatland areas, (d) Example of a sampled stream.
+
+### Figure S2: 
+
+# Suppplementary Tables
+
+| Nucleic Acid Type | Soil | Soilwater | Wellwater | Headwater Ponds | Stream | River | Reservoirs | Reservoir Hypolimnion | Estuary | Sediment | Tributary | Headwater Lake | Lake | Sum
+|:------------------|:----:|:---------:|:---------:|:--------:|:-------:|:-----:|:----------:|:-------:|:-------:|:--------:|:---------:|:--------:|:----:|----:
+| DNA | 33 | 44 | 17 | 4 | 10 | 34 | 65 | 95 | 9 | 20 | 22| 9 | 17 | 16 | 395
+| RNA | 8 | 13 | 14 | 0 | 0 | 18 | 33 | 75 | 9 | 4 | 4 | 5 | 8 | 11 | 202

@@ -1,0 +1,119 @@
+\begin{thebibliography}{}
+
+\bibitem[Callahan et~al., 2017]{Callahan2017}
+Callahan, B.~J., McMurdie, P.~J., and Holmes, S.~P. (2017).
+\newblock {Exact sequence variants should replace operational taxonomic units
+  in marker-gene data analysis}.
+\newblock {\em ISME Journal}, 11(12):2639--2643.
+
+\bibitem[Campitelli, 2020]{Campitelli2020}
+Campitelli, E. (2020).
+\newblock {ggnewscale: Multiple Fill and Colour Scales in 'ggplot2'}.
+
+\bibitem[d'audiences publiques~sur l'environnement and {Canadian Environmental
+  Assessment Agency}, 2009]{HQreport2009}
+d'audiences publiques~sur l'environnement, B. and {Canadian Environmental
+  Assessment Agency} (2009).
+\newblock {Romaine Hydroelectric Complex Project: Investigation and Public
+  Hearing Report}.
+\newblock Technical report.
+
+\bibitem[Dowle and Srinivasan, 2019]{Dowle2019}
+Dowle, M. and Srinivasan, A. (2019).
+\newblock {data.table: Extension of `data.frame`}.
+
+\bibitem[Hengl et~al., 2014]{Hengl2014}
+Hengl, T., de~Jesus, J., MacMillan, R., Batjes, N., Heuvelink, G., Ribeiro, E.,
+  Samuel-Rosa, A., Kempen, B., Leenaars, J., Walsh, M., and Gonzalez, M.
+  (2014).
+\newblock {SoilGrids1km—global soil information based on automated mapping}.
+\newblock {\em PLoS ONE}, 9(8):e105992.
+
+\bibitem[Kassambara, 2020]{Kassambara2018}
+Kassambara, A. (2020).
+\newblock {ggpubr: 'ggplot2' Based Publication Ready Plots}.
+
+\bibitem[Lehner and Grill, 2013]{Lehner2013}
+Lehner, B. and Grill, G. (2013).
+\newblock {Global river hydrography and network routing: baseline data and new
+  approaches to study the world's large river systems}.
+\newblock {\em Hydrological Processes}, 27(15):2171--2186.
+
+\bibitem[Martin, 2013]{Martin2013}
+Martin, M. (2013).
+\newblock {Cutadapt removes adapter sequences from high-throughput sequencing
+  reads}.
+\newblock {\em EMBnet.journal}, 17(1):pp. 10--12.
+
+\bibitem[McMurdie and Holmes, 2013]{McMurdie2013}
+McMurdie, P.~J. and Holmes, S. (2013).
+\newblock {phyloseq: An R package for reproducible interactive analysis and
+  graphics of microbiome census data}.
+\newblock {\em PLoS ONE}, 8(4):e61217.
+
+\bibitem[Murali et~al., 2018]{Murali2018}
+Murali, A., Bhargava, A., and Wright, E.~S. (2018).
+\newblock {IDTAXA: A novel approach for accurate taxonomic classification of
+  microbiome sequences}.
+\newblock {\em Microbiome}, 6(1):1--14.
+
+\bibitem[Oksanen et~al., 2019]{Oksanen2017}
+Oksanen, J., Blanchet, F.~G., Friendly, M., Kindt, R., Legendre, P., McGlinn,
+  D., Minchin, P.~R., O'Hara, R.~B., Simpson, G.~L., Solymos, P., Stevens, M.
+  H.~H., Szoecs, E., and Wagner, H. (2019).
+\newblock {vegan: Community Ecology Package}.
+
+\bibitem[Paradis and Schliep, 2018]{Paradis2018}
+Paradis, E. and Schliep, K. (2018).
+\newblock {ape 5.0: an environment for modern phylogenetics and evolutionary
+  analyses in R}.
+\newblock {\em Bioinformatics}, 35(526-528).
+
+\bibitem[Paulson et~al., 2013]{Paulson2013}
+Paulson, J.~N., {Colin Stine}, O., Bravo, H.~C., and Pop, M. (2013).
+\newblock {Differential abundance analysis for microbial marker-gene surveys}.
+\newblock {\em Nature Methods}, 10(12):1200--1202.
+
+\bibitem[Pruesse et~al., 2007]{Pruesse2007}
+Pruesse, E., Quast, C., Knittel, K., Fuchs, B.~M., Ludwig, W., Peplies, J., and
+  Gl{\"{o}}ckner, F.~O. (2007).
+\newblock {SILVA: a comprehensive online resource for quality checked and
+  aligned ribosomal RNA sequence data compatible with ARB}.
+\newblock {\em Nucleic Acids Research}, 35(21):7188--7196.
+
+\bibitem[{R Core Team}, 2020]{RCoreTeam2017}
+{R Core Team} (2020).
+\newblock {R: A language and environment for statistical computing}.
+
+\bibitem[{Revolution Analytics} and Weston, 2019]{Analytics2019}
+{Revolution Analytics} and Weston, S. (2019).
+\newblock {doMC: Foreach Parallel Adaptor for 'parallel'}.
+
+\bibitem[{RStudio Team}, 2020]{RStudioTeam2016}
+{RStudio Team} (2020).
+\newblock {RStudio: Integrated Development for R}.
+
+\bibitem[Wickham, 2011]{Wickham2011}
+Wickham, H. (2011).
+\newblock {The Split-Apply-Combine Strategy for Data Analysis}.
+\newblock {\em Journal of Statistical Software}, 40(1):1--29.
+
+\bibitem[Wickham, 2016]{Wickham2016}
+Wickham, H. (2016).
+\newblock {ggplot2: Elegant Graphics for Data Analysis}.
+
+\bibitem[Wickham et~al., 2019]{Wickham2019}
+Wickham, H., Averick, M., Bryan, J., Chang, W., McGowan, L.~D., Fran{\c{c}}ois,
+  R., Grolemund, G., Hayes, A., Henry, L., Hester, J., Kuhn, M., Pedersen,
+  T.~L., Miller, E., Bache, S.~M., M{\"{u}}ller, K., Ooms, J., Robinson, D.,
+  Seidel, D.~P., Spinu, V., Takahashi, K., Vaughan, D., Wilke, C., Woo, K., and
+  Yutani, H. (2019).
+\newblock {Welcome to the tidyverse}.
+\newblock {\em Journal of Open Source Software}, 4(43):1686.
+
+\bibitem[Wright, 2016]{Wright2016}
+Wright, E.~S. (2016).
+\newblock {Using DECIPHER v2.0 to Analyze Big Biological Sequence Data in R}.
+\newblock {\em The R Journal}, 8(1):352--359.
+
+\end{thebibliography}
