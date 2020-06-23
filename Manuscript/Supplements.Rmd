@@ -11,18 +11,26 @@ output:
 
 The following file contains the supplementary material for the publication "Title of publication" (DOI: ).
 
+\newpage
+
 # Supplementary Methods
 
 # Supplementary Figures
 
 ### Figure S1: Landscape within the La Romaine catchment
-```{r, echo=FALSE,fig.show='hold',fig.align='center'}
+```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "70%"}
 knitr::include_graphics(c("./Figures/LR_photo_collage.png"))
 ``` 
 
 (a) Northern area with shrubs and moss-lichen, (b) Mountainous section close to Reservoir 3, (c) Lower coastal plain with peatland areas, (d) Example of a sampled stream.
 
-### Figure S2: 
+### Figure S2: No substantial effect of data transformation methods on alpha-diversity estimations
+
+```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "80%"}
+knitr::include_graphics(c("../Figures/Final/All_DNARNA_distance_alphadiv_comparison.png"))
+``` 
+
+Comparing the effect of method on the relation of DNA alpha diversity indices with distance between DNA and RNA within PCoA space. Rows represent different alpha diversity indices: Shannon-Wiener index (H'), Simpson's index ($\lambda$), Pielou's evenness (J) and Chao1 richness estimator. CSS = cumulative sum scaling, all remaining three columns with "lib" indications refer to rarefaction thresholds. 
 
 # Suppplementary Tables
 
