@@ -455,7 +455,7 @@ alpha <- llply(as.list(perm.rar), function(x){
   rar <- setDF(dcast(rar, Sample ~ ASV, value.var = "iter.mean"))
   
   # shannon-wiener index (H')
-  # quantifies uncertainty associated with predicted the identity of a new taxa
+  # quantifies uncertainty associated with predicted identity of a new taxa
   # given number of taxa and evenness in abundances of individuals within each taxa
   # assumes the sample for site was collected randomly
   # more sensitive to rare species, can be positive and negative, typically range from 1.5 to 3.5
@@ -468,7 +468,7 @@ alpha <- llply(as.list(perm.rar), function(x){
   # compares actual diversity value (e.g. Shannon-Wiener) to the maximum possible diversity value
   # when all species are equally common it is considered as the highest degree of evenness
   # ranges from 0 and 1
-  # the more variation in abundances between different taxa within the community the lower isJ
+  # the more variation in abundances between different taxa within the community the lower is J
   # highly dependent on sample size and highly sensitive to rare taxa
   
   # Chao 1 richness esimator
@@ -486,35 +486,37 @@ names(alpha) <- c(paste0("lib", min_lib), "css")
 alpha.df <- bind_rows(alpha, .id = "Data")
 
 write.table(alpha.df, "./Output/alpha_div_summary.csv", sep = ";", dec = ".", row.names = F)
+alpha.df <- read.csv("./Output/alpha_div_summary.csv", sep = ";", dec = ".", stringsAsFactors = F)
 
 #------------------------------------------------------------------------------------------------#
 # Combine with bray distance data
-# first get some meta data
-alpha.df <- merge(alpha.df , sample_df(pb) %>% dplyr::select(Sample = DadaNames, DnaType))
-
 # correct a few wrong sample names for matching DNA and RNA
 alpha.df[alpha.df$Sample == "RO2R52R", "Sample"] <- "RO2.52R"
 alpha.df[alpha.df$Sample == "SWR34R", "Sample"] <- "SW34R"
 alpha.df[alpha.df$Sample == "RO2.36pD", "Sample"] <- "RO2.36D"
 alpha.df[alpha.df$Sample == "RO2.36pR", "Sample"] <- "RO2.36R"
 alpha.df[alpha.df$Sample == "RO2111.60mD", "Sample"] <- "RO2111.90mD"
-alpha.df[alpha.df$Sample == "RO2.30DR", "Sample"] <- "RO2.30R" # two DNA
-#alpha.df[alpha.df$Sample == "TR49", "Sample"] <- # two DNA
+alpha.df[alpha.df$Sample == "RO2.30DPR", "Sample"] <- "RO2.30R" # two DNA
+alpha.df[alpha.df$Sample == "RO301.HypoR", "Sample"] <- "RO31.HypoR"
+alpha.df[alpha.df$Sample == "RO301R", "Sample"] <- "RO31R" 
+alpha.df[alpha.df$Sample == "RO304R", "Sample"] <- "RO34R" 
+alpha.df[alpha.df$Sample == "RO307R", "Sample"] <- "RO37R" 
+alpha.df[alpha.df$Sample == "L230R", "Sample"] <- "L330R" # L230 does not exist
 
+# get ID
+setDT(alpha.df); setDT(pdataframe)
+alpha.df[pdataframe[Metric == "Bray"], c("ID", "DnaType") := 
+           list(i.ID, i.DnaType), on = .(Sample)]
 
-# remove Ds and Rs to match counterpart samples
-alpha.df$ID[alpha.df$DnaType == "DNA"] <- str_replace(alpha.df$Sample[alpha.df$DnaType == "DNA"], "D$", "")
-alpha.df$ID[alpha.df$DnaType == "cDNA"] <- str_replace(alpha.df$Sample[alpha.df$DnaType == "cDNA"], "R$", "")
-
-
+# split DNA and RNA
 dna.alpha <- alpha.df[alpha.df$DnaType == "DNA",]
-rna.alpha <- alpha.df[alpha.df$DnaType == "cDNA",]
+rna.alpha <- alpha.df[alpha.df$DnaType == "RNA",]
 
 ############################
-
+# Explore DNA and RNA relations
 # calculate mean coordinates for duplicates
 sum <- alpha.df %>%
-  dplyr::group_by(ID, Rarefy, DnaType) %>%
+  dplyr::group_by(ID, Data, DnaType) %>%
   dplyr::summarise(Shannon = mean(Shannon, na.rm = T),
                    Simpson = mean(Simpson, na.rm = T),
                    Pielou = mean(Pielou, na.rm = T),
@@ -522,86 +524,60 @@ sum <- alpha.df %>%
   ungroup()
 
 setDT(sum)
-temp <- dcast(sum, ID + Rarefy ~ DnaType, value.var = c("Simpson","Shannon","Pielou","Chao1"))
+temp <- dcast(sum, ID + Data ~ DnaType, value.var = c("Simpson","Shannon","Pielou","Chao1"))
 
-temp <- melt(temp, id.vars = c("ID","Rarefy"),
+temp <- melt(temp, id.vars = c("ID","Data"),
      variable.name = "Index",
      value.name = "Diversity") %>%
   separate(Index, into = c("Index","DnaType"), sep = "_")
 
-temp <- dcast(temp, ID + Rarefy + Index ~ DnaType, value.var = "Diversity") 
+temp <- dcast(temp, ID + Data + Index ~ DnaType, value.var = "Diversity") 
 
 
-ggplot(temp, aes(x = cDNA, y = DNA)) +
-  theme_pubr() + 
-  geom_point() +
-  facet_grid(Rarefy~Index, scales = "free")
+ggplot(temp[Index == "Pielou",], aes(x = DNA, y = RNA)) +
+  geom_point()
 
-#
+# Correlate richness to distance in PCoA space between DNA and RNA
 
-dna.alpha <- melt(setDT(dna.alpha), id.vars = c("ID","Rarefy"),
+dna.alpha <- melt(setDT(dna.alpha), id.vars = c("ID","Data"),
                   measure.vars = c("Shannon","Simpson","Pielou","Chao1"),
                   variable.name = "Index",
                   value.name = "Diversity")
 
 # merge with distance
-plot.df <- merge(dna.alpha, dist.dr %>% dplyr::select(ID, sample.type.year,Year, Season, distance), by = "ID")
-plot.df$log.dist <- log(plot.df$distance)
-plot.df$log.div <- log(plot.df$Diversity)
+plot.df <- dna.alpha[dist.dr[Metric == "Bray"], c("distance.bray",
+                                                  "sample.type.year") := 
+                       list(i.distance, i.sample.type.year), on = .(ID)]
 
+#plot.df <- dna.alpha[dist.dr[Metric == "Jaccard"], c("distance.jac",
+#                                                  "sample.type.year") := 
+#                       list(i.distance, i.sample.type.year), on = .(ID)]
+
+# create colour vector for plotting
 colvec <- c("red4","chocolate3","orangered2","orange3",
             "cadetblue", "darksalmon",
             "darkolivegreen","darkolivegreen3",
             "royalblue","mediumorchid4", "violet","palevioletred2","navy","skyblue",
             "seagreen3")
 
-p <- ggscatter(plot.df, x = "distance", y = "Diversity", 
+# make plot with ggpubr to include pearson's correlation outputs directly in the plot
+p <- ggscatter(plot.df[!is.na(distance.bray),], x = "distance.bray", y = "Diversity", 
                color = "sample.type.year",
                palette = colvec,
                xlab = "Distance between DNA and RNA \nin PCoA space (Bray Curtis)",
                ylab = "DNA Alpha Diversity",
                legend.title = "Sample Type")
-(pf <- facet(p, facet.by = c("Index","Rarefy"), ncol = 3, nrow = 4, scales = "free")+
-  stat_cor(method = "pearson", label.x = 0.2, cor.coef.name = "r"))
+(pf <- facet(p, facet.by = c("Index","Data"), ncol = 3, nrow = 4, scales = "free")+
+  stat_cor(method = "pearson", label.x = 0.1, cor.coef.name = "r"))
 
-ggsave("./Figures/General/All_DNARNA_distance_alphadiv.png", pf,
-       width = 25, height = 18, unit = "cm")
+ggsave("./Figures/Final/All_DNARNA_distance_alphadiv_comparison.png", pf,
+       width = 30, height = 18, unit = "cm")
 
-#(ap <- ggplot(plot.df, 
-#              aes(x = log(distance), y = log(Diversity), colour = sample.type.year)) +
-#    theme_pubr() +
-#    geom_point() + 
-#    facet_grid(Index~Rarefy, scales = "free"))
 
-rna.alpha <- alpha.df[alpha.df$DnaType == "cDNA",]
+# There is no substantial effect of data transformation on alpha diversity results (CSS vs Rarefaction)
+# We continue with CSS to keep consistent with the underlying data structure
 
-rna.alpha <- melt(setDT(rna.alpha), id.vars = c("ID","Rarefy"),
-                  measure.vars = c("Shannon","Simpson","Pielou","Chao1"),
-                  variable.name = "Index",
-                  value.name = "Diversity")
-
-# merge with distance
-plot.df <- merge(rna.alpha, dist.dr %>% dplyr::select(ID, sample.type.year,Year, Season, distance), by = "ID")
-plot.df$log.dist <- log(plot.df$distance)
-plot.df$log.div <- log(plot.df$Diversity)
-
-colvec <- c("red4","chocolate3","orangered2","orange3",
-            "cadetblue", "darksalmon",
-            "darkolivegreen","darkolivegreen3",
-            "royalblue","mediumorchid4", "violet","palevioletred2","navy","skyblue",
-            "seagreen3")
-
-p <- ggscatter(plot.df, x = "distance", y = "Diversity", 
-               color = "sample.type.year",
-               palette = colvec,
-               xlab = "Distance between DNA and RNA \nin PCoA space (Bray Curtis)",
-               ylab = "RNA Alpha Diversity",
-               legend.title = "Sample Type")
-(pf <- facet(p, facet.by = c("Index","Rarefy"), ncol = 3, nrow = 4, scales = "free")+
-    stat_cor(method = "pearson", label.x = 0.2, cor.coef.name = "r"))
-
-ggsave("./Figures/General/All_DNARNA_distance_alphadiv.png", pf,
-       width = 25, height = 18, unit = "cm")
+# Calculate 
 
 #-----------#
 # 2015-2016 #
