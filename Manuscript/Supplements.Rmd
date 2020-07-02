@@ -30,11 +30,62 @@ knitr::include_graphics(c("./Figures/LR_photo_collage.png"))
 knitr::include_graphics(c("../Figures/Final/All_DNARNA_distance_alphadiv_comparison.png"))
 ``` 
 
-Comparing the effect of method on the relation of DNA alpha diversity indices with distance between DNA and RNA within PCoA space. Rows represent different alpha diversity indices: Shannon-Wiener index (H'), Simpson's index ($\lambda$), Pielou's evenness (J) and Chao1 richness estimator. CSS = cumulative sum scaling, all remaining three columns with "lib" indications refer to rarefaction thresholds. 
+Comparing the effect of used method on the relation between DNA alpha diversity indices and the distance between DNA and RNA of the same samples within PCoA space. Rows represent different alpha diversity indices: Shannon-Wiener index (H'), Simpson's index ($\lambda$), Pielou's evenness (J) and Chao1 richness estimator. CSS = cumulative sum scaling, all remaining three subsequent columns are rarefied datasets with the applied minimum library size threshold indicated after "Lib". 
+
+### Figure S3: Taxonomic composition of sample types
+
+```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "100%"}
+knitr::include_graphics(c("../Figures/Final/Tax_LibSiz_Phyla.png"))
+``` 
+
+Given are averages of phyla found across sample types. Upper panel shows average library sizes across sample types. Error bars indicate the standard deviation from the mean.
 
 # Suppplementary Tables
 
-| Nucleic Acid Type | Soil | Soilwater | Wellwater | Headwater Ponds | Stream | River | Reservoirs | Reservoir Hypolimnion | Estuary | Sediment | Tributary | Headwater Lake | Lake | Sum
-|:------------------|:----:|:---------:|:---------:|:--------:|:-------:|:-----:|:----------:|:-------:|:-------:|:--------:|:---------:|:--------:|:----:|----:
-| DNA | 33 | 44 | 17 | 4 | 10 | 34 | 65 | 95 | 9 | 20 | 22| 9 | 17 | 16 | 395
-| RNA | 8 | 13 | 14 | 0 | 0 | 18 | 33 | 75 | 9 | 4 | 4 | 5 | 8 | 11 | 202
+### Table S1: Number of samples per sample type.
+Number of samples are given per sample type. RO stands for reservoir.
+```{r, echo = F}
+source("../Functions/peak_identification.R")
+library(data.table)
+library("kableExtra")
+met.df <-
+  select_newest(path = "../Output", file.pattern = "201520162017_meta_data")
+met.df <-
+  read.csv(
+    paste0("../Output/", met.df),
+    sep = ";",
+    dec = ".",
+    stringsAsFactors = F
+  )
+
+# get number of samples for methods
+setDT(met.df)
+met.df$sample.type.year <- factor(met.df$sample.type.year, levels = c("Soil","Sediment",
+                                                                              "Soilwater","Hyporheicwater", 
+                                                                              "Wellwater","Stream", "Tributary",
+                                                                              "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
+                                                                              "Upriver","RO3", "RO2", "RO1","Deep",
+                                                                              "Downriver",
+                                                                              "Marine"),
+                                      labels = c("Soil","Sediment",
+                                                 "Soilwater","Hyporheicwater", 
+                                                 "Groundwater","Stream", "Tributary",
+                                                 "Headwater Lakes", "Upstream Ponds", "Lake", "Lake",
+                                                 "Upriver","RO3","RO2", "RO1","Hypolimnion","Downriver",
+                                                 "Estuary"))
+met.df$DnaType <- factor(met.df$DnaType, levels = c("DNA", "cDNA"), labels = c("DNA", "RNA"))
+
+n.table <- met.df[, .(n = .N), by = .(sample.type.year, DnaType)][order(sample.type.year, DnaType)]
+n.table <- dcast(n.table, DnaType ~ sample.type.year, value.var = "n", fill = 0)
+colnames(n.table)[1] <- "Nucleic Acid Type"
+n.table[, Sum := sum(.SD, na.rm = T), .SDcols = c("Soil","Sediment",
+                                                 "Soilwater","Hyporheicwater", 
+                                                 "Groundwater","Stream", "Tributary",
+                                                 "Headwater Lakes", "Upstream Ponds", "Lake",
+                                                 "Upriver","RO3","RO2", "RO1","Hypolimnion","Downriver",
+                                                 "Estuary"), by = 1:nrow(n.table)]
+
+knitr::kable(n.table, "latex", booktabs = T) %>%
+  column_spec(1:ncol(n.table), width = "0.5cm") %>%
+  row_spec(0, angle = 45)
+```

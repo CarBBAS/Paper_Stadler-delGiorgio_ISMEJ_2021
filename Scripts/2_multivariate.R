@@ -76,6 +76,7 @@ met.df <-
     dec = ".",
     stringsAsFactors = F
   )
+
 # phyloseq needs the sample names of the meta data to be the same as the microbial data
 met.df <- sample_data(met.df)
 
@@ -87,9 +88,38 @@ pb <- phyloseq(otu_table(asv.tab, taxa_are_rows = T),
                sample_data(met.df),
                tax_table(tax.tab))
 
+# get number of samples for methods
+
+
 ############
 # Analysis #
 ############
+# find abundant, moderate and rare taxa by sample type
+# melt into long format
+rel.df <- select_newest("./Output", "201520162017_css")
+rel.df <- read.csv(
+  paste0("./Output/", rel.df),
+  sep = "\t",
+  dec = ".",
+  stringsAsFactors = F
+)
+
+
+molten.asv <- melt.data.table(setDT(as.data.frame(asv.tab), keep.rownames = "ASV"),
+                id.vars = "ASV", # skip measure.var, takes all columns
+                variable.name = "Sample",
+                value.name = "css.reads")
+
+# merge relevant meta data
+molten.asv[sample_df(met.df), c("sample.type.year",
+                                "Season") := list(i.sample.type.year,
+                                                  i.Season), on = c("Sample" = "DadaNames")]
+
+# calculate relative abundance
+molten.asv[, total := sum(css.reads), .(Sample)]
+molten.asv[, rel.abund := css.reads / total]
+
+
 # make ordinations
 # tried NMDS stress does not reach convergence
 
@@ -147,8 +177,8 @@ pdataframe$sample.type.year <- factor(pdataframe$sample.type.year, levels = c("S
                                                                             "Marine"),
                                      labels = c("Soil","Sediment",
                                                 "Soilwater","Hyporheicwater", 
-                                                "Wellwater","Stream", "Tributary",
-                                                "Headwater \nLake", "Upstream \nPond", "Lake", "Lake",
+                                                "Groundwater","Stream", "Tributary",
+                                                "Headwater \nLakes", "Upstream \nPonds", "Lake", "Lake",
                                                 "Upriver","RO3","RO2", "RO1","Hypolimnion","Downriver",
                                                 "Estuary"))
 pdataframe$Season <- factor(pdataframe$Season, levels = c("spring", "summer", "autumn"), 
@@ -280,7 +310,7 @@ dist.dr <- temp[pdataframe, c("sample.type.year",
 dist.dr[, panels := "main"]
 dist.dr[sample.type.year == "Tributary" |
           sample.type.year == "Lake" |
-          sample.type.year == "Headwater \nLake" |
+          sample.type.year == "Headwater \nLakes" |
           sample.type.year == "Sediment", panels := "side"]
 
 write.table(dist.dr, "./Output/bray_pcoa_dnarna_distance.csv",
@@ -294,7 +324,7 @@ write.table(dist.dr, "./Output/bray_pcoa_dnarna_distance.csv",
       x = sample.type.year, y = distance, fill = Season
     )) +
     theme_pubr() +
-    geom_boxplot(width = 0.5, outlier.size = 0.5, size = 0.3) + # outlier.alpha = 0
+    geom_boxplot(width = 0.7, outlier.size = 0.5, size = 0.3) + # outlier.alpha = 0
     scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
     new_scale_fill() +
     #geom_point(aes(fill = as.character(Year)), position = position_jitterdodge(), colour = "black", shape = 21) + #alpha = 0.5,
@@ -316,7 +346,7 @@ write.table(dist.dr, "./Output/bray_pcoa_dnarna_distance.csv",
       x = sample.type.year, y = distance, fill = Season
     )) +
     theme_pubr() +
-    geom_boxplot(width = 0.5, outlier.size = 0.5, size = .3) + # outlier.alpha = 0
+    geom_boxplot(width = 0.7, outlier.size = 0.5, size = .3) + # outlier.alpha = 0
     scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
     new_scale_fill() +
     #geom_point(
@@ -348,7 +378,7 @@ write.table(dist.dr, "./Output/bray_pcoa_dnarna_distance.csv",
       x = sample.type.year, y = distance, fill = Season
     )) +
     theme_pubr() +
-    geom_boxplot(width = 0.5, outlier.size = 0.5, size = 0.3) + # outlier.alpha = 0
+    geom_boxplot(width = 0.7, outlier.size = 0.5, size = 0.3) + # outlier.alpha = 0
     scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
     new_scale_fill() +
     #geom_point(aes(fill = as.character(Year)), position = position_jitterdodge(), colour = "black", shape = 21) + #alpha = 0.5,
@@ -370,7 +400,7 @@ write.table(dist.dr, "./Output/bray_pcoa_dnarna_distance.csv",
       x = sample.type.year, y = distance, fill = Season
     )) +
     theme_pubr() +
-    geom_boxplot(width = 0.5, outlier.size = 0.5, size = .3) + # outlier.alpha = 0
+    geom_boxplot(width = 0.7, outlier.size = 0.5, size = .3) + # outlier.alpha = 0
     scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
     new_scale_fill() +
     #geom_point(
@@ -418,8 +448,8 @@ write.table(dist.dr, "./Output/bray_pcoa_dnarna_distance.csv",
 (p <- annotate_figure(p, bottom = text_grob("Sample Type")))
 
 # save
-ggsave("./Figures/Final/All_log_DNARNA_withinPCoA_distance.tiff", 
-       p, width = 18, height = 15, unit = "cm")
+ggsave("./Figures/Final/All_DNARNA_withinPCoA_distance.tiff", 
+       p, width = 18, height = 13, unit = "cm")
 
 ##########################################################################
 #-----------------------#
@@ -560,6 +590,9 @@ colvec <- c("red4","chocolate3","orangered2","orange3",
             "royalblue","mediumorchid4", "violet","palevioletred2","navy","skyblue",
             "seagreen3")
 
+plot.df$Data <- factor(plot.df$Data, levels = c("css", "lib15000", "lib25000", "lib50000"),
+                       labels = c("CSS", "Rarefied: Lib15000", "Rarefied: Lib25000","Rarefied: Lib50000"))
+
 # make plot with ggpubr to include pearson's correlation outputs directly in the plot
 p <- ggscatter(plot.df[!is.na(distance.bray),], x = "distance.bray", y = "Diversity", 
                color = "sample.type.year",
@@ -577,7 +610,443 @@ ggsave("./Figures/Final/All_DNARNA_distance_alphadiv_comparison.png", pf,
 # There is no substantial effect of data transformation on alpha diversity results (CSS vs Rarefaction)
 # We continue with CSS to keep consistent with the underlying data structure
 
-# Calculate 
+# We focus on two alpha diversity indices:
+# Shannon-Wiener and Pielou
+
+alpha.df <- plot.df[Data == "CSS" & (Index == "Shannon" | Index == "Pielou"),]
+alpha.df <- alpha.df[!is.na(distance.bray),]
+setorderv(alpha.df, c("Index","Diversity")) # rearrange dataframe
+
+z <- alpha.df[Index == "Shannon"]
+z <- z %>%
+  dplyr::group_by(sample.type.year) %>%
+  dplyr::summarise(Diversity = mean(Diversity, na.rm = T),
+                   distance.bray = mean(distance.bray, na.rm = T))
+plot(Diversity ~ distance.bray, data = z) # does not seem linear
+lm0 <- lm(z$Diversity ~ 1)
+lm1 <- lm(z$Diversity ~ z$distance.bray)
+lm2 <- lm(z$Diversity ~ poly(z$distance.bray, 2))
+lm3 <- lm(z$Diversity ~ poly(z$distance.bray, 3))
+anova(lm0,lm1) # preferred model is lm1
+anova(lm1,lm2) 
+anova(lm2,lm3) 
+rm(z)
+
+
+z <- alpha.df[Index == "Pielou"]
+z <- z %>%
+  dplyr::group_by(sample.type.year) %>%
+  dplyr::summarise(Diversity = mean(Diversity, na.rm = T),
+                   distance.bray = mean(distance.bray, na.rm = T))
+plot(Diversity ~ distance.bray, data = z) # does not seem linear
+lm0 <- lm(z$Diversity ~ 1)
+lm1 <- lm(z$Diversity ~ z$distance.bray)
+lm2 <- lm(z$Diversity ~ poly(z$distance.bray, 2))
+lm3 <- lm(z$Diversity ~ poly(z$distance.bray, 3))
+anova(lm0,lm1)
+anova(lm1,lm2) # preferred model is lm2
+anova(lm2,lm3) 
+
+# lm2 equation:
+# y = beta[0] + beta[1]x + beta[2]x^2 + epsilon
+rm(z)
+
+# both models are best with a polynomial degree 2
+
+lin.ls <- dlply(alpha.df, .(Index), function(z){
+  
+  means <- z %>%
+    dplyr::group_by(sample.type.year) %>%
+    dplyr::summarise(Diversity = mean(Diversity, na.rm = T),
+                     distance.bray = mean(distance.bray, na.rm = T))
+  if(unique(z$Index) == "Shannon"){
+    lin <- lm(means$Diversity ~ means$distance.bray)
+  } else if(unique(z$Index) == "Pielou") {
+    lin <-  lm(means$Diversity ~ poly(means$distance.bray, 2))
+  }
+
+  # check linear assumptions
+  #plot(lin) # normality not good
+  # large sample sizes, normality does not affect results too much (central limit theorem)
+  # homoscedasticity and independence important
+  #summary(lin)
+  #confint(lin, level = 0.95)
+  
+  # get data for plotting
+  x <- data.frame(x = sort(means$distance.bray))
+  pred <- predict(lin, newdata = x, se = T)
+  ci <- pred$se.fit[order(means$distance.bray)] * qt(0.95 / 2 + 0.5, pred$df)
+  y <- pred$fit[order(means$distance.bray)]
+  ymin <- y - ci
+  ymax <- y + ci
+  
+  plot.df <- data.frame(x = sort(means$distance.bray),
+                        y = y,
+                        ymin = ymin,
+                        ymax = ymax,
+                        se = pred$se.fit[order(means$distance.bray)])
+  
+  colvec <- c("red4","chocolate3","orangered2","orange3",
+              "cadetblue", "darksalmon",
+              "darkolivegreen","darkolivegreen3",
+              "royalblue","mediumorchid4", "violet","palevioletred2","navy","skyblue",
+              "seagreen3")
+  
+  p <- ggplot() +
+    theme_pubr() +
+    geom_point(data = z, aes(x = distance.bray, y = Diversity), 
+               colour = "gray40", alpha = 0.3, size = 2) +
+    geom_line(data = plot.df, aes(x = x, y = y), inherit.aes = F, size = 1) +
+    geom_line(data = plot.df, aes(x = x, y = ymax), inherit.aes = F, size = 0.7, linetype = "dashed") +
+    geom_line(data = plot.df, aes(x = x, y = ymin), inherit.aes = F, size = 0.7, linetype = "dashed") +
+    geom_point(data = means,
+               aes(x = distance.bray, y = Diversity, fill = sample.type.year), shape = 21, size = 3) +
+    scale_fill_manual(values = colvec, name = "Sample Type") +
+    labs(x = "",
+         y = paste0(unique(z$Index)))
+
+  # get model statistics
+  options(scipen = 999) # avoid scientific annotations
+  
+  fnr <- substitute(italic(R)^2~"="~r2*","~~italic(F)[df]~"="~Fstat,
+                    list(r2 = format(summary(lin)$r.squared, digits = 2),
+                         Fstat = format(summary(lin)$fstatistic[[1]], digits = 4),
+                         df = paste0(format(summary(lin)$fstatistic[[2]], digits = 0),
+                                     ",", format(summary(lin)$fstatistic[[3]], digits = 0))))
+  pv1 <- summary(lin)$coefficients[2,4]
+  pv1 <- if(pv1 < 0.0001){
+    "< 0.0001"} else if(pv1 < 0.001){
+      "< 0.001"} else if(pv1 < 0.01){
+        "< 0.01"} else if(pv1 < 0.05){
+          "< 0.05"
+        } else {
+          paste("=",round(pv1, 2))
+        }
+  
+  if(unique(z$Index) == "Pielou"){
+    eq1 <- substitute(italic(y) == a - b %.% italic(x) + b2 %.% italic(x)^2,
+                      list(a = format(as.vector(coef(lin)[1]), digits = 2),
+                           b = format(as.vector(abs(coef(lin)[2])), digits = 2),
+                           b2 = format(as.vector(coef(lin)[3]), digits = 2)))
+    
+    pv2 <- summary(lin)$coefficients[3,4]
+    pv2 <- if(pv2 < 0.0001){
+      "< 0.0001"} else if(pv2 < 0.001){
+        "< 0.001"} else if(pv2 < 0.01){
+          "< 0.01"} else if(pv2 < 0.05){
+            "< 0.05"
+          } else {
+            paste("=",round(pv2, 2))
+          }
+    ps <- substitute(italic(p)[beta[1]]~pval1*","~italic(p)[beta[2]]~pval2,
+                     list(pval1 = pv1,
+                          pval2 = pv2))
+    (p <- p + 
+        annotate("text", x = 0.4, y = 0.9, 
+                 label = as.character(as.expression(eq1)), parse = T, size = 2.5)+
+        annotate("text", x = 0.4, y = 0.88, 
+                 label = as.character(as.expression(fnr)), parse = T, size = 2.5) +
+        annotate("text", x = 0.4, y = 0.86, 
+                 label = as.character(as.expression(ps)), parse = T, size = 2.5) 
+    )
+  } else {
+    eq1 <- substitute(italic(y) == a - b %.% italic(x),
+                      list(a = format(as.vector(coef(lin)[1]), digits = 2),
+                           b = format(as.vector(abs(coef(lin)[2])), digits = 2)))
+    ps <- substitute(italic(p)~pval1,
+                     list(pval1 = pv1))
+    
+    (p <- p + 
+        annotate("text", x = 0.4, y = 6.5, 
+                 label = as.character(as.expression(eq1)), parse = T, size = 2.5)+
+        annotate("text", x = 0.4, y = 6.3, 
+                 label = as.character(as.expression(fnr)), parse = T, size = 2.5) +
+        annotate("text", x = 0.4, y = 6.1, 
+                 label = as.character(as.expression(ps)), parse = T, size = 2.5) 
+    )
+  }
+  
+  #, abs(round(coef(lin)[2], 2)), "*x +",
+  #round(coef(lin)[3], 2), "*x"^2*""
+  
+  list(original = z,
+       binned = means,
+       lin = lin,
+       coef = coef(lin),
+       fitted = lin.df,
+       plot = p)
+
+})
+
+(p <- ggarrange(lin.ls[[1]]$plot, lin.ls[[2]]$plot,
+                ncol = 2, common.legend = T, legend = "right"))
+
+(p <- annotate_figure(p, 
+                      bottom = text_grob("Distance between DNA and RNA in PCoA space (Bray Curtis)",
+                                         just = "centre")))
+ggsave("./Figures/Final/Richness_distance_nonlin_reg.png", p,
+       width = 22, height = 11, unit = "cm")
+
+ggplot() +
+  theme_pubr() +
+  facet_grid(.~Index) + 
+  geom_point(data = alpha.df, aes(x = distance.bray, y = Diversity), colour = "gray40", alpha = 0.5) +
+  geom_line(data = lin.df, aes(x = x, y = y), inherit.aes = F, size = 1) +
+  geom_line(data = lin.df, aes(x = x, y = ymax), inherit.aes = F, size = 0.7, linetype = "dashed") +
+  geom_line(data = lin.df, aes(x = x, y = ymin), inherit.aes = F, size = 0.7, linetype = "dashed") +
+  geom_point(data = means,
+             aes(x = mean.dist, y = mean.div, fill = sample.type.year), shape = 21, size = 3) +
+  labs(x = "Distance between DNA and RNA \nin PCoA space (Bray Curtis)", y = "Shannon-Wiener Index")
+
+ggplot(shan, aes(x = distance.bray, y = Diversity)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ poly(x,3)) +
+  stat_smooth(aes(outfit = fit <<- ..y..), method = "lm", formula = y ~ poly(x,3))
+
+lin.p <- lm(exp(pie$Diversity) ~ poly(pie$distance.bray,2))
+plot(lin.p) # normality not good
+
+
+ggplot(alpha.df, aes(x = distance.bray, y = Diversity)) +
+  geom_point() +
+  facet_grid(.~Index, scales = "free")
+
+
+# Taxonomic composition
+# We want to show the taxonomic composition of our samples plus the abundance
+# As we have too many samples, best would probably be to calcualte the mean abundance for each group
+# Groups are: sample.type.year + DnaType + Season
+
+# melt ASV table
+pb.df <- as.data.frame(otu_mat(pb)) # make data.frame
+setDT(pb.df, keep.rownames = "ASV") # make data.table
+
+# melt
+pb.df <- melt.data.table(pb.df, 
+                id.vars = "ASV", # skip measure.var, takes all columns
+                variable.name = "Sample",
+                value.name = "css")
+
+# add taxonomy data to the abundance data
+tax.df <- as.data.frame(tax.tab) # make data.frame
+setDT(tax.df, keep.rownames = "ASV") # make data.table
+pb.df <- pb.df[tax.df, on = .(ASV)] # merge
+
+# add meta data
+meta <- sample_df(met.df) %>%
+  dplyr::select(DnaType, Year, Season, sample.type.year, soilorwater, LibrarySize)
+setDT(meta, keep.rownames = "Sample") # make data.table
+
+pb.df <- pb.df[meta, on = .(Sample)] # merge
+
+# calculate mean abundance (css) for each category
+mean.pb <- pb.df[, .(css.mean = mean(css, na.rm = T),
+                     css.sd = sd(css, na.rm = T)),
+          by = .(ASV, sample.type.year, Season, DnaType)][
+            , css.sum := sum(css.mean, na.rm = T),
+            by = .(sample.type.year, Season, DnaType)
+          ][, css.rel := css.mean * 1 / css.sum]
+mean.pb <- mean.pb[tax.df, on = .(ASV)] # merge with taxonomy data
+mean.pb[, ID := paste(DnaType, Season, sample.type.year, sep = "_")] # add plot ID
+
+# calculate mean library size per category
+lib.size <- pb.df[, .(lib.mean = mean(LibrarySize, na.rm = T),
+                      lib.sd = sd(LibrarySize, na.rm = T)),
+                  by = .(sample.type.year, Season, DnaType)]
+lib.size[, ID := paste(DnaType, Season, sample.type.year, sep = "_")] # add plot ID
+
+# Overwrite IDs as factors to set a order for plotting
+mean.pb$ID <- factor(mean.pb$ID, 
+                                      levels = c("DNA_spring_Soil", "DNA_spring_Sediment",
+                                                 "DNA_spring_Soilwater","DNA_spring_Hyporheicwater", 
+                                                 "DNA_spring_Wellwater", "DNA_spring_Stream",
+                                                 "DNA_spring_Tributary", "DNA_spring_HeadwaterLakes",
+                                                 "DNA_spring_PRLake", "DNA_spring_Lake",
+                                                 "DNA_spring_IslandLake", "DNA_spring_Upriver",
+                                                 "DNA_spring_RO2", 
+                                                 "DNA_spring_RO1",
+                                                 "DNA_spring_Downriver", "DNA_spring_Marine",
+                                                 "DNA_summer_Soil", "DNA_summer_Sediment",
+                                                 "DNA_summer_Soilwater","DNA_summer_Hyporheicwater", 
+                                                 "DNA_summer_Stream",
+                                                 "DNA_summer_Tributary", "DNA_summer_HeadwaterLakes",
+                                                 "DNA_summer_PRLake", "DNA_summer_Lake",
+                                                 "DNA_summer_IslandLake", "DNA_summer_Upriver",
+                                                 "DNA_summer_RO3", "DNA_summer_RO2", 
+                                                 "DNA_summer_RO1", "DNA_summer_Deep",
+                                                 "DNA_summer_Downriver", "DNA_summer_Marine",
+                                                 "DNA_autumn_Tributary", "DNA_autumn_HeadwaterLakes",
+                                                 "DNA_autumn_Lake", "DNA_autumn_Upriver",
+                                                 "DNA_autumn_RO3", "DNA_autumn_RO2", 
+                                                 "DNA_autumn_RO1", "DNA_autumn_Deep",
+                                                 "DNA_autumn_Downriver",
+                                                 "cDNA_spring_Soil",
+                                                 "cDNA_spring_Soilwater","cDNA_spring_Hyporheicwater", 
+                                                 "cDNA_spring_Stream",
+                                                 "cDNA_spring_Tributary", "cDNA_spring_HeadwaterLakes",
+                                                 "cDNA_spring_Lake",
+                                                 "cDNA_spring_Upriver",
+                                                 "cDNA_spring_RO2", 
+                                                 "cDNA_spring_RO1",
+                                                 "cDNA_spring_Downriver",
+                                                 "cDNA_summer_Soil", "cDNA_summer_Sediment",
+                                                 "cDNA_summer_Soilwater","cDNA_summer_Hyporheicwater", 
+                                                 "cDNA_summer_Stream",
+                                                 "cDNA_summer_Tributary", "cDNA_summer_HeadwaterLakes",
+                                                 "cDNA_summer_Lake",
+                                                 "cDNA_summer_Upriver",
+                                                 "cDNA_summer_RO3", "cDNA_summer_RO2", 
+                                                 "cDNA_summer_RO1", "cDNA_summer_Deep",
+                                                 "cDNA_summer_Downriver", "cDNA_summer_Marine",
+                                                 "cDNA_autumn_Tributary", "cDNA_autumn_HeadwaterLakes",
+                                                 "cDNA_autumn_Lake", "cDNA_autumn_Upriver",
+                                                 "cDNA_autumn_RO3", "cDNA_autumn_RO2", 
+                                                 "cDNA_autumn_RO1", "cDNA_autumn_Deep",
+                                                 "cDNA_autumn_Downriver"))
+
+lib.size$ID <- factor(lib.size$ID, 
+                     levels = c("DNA_spring_Soil", "DNA_spring_Sediment",
+                                "DNA_spring_Soilwater","DNA_spring_Hyporheicwater", 
+                                "DNA_spring_Wellwater", "DNA_spring_Stream",
+                                "DNA_spring_Tributary", "DNA_spring_HeadwaterLakes",
+                                "DNA_spring_PRLake", "DNA_spring_Lake",
+                                "DNA_spring_IslandLake", "DNA_spring_Upriver",
+                                "DNA_spring_RO2", 
+                                "DNA_spring_RO1",
+                                "DNA_spring_Downriver", "DNA_spring_Marine",
+                                "DNA_summer_Soil", "DNA_summer_Sediment",
+                                "DNA_summer_Soilwater","DNA_summer_Hyporheicwater", 
+                                "DNA_summer_Stream",
+                                "DNA_summer_Tributary", "DNA_summer_HeadwaterLakes",
+                                "DNA_summer_PRLake", "DNA_summer_Lake",
+                                "DNA_summer_IslandLake", "DNA_summer_Upriver",
+                                "DNA_summer_RO3", "DNA_summer_RO2", 
+                                "DNA_summer_RO1", "DNA_summer_Deep",
+                                "DNA_summer_Downriver", "DNA_summer_Marine",
+                                "DNA_autumn_Tributary", "DNA_autumn_HeadwaterLakes",
+                                "DNA_autumn_Lake", "DNA_autumn_Upriver",
+                                "DNA_autumn_RO3", "DNA_autumn_RO2", 
+                                "DNA_autumn_RO1", "DNA_autumn_Deep",
+                                "DNA_autumn_Downriver",
+                                "cDNA_spring_Soil",
+                                "cDNA_spring_Soilwater","cDNA_spring_Hyporheicwater", 
+                                "cDNA_spring_Stream",
+                                "cDNA_spring_Tributary", "cDNA_spring_HeadwaterLakes",
+                                "cDNA_spring_Lake",
+                                "cDNA_spring_Upriver",
+                                "cDNA_spring_RO2", 
+                                "cDNA_spring_RO1",
+                                "cDNA_spring_Downriver",
+                                "cDNA_summer_Soil", "cDNA_summer_Sediment",
+                                "cDNA_summer_Soilwater","cDNA_summer_Hyporheicwater", 
+                                "cDNA_summer_Stream",
+                                "cDNA_summer_Tributary", "cDNA_summer_HeadwaterLakes",
+                                "cDNA_summer_Lake",
+                                "cDNA_summer_Upriver",
+                                "cDNA_summer_RO3", "cDNA_summer_RO2", 
+                                "cDNA_summer_RO1", "cDNA_summer_Deep",
+                                "cDNA_summer_Downriver", "cDNA_summer_Marine",
+                                "cDNA_autumn_Tributary", "cDNA_autumn_HeadwaterLakes",
+                                "cDNA_autumn_Lake", "cDNA_autumn_Upriver",
+                                "cDNA_autumn_RO3", "cDNA_autumn_RO2", 
+                                "cDNA_autumn_RO1", "cDNA_autumn_Deep",
+                                "cDNA_autumn_Downriver"))
+
+
+# colour blind friendly, derived from https://medialab.github.io/iwanthue/
+col_vector<-c("#dcd873","#350070","#b9ce40","#003499","#f5d249","#6b8aff","#06a644","#ec83f6","#7beb8b",
+"#c947b1","#01b072","#df3587","#006f26","#ff83d0","#215a00","#99a1ff","#668200",
+"#015db8","#e77e28","#019cf8","#b5221d","#67b8ff","#bd0a35","#b2e294","#840066",
+"#314800","#ffb0ed","#954700","#3d0e52","#ff9b61","#59003b","#ff6e83","#aa7dbf","#620009")
+
+# normal
+#col_vector<-c("#6893ff","#bbce1a","#6b63ed","#18cc58","#b22bb2",
+#"#71dd6e","#ff6fea","#428700","#005eca","#f1bf45","#36508f","#d78600","#4bb8ff",
+#"#ce5300","#5bd5f6","#da0053","#01823f","#c80074","#97d68c","#a5006f","#bccf63",
+#"#85307a","#848a00","#ff94d5","#006845","#ff6f91","#00b5be","#a8041e","#9ac89a",
+#"#ff7f64","#707c48","#ff9b3a","#635b00","#9c5700")
+
+x.types.labs<-c("Soil","Sediment","Soilwater","Hyporheicwater","Groundwater","Stream",
+"Tributary","Headwater Lakes","Upstream Ponds","Lake",
+"IslandLake","Upriver","RO2","RO1","Downriver","Marine",
+"Soil","Sediment","Soilwater","Hyporheicwater","Stream","Tributary","Headwater Lakes",
+"Upstream Ponds","Lake","IslandLake","Upriver","RO3","RO2","RO1","Hypolimnion","Downriver","Marine",
+"Tributary","Headwater Lakes","Lake","Upriver","RO3","RO2","RO1","Hypolimnion","Downriver",
+"Soil","Soilwater","Hyporheicwater","Stream","Tributary","Headwater Lakes",
+"Lake","Upriver","RO2","RO1","Downriver",
+"Soil","Sediment","Soilwater","Hyporheicwater",
+"Stream","Tributary","Headwater Lakes","Lake","Upriver",
+"RO3","RO2","RO1","Hypolimnion","Downriver","Marine",
+"Tributary","Headwater Lakes","Lake","Upriver",
+"RO3","RO2","RO1","Hypolimnion","Downriver")
+
+lib.bar <- 
+    ggplot(lib.size, aes(x = ID, y = lib.mean / 1000)) +
+    theme_pubr() +
+    geom_bar(stat = "identity", width = 0.7, fill = "white", colour = "grey40") +
+    geom_errorbar(aes(ymin = (lib.mean - lib.sd) / 1000, 
+                      ymax = (lib.mean + lib.sd) / 1000), width = 0.4) + 
+    labs(y = expression(paste("Average library size [x10"^3,"]"))) +
+    scale_x_discrete(labels = x.types.labs, expand = c(0.025,0.025)) +
+    theme(axis.text.x = element_blank(),
+         axis.ticks = element_blank(), axis.title.x = element_blank(),
+         axis.title = element_text(size = 9)) +
+  coord_cartesian(clip="off")
+
+  tax.leg <-
+    get_legend(
+      ggplot(mean.pb, 
+             aes(x = ID, y = css.rel, fill = phylum, colour = phylum)) +
+        theme_bw() +
+        geom_bar(stat = "identity", width = 0.7) +
+        labs(y = "Average relative abundance") +
+        scale_fill_manual(name = "Phylum", values = rev(col_vector)) +
+        scale_colour_manual(name = "Phylum", values = rev(col_vector)) +
+        theme(legend.position = "right")
+    )
+
+
+tax <- ggplot(mean.pb, 
+       aes(x = ID, y = css.rel, fill = phylum, colour = phylum)) +
+  theme_pubr() +
+  geom_bar(stat = "identity", width = 0.8) +
+  guides(fill = "none", colour = "none") +
+  labs(y = "Average relative abundance") +
+  scale_fill_manual(values = rev(col_vector)) +
+    scale_colour_manual(values = rev(col_vector)) +
+  scale_x_discrete(labels = x.types.labs, expand = c(0.025,0.025)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
+        axis.title.x = element_blank(),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        plot.margin=unit(c(2,2,15,2), "mm"))
+
+# adding axis labels to the bottom of x axis
+labelled.tax <- tax + 
+  coord_cartesian(ylim=c(0,1), clip="off") +
+  annotate("segment", x = 0, xend = 16.5, y = -0.4, yend = -0.4) +
+  annotate("segment", x = 16.7, xend = 33.5, y = -0.4, yend = -0.4) +
+  annotate("segment", x = 33.7, xend = 42.5, y = -0.4, yend = -0.4) +
+  annotate("segment", x = 43, xend = 53.5, y = -0.4, yend = -0.4) +
+  annotate("segment", x = 53.7, xend = 68.5, y = -0.4, yend = -0.4) +
+  annotate("segment", x = 68.7, xend = 78.5, y = -0.4, yend = -0.4) +
+    annotate("text", x = 8.5, y = -0.425, label = "Spring") +
+    annotate("text", x = 25.1, y = -0.425, label = "Summer") +
+    annotate("text", x = 38.1, y = -0.425, label = "Autumn") +
+    annotate("text", x = 48.25, y = -0.425, label = "Spring") +
+    annotate("text", x = 61.1, y = -0.425, label = "Summer") +
+    annotate("text", x = 73.635, y = -0.425, label = "Autumn") +
+    annotate("segment", x = 0, xend = 42.5, y = -0.48, yend = -0.48) +
+    annotate("segment", x = 43, xend = 78.5, y = -0.48, yend = -0.48) +
+    annotate("text", x = 21.25, y = -0.52, label = "DNA") +
+    annotate("text", x = 60.75, y = -0.52, label = "RNA")
+
+combo  <- ggarrange(lib.bar, labelled.tax, nrow = 2,
+                    align = "v", heights = c(0.2, 0.8), legend.grob = tax.leg, legend = "right")
+          
+#tax.leg, nrow = 2, heights = c(0.9, 0.1), widths = c(0.8, 0.2)
+ggsave("./Figures/Final/Tax_LibSiz_Phyla.png", combo,
+       width = 360, height = 203, unit = "mm", dpi = 300)
+
 
 #-----------#
 # 2015-2016 #
@@ -695,7 +1164,7 @@ pdataframe$sample.type.year <- factor(pdataframe$sample.type.year, levels = c("S
                                                                             "Marine", "Bioassay", "Blank"),
                                      labels = c("Soil","Sediment",
                                                 "Soilwater","Hyporheicwater", 
-                                                "Wellwater","Stream", "Tributary",
+                                                "Groundwater","Stream", "Tributary",
                                                 "Headwater \nLakes", "Upstream \nPonds", "Lake", "Island \nLakes",
                                                 "Upriver","RO2", "RO1","Downriver",
                                                 "Estuary", "Bioassay", "Blank"))
@@ -802,7 +1271,7 @@ pb.scores$sample.type.year <- factor(pb.scores$sample.type.year, levels = c("Soi
                                                                               "Marine", "Bioassay", "Blank"),
                                       labels = c("Soil","Sediment",
                                                  "Soilwater","Hyporheicwater", 
-                                                 "Wellwater","Stream", "Tributary",
+                                                 "Groundwater","Stream", "Tributary",
                                                  "Headwater \nLakes", "Upstream \nPonds", "Lake", "Island \nLakes",
                                                  "Upriver","RO2", "RO1","Downriver",
                                                  "Estuary", "Bioassay", "Blank"))
