@@ -17,7 +17,7 @@ The following file contains the supplementary material for the publication "Titl
 
 # Supplementary Figures
 
-### Figure S1: Landscape within the La Romaine catchment
+### Figure S1: Landscape within the Romaine catchment
 ```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "70%"}
 knitr::include_graphics(c("./Figures/LR_photo_collage.png"))
 ``` 
@@ -32,7 +32,18 @@ knitr::include_graphics(c("../Figures/Final/All_DNARNA_distance_alphadiv_compari
 
 Comparing the effect of used method on the relation between DNA alpha diversity indices and the distance between DNA and RNA of the same samples within PCoA space. Rows represent different alpha diversity indices: Shannon-Wiener index (H'), Simpson's index ($\lambda$), Pielou's evenness (J) and Chao1 richness estimator. CSS = cumulative sum scaling, all remaining three subsequent columns are rarefied datasets with the applied minimum library size threshold indicated after "Lib". 
 
-### Figure S3: Taxonomic composition of sample types
+### Figure S3: Classification of abundance groups
+```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "80%"}
+knitr::include_graphics(c("../Figures/Final/abundance_class_ex.png"))
+``` 
+
+
+Classification of abundance groups based on derivative approximation of the log transformed rank abundance curve by sample type, where a) represents the original rank abundance curve and b) the log transformed equivalent to derive points of maximum and minimum acceleration. Blue point represents the first minimum of the second derivative, red points are the first and second maxima of the second derivative. Pink, green and blue ranges visualise abundant, medium and rare classifications, respectively.
+
+
+
+
+### Figure S4: Taxonomic composition of sample types
 
 ```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "100%"}
 knitr::include_graphics(c("../Figures/Final/Tax_LibSiz_Phyla.png"))

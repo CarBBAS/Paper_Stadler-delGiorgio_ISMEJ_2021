@@ -14,6 +14,7 @@ library(data.table)
 library(plyr)
 library(ggpubr) # arrange ggplots
 library(ggnewscale) # two aesthetic scales
+library(plotly)
 library(doMC) # parallel computing
 library(vegan) #vegdist, diversity
 library(ape) #pcoa
@@ -22,10 +23,19 @@ library(ade4) #is.euclid
 #-----------#
 # FUNCTIONS #
 #-----------#
-source("./Functions/big_data.R")
-source("./Functions/phyloseq_index.R")
-source("./Functions/peak_identification.R")
+source("./Functions/custom_fun.R")
 
+#-----------------#
+# PARALLEL SET-UP #
+#-----------------#
+# register number of cores for parallel computing with 'apply' family
+detectCores() # 24 (private PC: 4), we do not have 24 cores. It's 12 cores, 24 threads.
+registerDoMC()
+getDoParWorkers() # 12 (private PC: 2)
+
+# prepare for parallel processing (with 'parallel') for 'vegan' functions
+numCores <- detectCores()
+cl <- makeCluster(numCores, type = "FORK") # using forking
 
 #-----------#
 # 2015-2017 #
@@ -88,41 +98,258 @@ pb <- phyloseq(otu_table(asv.tab, taxa_are_rows = T),
                sample_data(met.df),
                tax_table(tax.tab))
 
-# get number of samples for methods
+
+
+
+# create colour vector for later plotting
+# ensure consistent colours for all sample types
+met.df$sample.type.year <- factor(met.df$sample.type.year, levels = c("Soil","Sediment",
+                                                                      "Soilwater","Hyporheicwater", 
+                                                                      "Wellwater","Stream", "Tributary",
+                                                                      "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
+                                                                      "Upriver","RO3", "RO2", "RO1","Deep",
+                                                                      "Downriver",
+                                                                      "Marine"),
+                                  labels = c("Soil","Sediment",
+                                             "Soilwater","Hyporheicwater", 
+                                             "Groundwater","Stream", "Tributary",
+                                             "Headwater \nLakes", "Upstream \nPonds", "Lake", "Lake",
+                                             "Upriver","RO3","RO2", "RO1","Hypolimnion","Downriver",
+                                             "Estuary"))
+
+sample.factors <- levels(met.df$sample.type.year)
+# create colour vector for plotting
+colvec <- c("red4","chocolate3","orangered2","orange3",
+            "khaki","cadetblue","darksalmon",
+            "darkolivegreen","darkolivegreen3","gold",
+            "royalblue","mediumorchid4", "violet","palevioletred2","navy","skyblue",
+            "seagreen3")
+names(colvec) <- as.character(sample.factors)
+
 
 
 ############
 # Analysis #
 ############
-# find abundant, moderate and rare taxa by sample type
-# melt into long format
-rel.df <- select_newest("./Output", "201520162017_css")
-rel.df <- read.csv(
-  paste0("./Output/", rel.df),
-  sep = "\t",
-  dec = ".",
-  stringsAsFactors = F
-)
+####################################################################################
+#--------------------------#
+#- Mulativariate analysis -#
+#--------------------------#
+# We are dealing with large environmental gradients, thus we expect a high proportion of zeros
+# Thus we need to select an asymmetrical similarity distance coefficient
+# If we're dealing with samples from failry homogeneous environmental conditions (short envir. gradients)
+# and we expect few zeros and symmetric association coefficients we can use the Euclidean distance.
+# Logarithm transformation log2(x + 1) (in case of microbial data) can be used to make asymmetric species
+# distributions less asymmetric
+# Transformations can be used to make asymmetric species distributions more symmetric so that e.g.
+# Euclidean distances can be used
 
+# Several methods were compared:
+# PCA
+# CA
+# PCoA
+# NMDS - no convergence
 
-molten.asv <- melt.data.table(setDT(as.data.frame(asv.tab), keep.rownames = "ASV"),
-                id.vars = "ASV", # skip measure.var, takes all columns
-                variable.name = "Sample",
-                value.name = "css.reads")
+# PCoA was chosen for all ordinations for consistency and smallest horse-shoe effect
 
-# merge relevant meta data
-molten.asv[sample_df(met.df), c("sample.type.year",
-                                "Season") := list(i.sample.type.year,
-                                                  i.Season), on = c("Sample" = "DadaNames")]
+rel.df <- select_newest("./Objects", "201520162017_css")
+rel.df <- readRDS(
+  paste0("./Objects/", rel.df))
 
-# calculate relative abundance
-molten.asv[, total := sum(css.reads), .(Sample)]
-molten.asv[, rel.abund := css.reads / total]
+rel.df$sample.type.year <- factor(rel.df$sample.type.year, levels = c("Soil","Sediment",
+                                                                      "Soilwater","Hyporheicwater", 
+                                                                      "Wellwater","Stream", "Tributary",
+                                                                      "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
+                                                                      "Upriver","RO3", "RO2", "RO1","Deep",
+                                                                      "Downriver",
+                                                                      "Marine"),
+                                  labels = c("Soil","Sediment",
+                                             "Soilwater","Hyporheicwater", 
+                                             "Groundwater","Stream", "Tributary",
+                                             "Headwater \nLakes", "Upstream \nPonds", "Lake", "Lake",
+                                             "Upriver","RO3","RO2", "RO1","Hypolimnion","Downriver",
+                                             "Estuary"))
 
+setDT(rel.df)
+# calculate means by sample type
+means <- rel.df[, .(mean.css = mean(css.reads, na.rm = T),
+                    sd.css = sd(css.reads, na.rm = T)), by = .(sample.type.year, DnaType, ASV)]
 
-# make ordinations
-# tried NMDS stress does not reach convergence
+dnarna <- dcast(means, ASV ~ sample.type.year + DnaType, value.var = "mean.css")
+setDF(dnarna)
+row.names(dnarna) <- dnarna$ASV
+dnarna <- as.matrix(dnarna[,-1])
 
+# make mini meta data
+meta <- data.frame(ID = colnames(dnarna)) %>%
+  separate(ID, into = c("sample.type", "DnaType"), sep = "_", remove = F)
+row.names(meta) <- meta$ID
+
+# Construct phyloseq object
+pb <- phyloseq(otu_table(dnarna, taxa_are_rows = T),
+               sample_data(meta),
+               tax_table(tax.tab))
+
+pb <- prune_taxa(names(sort(taxa_sums(pb), TRUE)[1:5000]), pb)
+plot_heatmap(pb)
+
+# try to make gradient heatmap
+# our main gradient is sample types
+sub.pb <- subset_samples(pb, DnaType == "DNA")
+sub.pb <- prune_taxa(names(sort(taxa_sums(sub.pb), TRUE)[1:1000]), sub.pb)
+plot_heatmap(sub.pb)
+
+rel.df <- select_newest("./Objects", "201520162017_css")
+rel.df <- readRDS(
+  paste0("./Objects/", rel.df))
+
+rel.df$sample.type.year <- factor(rel.df$sample.type.year, levels = c("Soil","Sediment",
+                                                                      "Soilwater","Hyporheicwater", 
+                                                                      "Wellwater","Stream", "Tributary",
+                                                                      "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
+                                                                      "Upriver","RO3", "RO2", "RO1","Deep",
+                                                                      "Downriver",
+                                                                      "Marine"),
+                                  labels = c("Soil","Sediment",
+                                             "Soilwater","Hyporheicwater", 
+                                             "Groundwater","Stream", "Tributary",
+                                             "Headwater \nLakes", "Upstream \nPonds", "Lake", "Lake",
+                                             "Upriver","RO3","RO2", "RO1","Hypolimnion","Downriver",
+                                             "Estuary"))
+
+setDT(rel.df)
+# calculate means by sample type
+means <- rel.df[, .(mean.css = mean(css.reads, na.rm = T),
+                    sd.css = sd(css.reads, na.rm = T)), by = .(sample.type.year, DnaType, ASV)]
+real.mean <- rel.df[, .(mean.css = mean(css.reads, na.rm = T)), by = .(DnaType, ASV)]
+real.mean <- real.mean[DnaType == "DNA",]
+
+mean.order <- real.mean[order(mean.css, decreasing = T)]$ASV
+
+# only do this exercise with DNA first
+means <- means[DnaType == "DNA",]
+
+t <- means[order(match(ASV, mean.order))]
+
+sub <- levels(factor(means$ASV))[1:10000][order(match(levels(factor(means$ASV))[1:10000], mean.order))]
+
+p <- ggplot(means[ASV %in% sub,], aes(x = sample.type.year, y = ASV)) +
+  geom_tile(aes(fill = log2(mean.css + 1))) +
+  scale_fill_viridis_c()
+
+# transpose back to community matrix
+com.mat <- dcast(means, sample.type.year ~ ASV, value.var = "mean.css")
+rown <- as.character(com.mat$sample.type.year)
+com.mat <- setDF(com.mat[,-1])
+row.names(com.mat) <- rown
+
+com.mat <- as.matrix(com.mat)
+library(spaa)
+
+niches <- niche.width(com.mat, method = "levins")
+niches <- niches[1,]
+
+############
+#---------------------------------------------------------------------------------------------------#
+############
+# Only DNA #
+############
+# subset only DNA samples
+dna <- subset_samples(pb, DnaType == "DNA")
+
+# extract ASV matrix
+pb.mat <- t(otu_mat(dna))
+
+# 1. PCoA with Bray-Curtis
+pb.bray <- vegdist(pb.mat, method = "bray")
+is.euclid(pb.bray) # FALSE
+pb.bray <- sqrt(pb.bray) # make Euclidean
+is.euclid(pb.bray) # FALSE
+
+pb.bray.pcoa <- ape::pcoa(pb.bray)
+  
+# 2. PCoA with Jaccard (presence-absence)
+# less obvious horse-shoe effect
+pb.jac <- vegdist(pb.mat, method = "jaccard", binary = T)
+is.euclid(pb.jac) # TRUE
+pb.jac.pcoa <- ape::pcoa(pb.jac)
+
+# plot
+dna.bray <- plot_bray_n_jacc(bray = pb.bray.pcoa,
+                 jacc = pb.jac.pcoa,
+                 colours = colvec,
+                 plot.name = "DNA_bray_jac",
+                 output = T)
+dna.bray[["bray"]]
+# no major difference in bray curtis and jaccard, go only with Bray Curtis
+# Jaccard weaker horse-shoe, keep Bray Curtis for consistency
+
+# Try 3D plot
+plot.df <- dna.bray[["df"]]
+plot.df <- plot.df[plot.df$Metric == "Bray",]
+p <- plot_ly(type = "scatter", mode = "markers")
+
+p <- plot_ly(plot.df, x = ~Axis.1, y = ~Axis.2, z = ~Axis.3, color = ~sample.type.year,
+             colors = colvec, size = 5, symbol = ~DnaType, symbols = c(21,22))
+p <- p %>% add_markers()
+p <- p %>% layout(scene = list(xaxis = 
+                                 list(title = paste("PC1 [", unique(plot.df$x), "%]")),
+                               yaxis = 
+                                 list(title = paste("PC2 [", unique(plot.df$y), "%]")),
+                               zaxis = 
+                                 list(title = paste("PC3 [", unique(plot.df$z), "%]"))))
+p
+
+htmlwidgets::saveWidget(as_widget(p), "PCoA_DNA_3D.html")
+
+# Test for significant difference between factors
+ord.df <- dna.bray[["df"]]
+adonis(pb.mat ~ sample.type.year + Season, data = ord.df[ord.df$Metric == "Bray",], 
+       sqrt.dist = T, method = "bray")
+#Permutation: free
+#Number of permutations: 999
+#Terms added sequentially (first to last)
+#                 Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+#sample.type.year  16    50.914  3.1821  14.219 0.36423  0.001 ***
+#  Season             2     4.724  2.3621  10.555 0.03380  0.001 ***
+#  Residuals        376    84.147  0.2238         0.60198           
+#Total            394   139.784                 1.00000           
+
+############
+#---------------------------------------------------------------------------------------------------#
+############
+# Only RNA #
+############
+rna <- subset_samples(pb, DnaType == "cDNA")
+
+# extract ASV matrix
+pb.mat <- t(otu_mat(rna))
+
+# 1. PCoA with Bray-Curtis
+pb.bray <- vegdist(pb.mat, method = "bray")
+is.euclid(pb.bray) # FALSE
+pb.bray <- sqrt(pb.bray)
+is.euclid(pb.bray) # TRUE
+pb.bray.pcoa <- ape::pcoa(pb.bray)
+
+# 2. PCoA with Jaccard (presence-absence)
+# no horse-shoe effect
+pb.jac <- vegdist(pb.mat, method = "jaccard", binary = T)
+is.euclid(pb.jac) # TRUE
+pb.jac.pcoa <- ape::pcoa(pb.jac)
+
+# plot
+rna.bray <- plot_bray_n_jacc(bray = pb.bray.pcoa,
+                 jacc = pb.jac.pcoa,
+                 colours = colvec,
+                 plot.name = "RNA_brayjac",
+                 output = T)
+rna.bray[["bray"]]
+# no major difference in bray curtis and jaccard, both horse-shoe and arch effect
+# splits in sample types and seasons, with summer and autumn cluster
+
+####################
+#---------------------------------------------------------------------------------------------------#
 ####################
 # Both DNA and RNA #
 ####################
@@ -132,6 +359,9 @@ pb.mat <- t(otu_mat(pb))
 # 1. PCoA with Bray-Curtis
 pb.bray <- vegdist(pb.mat, method = "bray")
 is.euclid(pb.bray) # FALSE
+
+pb.bray <- sqrt(pb.bray) # make Euclidean
+is.euclid(pb.bray)
 pb.bray.pcoa <- ape::pcoa(pb.bray)
 
 # 2. PCoA with Jaccard (presence-absence)
@@ -139,317 +369,463 @@ pb.jac <- vegdist(pb.mat, method = "jaccard", binary = T)
 is.euclid(pb.jac) # TRUE
 pb.jac.pcoa <- ape::pcoa(pb.jac)
 
-#cl <-
-# Mantel test to see if matrices are different
-#mantel(pb.bray, pb.jax, method = "pearson", permutations = 999, parallel = )
+# plot
+dnarna.bray <- plot_bray_n_jacc(bray = pb.bray.pcoa,
+                 jacc = pb.jac.pcoa,
+                 colours = colvec,
+                 plot.name = "DNARNA_brayjac",
+                 output = T)
+dnarna.bray[["bray"]]
 
-# extract scores and variance explained
-pb.scores <- rbind(data.frame(Sample = as.character(row.names(pb.bray.pcoa$vectors)),
-                        Metric = "Bray", pb.bray.pcoa$vectors[,1:2], stringsAsFactors = F),
-                   data.frame(Sample = as.character(row.names(pb.jac.pcoa$vectors)),
-                              Metric = "Jaccard", pb.jac.pcoa$vectors[,1:2], stringsAsFactors = F))  # get first two axes
-pb.var <- rbind(data.frame(x = round(100 * pb.bray.pcoa$values$Eigenvalues[1] / sum(pb.bray.pcoa$values$Eigenvalues), 2),
-                           y = round(100 * pb.bray.pcoa$values$Eigenvalues[2] / sum(pb.bray.pcoa$values$Eigenvalues), 2),
-                           Metric = "Bray", stringsAsFactors = F),
-                data.frame(x = round(100 * pb.jac.pcoa$values$Eigenvalues[1] / sum(pb.jac.pcoa$values$Eigenvalues), 2),
-                           y = round(100 * pb.jac.pcoa$values$Eigenvalues[2] / sum(pb.jac.pcoa$values$Eigenvalues), 2),
-                           Metric = "Jaccard", stringsAsFactors = F))
-pb.scores <- merge(pb.scores, pb.var, by = "Metric")
+# Try 3D plot
+plot.df <- dnarna.bray[["df"]]
+plot.df <- plot.df[plot.df$Metric == "Bray",]
+p <- plot_ly(type = "scatter", mode = "markers")
 
-# merge with a selection of meta data
-meta <- data.frame(Sample = as.character(row.names(sample_df(pb))),
-                   sample_df(pb) %>% dplyr::select(sample.type.year, Season, Year, DnaType, LibrarySize,
-                                                   bact.abundance, bact.production,catchment.area, lat, long), 
-                   stringsAsFactors = F)
-pdataframe <- merge(pb.scores, meta, by = "Sample")
-pdataframe$Sample <- as.character(pdataframe$Sample)
+p <- plot_ly(plot.df, x = ~Axis.1, y = ~Axis.2, z = ~Axis.3, color = ~Season,
+             size = 5, symbol = ~DnaType, symbols = c(21,22))
+p <- p %>% add_markers()
+p <- p %>% layout(scene = list(xaxis = 
+                                 list(title = paste("PC1 [", unique(plot.df$x), "%]")),
+                               yaxis = 
+                                 list(title = paste("PC2 [", unique(plot.df$y), "%]")),
+                               zaxis = 
+                                 list(title = paste("PC3 [", unique(plot.df$z), "%]"))))
+p
 
-#View(data.frame(pb.scores$Sample, str_replace(pb.scores$Sample, "D$", ""),
-#           str_replace(pb.scores$Sample, "R$", ""), pb.scores$DnaType))
+htmlwidgets::saveWidget(as_widget(p), "PCoA_DNARNA_Season_3D.html")
 
-# overwrite factor levels
-pdataframe$sample.type.year <- factor(pdataframe$sample.type.year, levels = c("Soil","Sediment",
-                                                                            "Soilwater","Hyporheicwater", 
-                                                                            "Wellwater","Stream", "Tributary",
-                                                                            "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
-                                                                            "Upriver","RO3", "RO2", "RO1","Deep",
-                                                                            "Downriver",
-                                                                            "Marine"),
-                                     labels = c("Soil","Sediment",
-                                                "Soilwater","Hyporheicwater", 
-                                                "Groundwater","Stream", "Tributary",
-                                                "Headwater \nLakes", "Upstream \nPonds", "Lake", "Lake",
-                                                "Upriver","RO3","RO2", "RO1","Hypolimnion","Downriver",
-                                                "Estuary"))
-pdataframe$Season <- factor(pdataframe$Season, levels = c("spring", "summer", "autumn"), 
-                           labels = c("Spring", "Summer","Autumn"))
-pdataframe$DnaType <- factor(pdataframe$DnaType, levels = c("DNA", "cDNA"), labels = c("DNA", "RNA"))
+# statistically test if factors are different
+# extract ordination coordinates and factors
+ord.df <- dnarna.bray[["df"]]
+# run PERMANOVA
+dnarna.perm <- adonis(pb.mat ~ sample.type.year + Season + DnaType, data = ord.df[ord.df$Metric == "Bray",], 
+       sqrt.dist = T, method = "bray", parallel = cl)
+# Permutation: free
+#Number of permutations: 999
+#Terms added sequentially (first to last)
+#                    Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+#  sample.type.year  16    64.462  4.0289  17.187 0.30202  0.001 ***
+#  Season             2     7.436  3.7182  15.861 0.03484  0.001 ***
+#  DnaType            1     6.278  6.2783  26.783 0.02942  0.001 ***
+#  Residuals        577   135.257  0.2344         0.63372           
+#Total            596   213.434                 1.00000           
+#---
+#  Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-# create colour vector for plotting
-colvec <- c("red4","chocolate3","orangered2","orange3",
-            "khaki","cadetblue","darksalmon",
-            "darkolivegreen","darkolivegreen3","gold",
-            "royalblue","mediumorchid4", "violet","palevioletred2","navy","skyblue",
-            "seagreen3")
-#"chocolate4","seagreen3","azure","gold"
-# separate legends for plotting
-(
-  bot.leg <-
-    get_legend(
-      ggplot(pdataframe %>% filter(Metric == "Bray"), aes(x = Axis.1, y = Axis.2)) +
-        theme_bw() +
-        geom_point(aes(shape = Season, alpha = DnaType),
-                   size = 2.5) +
-        theme(legend.position = "bottom") +
-        scale_shape_manual(values = c(21, 23, 25)) +
-        scale_alpha_manual(values = c(1, 0.5), name = "Nucleic Acid Type") +
-        guides(shape = guide_legend(order = 1),
-               alpha = guide_legend(order = 2))
-    )
-)
+####################################################################################
+#-------------------------------------------------------#
+# Extract pair-wise dissimilarity among DNA-RNA samples #
+#-------------------------------------------------------#
+# UPDATE: Instead of using distance between DNA and RNA wihin PCoA space, we use dissimilarity
+# This approach is favoured as PCoA reduces sample complexity into two dimensions and misses variation
+# Pair-wise dissimilarity is a more direct approach to grasp how different DNA and RNA of the same sample are
 
-# main plot
-(pcoa.bray <- ggplot(pdataframe %>% filter(Metric == "Bray"), aes(x = Axis.1, y = Axis.2)) +
-    theme_bw() +
-    geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
-    geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
-    geom_point(aes(fill = sample.type.year, shape = Season, alpha = DnaType),
-               size = 2.5) +
-    #scale_fill_viridis_d(name = "Sample Type") +
-    scale_fill_manual(values = colvec, name = "Sample Type") +
-    scale_shape_manual(values = c(21,23,25)) +
-    scale_alpha_manual(values = c(1,0.5), name = "Nucleic Acid \nType") +
-    labs(x = paste("PCoA 1 [", pdataframe[pdataframe$Metric == "Bray",]$x,"%]"), 
-         y = paste("PCoA 2 [", pdataframe[pdataframe$Metric == "Bray",]$y,"%]")) +
-    theme(legend.key.size = unit(1.5, "lines"),
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank()) +
-    guides(fill = guide_legend(override.aes=list(shape=21)),
-           alpha = "none", shape = "none"))
+dist.dr <- dissim.dnarna(pb, save.name = "All", output = T)
 
-(pcoa.jac <- ggplot(pdataframe %>% filter(Metric == "Jaccard"), aes(x = Axis.1, y = Axis.2)) +
-    theme_bw() +
-    geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
-    geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
-    geom_point(aes(fill = sample.type.year, shape = Season, alpha = DnaType),
-               size = 2.5) +
-    #scale_fill_viridis_d(name = "Sample Type") +
-    scale_fill_manual(values = colvec, name = "Sample Type") +
-    scale_shape_manual(values = c(21,23,25)) +
-    scale_alpha_manual(values = c(1,0.5), name = "Nucleic Acid \nType") +
-    labs(x = paste("PCoA 1 [", pdataframe[pdataframe$Metric == "Jaccard",]$x,"%]"), 
-         y = paste("PCoA 2 [", pdataframe[pdataframe$Metric == "Jaccard",]$y,"%]")) +
-    theme(legend.key.size = unit(1.5, "lines"),
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank()) +
-    guides(fill = guide_legend(override.aes=list(shape=21)),
-           alpha = "none", shape = "none"))
+#-------------------------------------------------------------#
+# Calculate distance between DNA and RNA points in PCoA space #
+#-------------------------------------------------------------#
+# use custom function to correct a few wrong sample names and match DNA-RNA counterpart samples
+# calculating distance between points in two-dimensional space for both Bray-Curtis and Jaccard
+# Use three distances, as variances explained by second and third axes are almost identical
+dist.dr <- dist.dnarna(dnarna.bray[["df"]], save.name = "3D", dimensions = 3)
+#dist.dr <- dist.dnarna(dnarna.bray[["df"]], save.name = "All_2D", dimensions = 2)
 
-# arrange main plot and legend
-(pcoa.arr <- ggarrange(ggarrange(pcoa.bray, pcoa.jac,
-                       ncol = 2,
-                       common.legend = T,
-                       labels = c("a", "b"),
-                       legend = "right"
-                      ), bot.leg,
-                      nrow = 2, heights = c(3, 0.2)))
+# dissimilarity and distance show different patterns....
+# what is behind this difference?
 
-ggsave("./Figures/Final/All_DNARNA_SampleType_PCoA.tiff", pcoa.arr,
-       width = 30, height = 15, unit = "cm")
-#############
-
-rm(pcoa.bray, pcoa.jac, pcoa.arr,bot.leg)
 ####################################################################################
 #-----------------------------------------------#
-# Calculate distance between DNA and RNA points #
+# Same exercise with different abundance groups #
 #-----------------------------------------------#
+# Define abundance groups
+rel.df <- select_newest("./Objects", "201520162017_css")
+rel.df <- readRDS(
+  paste0("./Objects/", rel.df))
 
-#View(data.frame(pb.scores$Sample, pb.scores$sample.type.year, pb.scores$Year))
+# Conventional grouping does not work with this data set
+# Otherwise, there are no abundant ASVs as we cover too different ecosystem types
+
+# Try to come up with a new classification
+# 1. Calcaulte the mean abundance of each ASV for a sample type (e.g. reservoir, lake, stream, soil etc)
+# 2. Define abundance groups based on rank abundance curves:
+#-- * For each sample type, we create a rank abundance curve
+#-- * Log-transform and take the derivative of the curve
+#-- * Use second derivative of log-curve to define where the curve starts to bend.
+
+# calculate the mean abundance of each ASV for all sample types
+setDT(rel.df)
+# calculate means by sample type
+means <- rel.df[, .(mean.css = mean(css.reads, na.rm = T),
+                    sd.css = sd(css.reads, na.rm = T)), by = .(sample.type.year, DnaType, ASV)]
+# order the abundances to make ranks
+means <- means[mean.css != 0,] # remove all 0 observations
+means <- means[order(mean.css, decreasing = T)]
+means[, rank.abun := 1:.N, by = .(DnaType, sample.type.year)]
+means[, log.mean := log(mean.css), by = .(DnaType, sample.type.year)]
+
+#--------------------------------------------------------------------------------------------#
+#--------------------------------------------------------------------------------------------#
+# Get derivatives for an example and plot for supplementary material
+x <- means[sample.type.year == "Soilwater" & DnaType == "DNA"]
+
+spl <- smooth.spline(x$rank.abun, x$log.mean, spar = 0.5)
+pred <- predict(spl)
+first <- predict(spl, deriv = 1) # first derivative
+sec <- predict(spl, deriv = 2) # second derivative
+
+options(scipen = 999) # avoid scientific annotations
+raw <- ggplot() +
+  theme_pubr() +
+  annotate(xmax = x$rank.abun[localMinima(sec$y)[1]],
+           xmin = x$rank.abun[localMaxima(sec$y)[1]],
+           ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "tomato") +
+  annotate(xmax = x$rank.abun[localMaxima(sec$y)[2]],
+           xmin = x$rank.abun[localMaxima(sec$y)[1]],
+           ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "forestgreen") +
+  annotate(xmax = max(x$rank.abun),
+           xmin = x$rank.abun[localMaxima(sec$y)[2]],
+           ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "aquamarine") +
+  geom_line(aes(x = x$rank.abun, y = x$mean.css)) +
+  geom_point(aes(x = x$rank.abun[localMaxima(sec$y)[1:2]],
+                 y = x$mean.css[localMaxima(sec$y)[1:2]]), colour = "tomato") +
+  geom_point(aes(x = x$rank.abun[localMinima(sec$y)[1]],
+                 y = x$mean.css[localMinima(sec$y)[1]]), colour = "royalblue") +
+  labs(x = "", y = "CSS transformed mean read number") +
+  theme(axis.title = element_text(size = 9))
+
+logged <- ggplot() +
+  theme_pubr() +
+  annotate(xmax = pred$x[localMinima(sec$y)[1]],
+           xmin = pred$x[localMaxima(sec$y)[1]],
+           ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "tomato") +
+  annotate(xmax = pred$x[localMaxima(sec$y)[2]],
+           xmin = pred$x[localMaxima(sec$y)[1]],
+           ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "forestgreen") +
+  annotate(xmax = max(pred$x),
+           xmin = pred$x[localMaxima(sec$y)[2]],
+           ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "aquamarine") +
+  geom_line(aes(x = pred$x, y = pred$y)) +
+  geom_point(aes(x = pred$x[localMaxima(sec$y)[1:2]],
+                 y = pred$y[localMaxima(sec$y)[1:2]]), colour = "tomato") +
+  geom_point(aes(x = pred$x[localMinima(sec$y)[1]],
+                 y = pred$y[localMinima(sec$y)[1]]), colour = "royalblue") +
+  labs(x = "", y = "CSS transformed mean read number (log)") +
+  theme(axis.title = element_text(size = 9))
+
+deriv <- ggplot() +
+  theme_pubr() +
+  geom_line(aes(x = sec$x, y = sec$y * 1000)) +
+  geom_point(aes(x = sec$x[localMaxima(sec$y)[1:2]],
+                 y = sec$y[localMaxima(sec$y)[1:2]]* 1000), colour = "tomato") +
+  geom_point(aes(x = sec$x[localMinima(sec$y)[1]],
+                 y = sec$y[localMinima(sec$y)[1]]* 1000), colour = "royalblue") +
+  labs(x = "", y = expression(paste("Acceleration x10"^3, " (2"^"nd", " derivative)"))) +
+  theme(axis.title = element_text(size = 9))
+
+p <- ggarrange(raw, logged, deriv, ncol = 3, labels = "auto")
+# add x axis title to be in the middle of two panels
+(p <- annotate_figure(p, bottom = text_grob("ASV Rank")))
+ggsave("./Figures/Final/abundance_class_ex.png", p,
+       width = 22, height = 9, unit = "cm")
+
+rm(x, p, raw, logged, pred, sec, first, spl)
+
+#--------------------------------------------------------------------------------------------#
+#--------------------------------------------------------------------------------------------#
+#####################
+# Apply to the data #
+#####################
+
+classif.thres <- ddply(means, .(DnaType, sample.type.year), function(x){
+  spl <- smooth.spline(x$rank.abun, x$log.mean, spar = 0.5)
+  #pred <- predict(spl)
+  #first <- predict(spl, deriv = 1) # first derivative
+  sec <- predict(spl, deriv = 2) # second derivative
+  setDT(x)
+  x[rank.abun <= x$rank.abun[localMaxima(sec$y)[1]], ab.group := "Abundant", by = .(ASV)]
+  x[rank.abun > x$rank.abun[localMaxima(sec$y)[1]] &
+      rank.abun <= x$rank.abun[localMaxima(sec$y)[2]], ab.group := "Medium", by = .(ASV)]
+  x[rank.abun > x$rank.abun[localMaxima(sec$y)[2]], ab.group := "Rare", by = .(ASV)]
+  
+  out <- x[, .(max = max(mean.css),
+               min = min(mean.css)), by = .(ab.group)]
+  return(out)
+}, .parallel = T)
+
+setDT(classif.thres)
+classif.thres[, .(mean.max = mean(max),
+                  sd.max = sd(max),
+                  mean.min = mean(min),
+                  sd.min = sd(min)), by = .(DnaType, ab.group)]
+#saveRDS(classif.thres, "./Objects/abundance.classification.threshold.rds")
+
+####################################################################################################
+
+# After consulting the means and deviations of the maximum and minimum thresholds across samples
+# we settle with:
+# Abundant >= 100 css reads
+# Medium < 100 & >= 20 css reads
+# Rare < 20 css reads
+
+means[mean.css >= 100, ab.group := 1] # Abundant
+means[mean.css < 100 & mean.css >= 20, ab.group := 2] # Medium
+means[mean.css < 20, ab.group := 3] # Rare
+
+# code to resusicate absent rows
+temp <- dcast(means, DnaType + ASV ~ sample.type.year, value.var = c("ab.group")) # simple wide first
+temp[is.na(temp)] <- 0 # much faster to overwrite NAs this way
+ag.class <- melt(temp, id.vars = c("DnaType", "ASV"),
+                 variable.name = "sample.type.year", value.name = "ab.group") # make long again
+
+# Add ecosystem domain identifier
+ag.class[, ecosys.domain := "Freshwater"]
+ag.class[sample.type.year == "Soil" | sample.type.year == "Soilwater" | sample.type.year == "Hyporheicwater"
+         | sample.type.year == "Wellwater" | sample.type.year == "Sediment",
+         ecosys.domain := "Soily"]
+ag.class[sample.type.year == "Marine", ecosys.domain := "Marine"]
+
+# Custom function to identify ASVs for each group
+# 1. Abundant in all sample types never absent = Universally abundant
+# 2. Medium in all sample types never absent = Universally medium
+# 3. Always rare = Universally rare / absent (Assumption: what is absent is so rare that it's below detection limit)
+# 4. Abundant in all of one ecosystem domain (soily, fresh or marine) and never rare or absent = Cosmopolitan
+
+abun.list <- dlply(ag.class, .(DnaType), function(x){
+  setDT(x)
+  # 1. Universally abundant
+  univ.abun <- as.character(x[ab.group == 1, abundant.counts := .N, by = .(ASV)][abundant.counts == length(levels(factor(sample.type.year))),]$ASV)
+  # 2. Universally medium
+  univ.med <- as.character(x[ab.group == 2, abundant.counts := .N, by = .(ASV)][abundant.counts == length(levels(factor(sample.type.year))),]$ASV)
+  # 3. Universally rare
+  univ.rare <- as.character(unique(x[ab.group == 3 | ab.group == 0, 
+                                     rare.counts :=  .N, 
+                                     by = .(ASV)][rare.counts == length(levels(factor(x$sample.type.year))),]$ASV))
+  # 4. Cosmopolitan
+  x[, domain.count := .N, by = .(ASV, ecosys.domain)]
+  abun.dom <- unique(as.character(x[ab.group == 1, abundant.counts.by.dom := .N, by = .(ecosys.domain, ASV)][abundant.counts.by.dom == domain.count,]$ASV))
+  rare <- as.character(unique(x[ab.group == 3 | ab.group == 0,]$ASV))
+  cosmo <- as.character(unique(x[ASV %in% abun.dom & !(ASV %in% rare),]$ASV))
+  
+  # 5. Abundant in all of one ecosystem domain, but never abundant in other domains == Specialist
+  abun.dom <- x[ab.group == 1 | ab.group == 2,
+                abun.counts.by.dom := .N, by = .(ecosys.domain, ASV)][abun.counts.by.dom == domain.count, abun.domain := ecosys.domain, by = .(ASV)]
+  spec.asvs <- as.character(unique(abun.dom[!is.na(abun.domain),]$ASV))
+  abun.dom[ASV %in% spec.asvs & is.na(abun.domain), abun.domain := "No" ]
+  abun.dom <- as.character(unique(abun.dom[ASV %in% spec.asvs & 
+                                             abun.domain != ecosys.domain &
+                                             (ab.group == 1 | ab.group == 2),
+                                           abun.counts := .N, by = .(ASV, ecosys.domain)][ASV %in% spec.asvs & abun.domain != ecosys.domain, .(sum.abun.counts = sum(abun.counts, na.rm = T)), by = .(ASV)][sum.abun.counts == 0,]$ASV))
+  
+  # 6. Shifters
+  rest <- c(univ.abun, univ.med, univ.rare, cosmo, abun.dom)
+  remain <- x[ASV %in% unique(x$ASV)[!(unique(x$ASV) %in% rest)]]
+  
+  remain[,
+         abundant.counts := nrow(.SD[ab.group == 2 | ab.group == 3]), by = .(ASV)]
+  remain[, rare.counts := nrow(.SD[ab.group == 1 | ab.group == 0]), by = .(ASV)]
+  
+  # Mostly abundant, sometimes rare
+  abundant.shifter <- as.character(unique(remain[abundant.counts >= rare.counts,]$ASV))
+  # Mostly rare, sometimes abundant
+  rare.shifter <- as.character(unique(remain[abundant.counts < rare.counts,]$ASV))
+  
+  #length(univ.abun) + length(univ.med) + length(univ.rare) + length(cosmo) + length(rare.dom) + length(abundant.shifter) + length(rare.shifter) == length(unique(x$ASV))
+  list(universal.abundant = univ.abun,
+       universal.medium = univ.med,
+       universal.rare = univ.rare,
+       cosmopolitan = cosmo,
+       specialist = abun.dom,
+       abundant.shifter = abundant.shifter,
+       rare.shifter = rare.shifter)
+}, .parallel = T)
+
+# Only extract abundance classification based on DNA
+dna.ab.group <- abun.list[["DNA"]]
+
+# only keep those abundance groups that have ASVs assigned
+ls.asvs <- dna.ab.group[which(sapply(dna.ab.group, length) != 0L)]
+grp.names <- names(ls.asvs)
+
+
+# extract raw DNA - RNA relationship
+rel.df <- rel.df[Year != 2015,]
 
 # correct a few wrong sample names for matching DNA and RNA
-pdataframe[pdataframe$Sample == "RO2R52R", "Sample"] <- "RO2.52R"
-pdataframe[pdataframe$Sample == "SWR34R", "Sample"] <- "SW34R"
-pdataframe[pdataframe$Sample == "RO2.36pD", "Sample"] <- "RO2.36D"
-pdataframe[pdataframe$Sample == "RO2.36pR", "Sample"] <- "RO2.36R"
-pdataframe[pdataframe$Sample == "RO2111.60mD", "Sample"] <- "RO2111.90mD"
-pdataframe[pdataframe$Sample == "RO2.30DPR", "Sample"] <- "RO2.30R" # two DNA
-pdataframe[pdataframe$Sample == "RO301.HypoR", "Sample"] <- "RO31.HypoR"
-pdataframe[pdataframe$Sample == "RO301R", "Sample"] <- "RO31R" 
-pdataframe[pdataframe$Sample == "RO304R", "Sample"] <- "RO34R" 
-pdataframe[pdataframe$Sample == "RO307R", "Sample"] <- "RO37R" 
-
-pdataframe[pdataframe$Sample == "L230R", "Sample"] <- "L330R" # L230 does not exist
-#pdataframe[pdataframe$Sample == "TR49", "Sample"] <- # two DNA
+# correct a few wrong sample names for matching DNA and RNA
+rel.df[Sample == "RO2R52R", Sample := "RO2.52R"]
+rel.df[Sample == "SWR34R", Sample := "SW34R"]
+rel.df[Sample == "RO2.36pD", Sample :="RO2.36D"]
+rel.df[Sample == "RO2.36pR", Sample :="RO2.36R"]
+rel.df[Sample == "RO2111.60mD", Sample := "RO2111.90mD"]
+rel.df[Sample == "RO2.30DPR", Sample := "RO2.30R"] # two DNA
+rel.df[Sample == "RO301.HypoR", Sample := "RO31.HypoR"]
+rel.df[Sample == "RO301R", Sample := "RO31R"] 
+rel.df[Sample == "RO304R", Sample := "RO34R" ]
+rel.df[Sample == "RO307R", Sample := "RO37R"] 
+rel.df[Sample == "L230R", Sample := "L330R"] # L230 does not exist
 
 # remove Ds and Rs to match counterpart samples
-pdataframe$ID[pdataframe$DnaType == "DNA"] <- str_replace(pdataframe$Sample[pdataframe$DnaType == "DNA"], "D$", "")
-pdataframe$ID[pdataframe$DnaType == "RNA"] <- str_replace(pdataframe$Sample[pdataframe$DnaType == "RNA"], "R$", "")
-
-# export table to look at point positions in GIS
-#write.table(pb.scores, "./Output/BrayCurtis_scores_withmeta.csv", sep = ",", dec = ".", row.names = F)
+rel.df[DnaType == "DNA", ID := str_replace(rel.df$Sample[rel.df$DnaType == "DNA"], "D$", "")]
+rel.df[DnaType == "cDNA", ID := str_replace(rel.df$Sample[rel.df$DnaType == "cDNA"], "R$", "")]
 
 # calculate mean coordinates for duplicates
-sum <- pdataframe %>% 
-  filter(!Year == 2015) %>% 
-  dplyr::group_by(ID, DnaType, Metric) %>%
-  dplyr::summarise(x = mean(Axis.1), y = mean(Axis.2),
-                   n = n()) %>%
-  ungroup()
+sum <- rel.df[, .(mean.css = mean(css.reads),
+                  n = .N), by = .(sample.type.year, DnaType, ASV)]
 
-setDT(sum)
-# Calculate distance
-temp <- dcast(sum, ID + Metric ~ DnaType, value.var = c("x","y"))
-temp <- dcast(sum, ID + Metric ~ DnaType, value.var = c("x","y"))
-temp[, distance := sqrt((x_DNA - x_RNA)^2 + (y_DNA - y_RNA)^2)]
+sum <- sum[mean.css != 0,]
 
-# combine back with categories
-dist.dr <- temp[pdataframe, c("sample.type.year",
-                  "Year", "Season" ) := list(i.sample.type.year,
-                                             i.Year, i.Season), on = .(ID)]
-# add new column to split plot into main and side panel
-dist.dr[, panels := "main"]
-dist.dr[sample.type.year == "Tributary" |
-          sample.type.year == "Lake" |
-          sample.type.year == "Headwater \nLakes" |
-          sample.type.year == "Sediment", panels := "side"]
+cast.sum <- dcast(sum, sample.type.year + ASV ~ DnaType, value.var = "mean.css")
 
-write.table(dist.dr, "./Output/bray_pcoa_dnarna_distance.csv",
-            sep = ";", dec = ".", row.names = F)
+cast.sum <- cast.sum[!(DNA == 0 & cDNA == 0),]
+cast.sum <- cast.sum[!(DNA == 0 | cDNA == 0),]
+
+# add into means dataframe
+for(i in 1:length(grp.names)){
+  cast.sum[ASV %in% ls.asvs[[grp.names[i]]], ab.names :=  grp.names[i]]
+  sum[ASV %in% ls.asvs[[grp.names[i]]], ab.names :=  grp.names[i]]
+}
+
+ggplot(cast.sum, aes(x = log2(cDNA +1), y = log2(DNA+1))) +
+  geom_point(aes(fill = sample.type.year), shape = 21) +
+  geom_smooth(aes(group = ab.names, colour = ab.names), method = "lm", se = F) +
+  facet_grid(.~ab.names)
+
+ggplot(sum, aes(x = sample.type.year, y = log2(mean.css +1))) +
+  geom_violin(aes(colour = DnaType)) +
+  facet_wrap(.~ab.names)
+
+sum$sample.type.year <- factor(sum$sample.type.year, levels = c("Soil","Sediment",
+                                                                      "Soilwater","Hyporheicwater", 
+                                                                      "Wellwater","Stream", "Tributary",
+                                                                      "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
+                                                                      "Upriver","RO3", "RO2", "RO1","Deep",
+                                                                      "Downriver",
+                                                                      "Marine"),
+                                  labels = c("Soil","Sediment",
+                                             "Soilwater","Hyporheicwater", 
+                                             "Groundwater","Stream", "Tributary",
+                                             "Headwater \nLakes", "Upstream \nPonds", "Lake", "Lake",
+                                             "Upriver","RO3","RO2", "RO1","Hypolimnion","Downriver",
+                                             "Estuary"))
+
+ggplot(means[ab.names == "rare.shifter",], 
+       aes(x = sample.type.year, y = ASV)) +
+  geom_raster(aes(fill = log2(mean.css + 1))) +
+  scale_fill_viridis_c() +
+  facet_wrap(.~DnaType)
+
+
+
+
+# put names of each list bin into list itself for plotting
+for(i in 1:length(ls.asvs)){
+  ls.asvs[[i]] <- as.list(ls.asvs[i])
+  names(ls.asvs[[i]]) <- "ASVs"
+  ls.asvs[[i]]$name <- names(ls.asvs)[i]
+}
+
+# Run multivariate analysis
+ls.pcoa <- llply(ls.asvs, function(x){
+  if(length(x$ASVs) == 0L){
+    warning("Abundance group is empty")
+  } else {
+    # extract species table with species in columns
+    pb.mat <- t(otu_mat(pb))
+    
+    # take only ASVs part of one abundance group
+    pb.mat <- pb.mat[, c(x$ASVs)]
+    # remove samples (= rows) that have all 0 values
+    pb.mat <- pb.mat[apply(pb.mat, 1, function(x) !all(x == 0)),]
+    
+    # 1. PCoA with Bray-Curtis
+    pb.bray <- vegdist(pb.mat, method = "bray")
+    pb.bray <- sqrt(pb.bray) # make Euclidean
+    pb.bray.pcoa <- ape::pcoa(pb.bray)
+    
+    # 2. PCoA with Jaccard (presence-absence)
+    pb.jac <- vegdist(pb.mat, method = "jaccard", binary = T)
+    pb.jac.pcoa <- ape::pcoa(pb.jac)
+    
+    # merge outputs into a list
+    list(asv.tab = pb.mat,
+         pcoa.bray = pb.bray.pcoa,
+         pcoa.jacc = pb.jac.pcoa,
+         name = x$name)
+  }
+}, .parallel = T)
+
+# Plot PCoAs
+pcoa.df <- llply(ls.pcoa, function(x){
+  out <- plot_bray_n_jacc(bray = x$pcoa.bray,
+                   jacc = x$pcoa.jacc,
+                   colours = colvec,
+                   plot.name = x$name,
+                   output = T)
+  out$name <- x$name # add group name to list
+  return(out)
+}, .parallel = T)
+
+# plot DNA-RNA distance
+dnarna.dist <- llply(pcoa.df, function(x){
+  dist.dr <- dist.dnarna(x$df, save.name = x$name, dimensions = 3)
+}, .parallel = T)
+
+# plot DNA-RNA dissimilarity
+dnarna.abgroup <- llply(ls.asvs, function(x){
+  physeq <- subset_asv(pb, x$ASVs)
+  
+  dist.dr <- dissim.dnarna(physeq, save.name = x$name, output = T)
+  
+}, .parallel = T)
+
+set.seed(3) #plot heatmap works with NMDS
+# plot heatmaps
+heatmap.ab <- llply(ls.asvs, function(x){
+  physeq <- subset_asv(pb, x$ASVs)
+  
+  if(any(taxa_sums(physeq) == 0) == T){
+    physeq <- prune_taxa(!taxa_sums(physeq) == 0, physeq)
+  }
+  if(any(sample_sums(physeq) == 0) == T){
+    physeq <- prune_samples(!sample_sums(physeq) == 0, physeq)
+  }
+  
+  if(length(x$ASVs) > 1000){
+    physeq <- prune_taxa(names(sort(taxa_sums(physeq), TRUE)[1:5000]), physeq)
+  }
+  
+  p <- plot_heatmap(physeq)
+  return(p)
+}, .parallel = T)
+
+
+
+out.groups <- ldply(dnarna.abgroup, function(x){
+  x$wide
+}, .parallel = T)
+
+
+out.all <- dist.dr$wide %>% mutate(.id = "All")
+
+out <- rbind(out.all, out.groups)
+
+ggplot(out, aes(x = Bray, y = Jaccard)) +
+  geom_point(aes(fill = sample.type.year), shape = 21) +
+  geom_smooth(aes(group = sample.type.year, colour = sample.type.year), method = "lm", se = F) +
+  annotate(geom = "segment", x = 0, y = 0, xend = 1, yend = 1)
 
 # Bray Curtis
-# plot main plot
-(
-  main.b <-
-    ggplot(dist.dr[panels == "main" & Metric == "Bray", ], aes(
-      x = sample.type.year, y = distance, fill = Season
-    )) +
-    theme_pubr() +
-    geom_boxplot(width = 0.7, outlier.size = 0.5, size = 0.3) + # outlier.alpha = 0
-    scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
-    new_scale_fill() +
-    #geom_point(aes(fill = as.character(Year)), position = position_jitterdodge(), colour = "black", shape = 21) + #alpha = 0.5,
-    #scale_fill_manual(name = "Year", values = c("white","gray20")) +
-    labs(x = "Sample type", y = "Distance between DNA and RNA \nin PCoA space (Bray-Curtis)") +
-    #facet_grid(.~Year, scales = "free") +
-    theme(
-      axis.text.x = element_text(angle = 45, hjust = 1),
-      axis.text = element_text(size = 8),
-      axis.title.x = element_blank(),
-      axis.title = element_text(size = 10)
-    )
-)
-
-# side panel
-(
-  side.b <-
-    ggplot(dist.dr[panels == "side" & Metric == "Bray", ], aes(
-      x = sample.type.year, y = distance, fill = Season
-    )) +
-    theme_pubr() +
-    geom_boxplot(width = 0.7, outlier.size = 0.5, size = .3) + # outlier.alpha = 0
-    scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
-    new_scale_fill() +
-    #geom_point(
-    #  aes(fill = as.character(Year)),
-    #  position = position_jitterdodge(),
-    #  colour = "black",
-    #  shape = 21
-    #) + #alpha = 0.5,
-    #scale_fill_manual(name = "Year", values = c("white", "gray20")) +
-    labs(x = "Sample type", y = "Distance between DNA and RNA \nin PCoA space") +
-    lims(y = c(0, 0.6)) +
-    #facet_grid(.~Year, scales = "free") +
-    theme(
-      axis.title.x = element_blank(),
-      axis.text.x = element_text(angle = 45, hjust = 1),
-      axis.text = element_text(size = 8),
-      axis.title.y = element_blank(),
-      axis.text.y = element_blank(),
-      axis.line.y = element_blank(),
-      axis.ticks.y = element_blank()
-    )
-)
-
-# Jaccard
-# plot main plot
-(
-  main.j <-
-    ggplot(dist.dr[panels == "main" & Metric == "Jaccard", ], aes(
-      x = sample.type.year, y = distance, fill = Season
-    )) +
-    theme_pubr() +
-    geom_boxplot(width = 0.7, outlier.size = 0.5, size = 0.3) + # outlier.alpha = 0
-    scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
-    new_scale_fill() +
-    #geom_point(aes(fill = as.character(Year)), position = position_jitterdodge(), colour = "black", shape = 21) + #alpha = 0.5,
-    #scale_fill_manual(name = "Year", values = c("white","gray20")) +
-    labs(x = "Sample type", y = "Distance between DNA and RNA \nin PCoA space (Jaccard)") +
-    #facet_grid(.~Year, scales = "free") +
-    theme(
-      axis.text.x = element_text(angle = 45, hjust = 1),
-      axis.text = element_text(size = 8),
-      axis.title.x = element_blank(),
-      axis.title = element_text(size = 10)
-    )
-)
-
-# side panel
-(
-  side.j <-
-    ggplot(dist.dr[panels == "side" & Metric == "Jaccard", ], aes(
-      x = sample.type.year, y = distance, fill = Season
-    )) +
-    theme_pubr() +
-    geom_boxplot(width = 0.7, outlier.size = 0.5, size = .3) + # outlier.alpha = 0
-    scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
-    new_scale_fill() +
-    #geom_point(
-    #  aes(fill = as.character(Year)),
-    #  position = position_jitterdodge(),
-    #  colour = "black",
-    #  shape = 21
-    #) + #alpha = 0.5,
-    #scale_fill_manual(name = "Year", values = c("white", "gray20")) +
-    labs(x = "Sample type", y = "Distance between DNA and RNA \nin PCoA space") +
-    lims(y = c(0, 0.6)) +
-    #facet_grid(.~Year, scales = "free") +
-    theme(
-      axis.title.x = element_blank(),
-      axis.text.x = element_text(angle = 45, hjust = 1),
-      axis.text = element_text(size = 8),
-      axis.title.y = element_blank(),
-      axis.text.y = element_blank(),
-      axis.line.y = element_blank(),
-      axis.ticks.y = element_blank()
-    )
-)
+# 1 = don't share any species
+# 2 = share all species
 
 
-# combine both plots
-(p <- ggarrange(
-  ggarrange(main.b, 
-          side.b,
-          widths = c(3,1),
-          ncol = 2, nrow = 1, 
-          common.legend = T,
-          legend = "top",
-          align = "h",
-          font.label = list(size = 10)),
-  ggarrange(main.j, 
-            side.j,
-            widths = c(3,1),
-            ncol = 2, nrow = 1, 
-            common.legend = F,
-            legend = "none",
-            align = "h",
-            font.label = list(size = 10)),
-  nrow = 2))
-# add x axis title to be in the middle of two panels
-(p <- annotate_figure(p, bottom = text_grob("Sample Type")))
 
-# save
-ggsave("./Figures/Final/All_DNARNA_withinPCoA_distance.tiff", 
-       p, width = 18, height = 13, unit = "cm")
+
+
+
+
 
 ##########################################################################
 #-----------------------#
@@ -1366,3 +1742,169 @@ ggsave("./Figures/General/2016_log_DNARNA_withinPCoA_distance.png", dr.dist, wid
 # Move to next script #
 #---------------------#
 sessionInfo()
+
+
+#########################################################################
+#- Extra code
+
+# try NMDS
+set.seed(3)
+# Stress values equal to or below 0.1
+# Stress values equal to or below 0.05 indicate good fit
+nmds <- metaMDS(pb.bray, k = 6, trymax = 1000) # k = 6, minimum dim fulfilling stress
+# but 1000 iterations did not reach convergence...
+
+# try PCA
+#pb.mat <-decostand(pb.mat, method = "norm") # chord transformation
+#pb.mat <-decostand(pb.mat, method = "hellinger") # hellinger transformation
+# Transformations were explored, no major difference, go with simplest solution
+
+pca<-prcomp(pb.mat,retx=T,center=T,scale.=F)
+scores<-pca$x
+loadings<-pca$rotation
+
+screeplot(pca)
+pca.pct<-100*round(summary(pca)$importance[2,],3)
+barplot(pca.pct)
+
+# extract % of variance explained by each PC
+pca.res <- summary(pca)
+# extract the proprtion of variance explained by each PCA axis
+exp<-data.frame(pca.res$importance)
+exp <- exp[,1:2]
+
+# site coordinates
+pca.sites <- data.frame(PC1 = scores[,1]/pca$sdev[1], PC2 = scores[,2]/pca$sdev[2]) 
+
+# species coordinates
+pca.species <- loadings*matrix(pca$sdev,nrow=nrow(loadings),ncol=ncol(loadings),byrow=TRUE)
+#pca.species <- pca.species *2 # choose extension factor
+pca.species <- data.frame(PC1 = pca.species[,1], PC2 = pca.species[,2], Species = row.names(pca.species),
+                          stringsAsFactors = F)
+# loadings are weighted by sqrt(eigenvalues) (multiplied by sqrt(eigenvalues))
+
+# export PCA scores and merge with meta data
+ord.df<-data.frame(PC1=pca.sites$PC1,PC2=pca.sites$PC2, Samples = row.names(pca.sites),
+                   stringsAsFactors = F)
+ord.df <- merge(ord.df, sample_df(dna) %>% 
+                  mutate(Samples = row.names(sample_df(dna))) %>%
+                  dplyr::select(Samples, Year, Season, sample.type.year, DnaType), by = "Samples")
+
+# set factors for plotting
+ord.df$sample.type.year <- factor(ord.df$sample.type.year, levels = c("Soil","Sediment",
+                                                                      "Soilwater","Hyporheicwater", 
+                                                                      "Wellwater","Stream", "Tributary",
+                                                                      "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
+                                                                      "Upriver","RO3", "RO2", "RO1","Deep",
+                                                                      "Downriver",
+                                                                      "Marine"),
+                                  labels = c("Soil","Sediment",
+                                             "Soilwater","Hyporheicwater", 
+                                             "Groundwater","Stream", "Tributary",
+                                             "Headwater \nLakes", "Upstream \nPonds", "Lake", "Lake",
+                                             "Upriver","RO3","RO2", "RO1","Hypolimnion","Downriver",
+                                             "Estuary"))
+ord.df$Season <- factor(ord.df$Season, levels = c("spring", "summer", "autumn"), 
+                        labels = c("Spring", "Summer","Autumn"))
+ord.df$DnaType <- factor(ord.df$DnaType, levels = c("DNA", "cDNA"), labels = c("DNA", "RNA"))
+
+# extract sample types represented in subset
+colvec <- colvec[names(colvec) %in% as.character(levels(ord.df$sample.type.year))]
+
+# get legend of plot separately
+(
+  bot.leg <-
+    get_legend(
+      ggplot() +
+        theme_bw() +
+        geom_point(data = ord.df, aes(x = PC1, y = PC2,
+                                      fill = sample.type.year, shape = Season),
+                   size = 2.5) +
+        scale_fill_manual(values = colvec, name = "Sample Type") +
+        theme(legend.position = "bottom") +
+        scale_shape_manual(values = c(21, 23, 25)) +
+        scale_alpha_manual(values = c(1, 0.5), name = "Nucleic Acid Type") +
+        guides(shape = guide_legend(order = 1),
+               alpha = guide_legend(order = 2), fill = "none")
+    )
+)
+
+(pca.bi <- ggplot() +
+    theme_bw() +
+    geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
+    geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
+    geom_point(data = ord.df, aes(x = PC1, y = PC2,
+                                  fill = sample.type.year, shape = Season),
+               size = 2.5) +
+    #geom_text(data = pca.species, 
+    #          aes(x = PC1, y = PC2, label = Species),
+    #          size = 4) +
+    #coord_fixed(ratio = .75) +
+    scale_fill_manual(values = colvec, name = "Ecosystem Type") +
+    scale_shape_manual(values = c(21,23,25)) +
+    labs(x = paste("PC1 [", round(exp$PC1[2] * 100,2),"%]"), 
+         y = paste("PC2 [", round(exp$PC2[2] * 100,2),"%]")) +
+    theme(legend.key.size = unit(1, "lines"),
+          legend.text = element_text(size = 8),
+          legend.title = element_text(size = 8),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          legend.position = "right", 
+          legend.box = "vertical",
+          legend.margin = margin()) +
+    guides(fill = guide_legend(override.aes=list(shape=21, size = 1.7), order = 1),
+           shape = guide_legend(order = 2, override.aes = list(size = 1.7))))
+
+ggsave(paste0("./Figures/Final/PCA_DNA_SampleType.tiff"), pca.bi,
+       width = 15, height = 13, unit = "cm")
+ggsave(paste0("./Figures/Final/PCA_DNA_SampleType.png"), pca.bi,
+       width = 15, height = 13, unit = "cm")
+
+adonis(pb.mat ~ sample.type.year + Season, data = ord.df, method = "eu")
+
+# Get species contribution to each axes
+# 10 species contributing maximum to the positive and negative of each axes
+# keep the ASVs with the highest contribution to PC1 and PC2
+min.pc1 <- head(pca.species[order(pca.species$PC1),], 10)$Species
+max.pc1 <- head(pca.species[order(pca.species$PC1, decreasing = T),], 10)$Species
+min.pc2 <- head(pca.species[order(pca.species$PC2),], 10)$Species
+max.pc2 <- head(pca.species[order(pca.species$PC2, decreasing = T),], 10)$Species
+
+contrib.pc1 <- c(min.pc1, max.pc1)
+contrib.pc2 <- c(min.pc2, max.pc2)
+
+species.names <- as.data.frame(tax_mat(dna)[row.names(tax_mat(dna)) %in% c(contrib.pc1, contrib.pc2),])
+species.names$ASV <- row.names(species.names)
+
+pca.species <-
+  rbind(pca.species[pca.species$Species %in% contrib.pc1,] %>% mutate(Contrib = "PC1"),
+        pca.species[pca.species$Species %in% contrib.pc2,] %>% mutate(Contrib = "PC2"))
+
+contrib.sp <- merge(species.names, pca.species, by.x = "ASV", by.y = "Species")
+setDT(contrib.sp)
+
+contrib.sp[!is.na(genus), labels := paste0(order,", ", family,"\n" ,genus)]
+contrib.sp[is.na(genus), labels := paste0(order,"\n", family)]
+
+contrib.sp[, c("sum.pc1", "sum.pc2") := list(sum(PC1), sum(PC2)), by = .(labels)]
+
+(pc1.bar <- ggplot(contrib.sp[order(contrib.sp$PC1) & Contrib == "PC1",], 
+                   aes(x = reorder(labels, sum.pc1), y = sum.pc1)) +
+    coord_flip() +
+    theme_pubr() +
+    geom_hline(yintercept = 0, colour = "grey40") +
+    geom_col(fill = "white", colour = "black") +
+    labs(x = "", y = "Contribution to PC1") +
+    theme(axis.text.y = element_text(size = 10, face = "italic")))
+
+(pc2.bar <- ggplot(contrib.sp[order(contrib.sp$PC2) & Contrib == "PC2",], 
+                   aes(x = reorder(labels, sum.pc2), y = sum.pc2)) +
+    coord_flip() +
+    theme_pubr() +
+    geom_hline(yintercept = 0, colour = "grey40") +
+    geom_col(fill = "white", colour = "black") +
+    labs(x = "", y = "Contribution to PC2") +
+    theme(axis.text.y = element_text(size = 10, face = "italic")))
+
+ggsave("./Figures/Final/Contribution_species_PCA_DNA.png", p, width = 10, height = 6)
+

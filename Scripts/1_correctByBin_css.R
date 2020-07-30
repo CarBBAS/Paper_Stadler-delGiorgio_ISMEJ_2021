@@ -37,8 +37,7 @@ library(pbapply)
 #-----------#
 # FUNCTIONS #
 #-----------#
-source("./Functions/phyloseq_index.R")
-#source("./Functions/peak_identification.R")
+source("./Functions/custom_fun.R")
 
 #---------------------#
 # Raw data processing #
