@@ -162,6 +162,36 @@ localMinima <- function(x) {
 }
 
 
+############
+# Plotting #
+############
+# Custom theme with smaller legends
+theme_cust <- function(base_theme = "bw", base_size = 11, half_line = base_size/2){
+  if(base_theme == "bw"){
+    t <- theme_bw(base_size = base_size)
+  }
+  
+  if(base_theme == "pubr"){
+    t <- theme_pubr(base_size = base_size)
+  }
+  
+  t %+replace% theme(legend.position = "right", 
+          legend.spacing = unit(half_line / 2, "pt"), # spacing between legends
+          legend.key.size = unit(0.7, "lines"), # size of legend symbol box
+          legend.box.spacing = unit(1.5 * half_line, "pt"), # spacing between legend and plot
+          legend.text = element_text(size = unit(base_size - 4, "pt")), 
+          legend.title = element_text(size = unit(base_size - 3, "pt"), hjust = 0)
+          )
+  
+}
+
+# originals from theme_grey
+#legend.key.size = unit(1.5, "lines") # size of legend symbol box
+#legend.spacing = unit(2 * half_line, "pt") # spacing between legends
+#legend.box.spacing = unit(2 * half_line, "pt") # spacing between legend and plot
+#plot.title = element_text(size = rel(1.2)
+
+
 ####################################
 ## Plotting multivariate analysis ##
 ####################################
@@ -170,7 +200,7 @@ localMinima <- function(x) {
 ## Make into function to save scripting space
 ## (as we're repeating the same steps for different datasets)
 
-plot_bray <- function(bray, colours = colvec, .id = NULL, output = F){
+plot_bray <- function(bray, colours = colvec, .id = NULL, axes = "1+2", output = F){
   # extract scores and variance explained
   pb.scores <- data.frame(Sample = as.character(row.names(bray$vectors)),
                           bray$vectors[,1:3], stringsAsFactors = F)  # get first three axes
@@ -178,14 +208,12 @@ plot_bray <- function(bray, colours = colvec, .id = NULL, output = F){
     pb.scores$ID <- .id
   }
   
-  
   pb.var <- data.frame(x = round(100 * bray$values$Eigenvalues[1] / sum(bray$values$Eigenvalues), 2),
                              y = round(100 * bray$values$Eigenvalues[2] / sum(bray$values$Eigenvalues), 2),
                              z = round(100 * bray$values$Eigenvalues[3] / sum(bray$values$Eigenvalues), 2),
                              stringsAsFactors = F)
                  
   pdataframe <- merge(pb.scores, pb.var)
-  
   
   # merge with a selection of meta data
   meta <- data.frame(Sample = as.character(row.names(sample_df(pb))),
@@ -195,19 +223,32 @@ plot_bray <- function(bray, colours = colvec, .id = NULL, output = F){
   pdataframe$Sample <- as.character(pdataframe$Sample)
   
   # overwrite factor levels
+  #pdataframe$sample.type.year <- factor(pdataframe$sample.type.year, levels = c("Soil","Sediment",
+  #                                                                              "Soilwater","Hyporheicwater", 
+  #                                                                              "Wellwater","Stream", "Tributary",
+  #                                                                              "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
+  #                                                                              "Upriver","RO3", "RO2", "RO1","Deep",
+  #                                                                              "Downriver",
+  #                                                                              "Marine"),
+  #                                      labels = c("Soil","Sediment",
+  #                                                 "Soilwater","Hyporheicwater", 
+  #                                                 "Groundwater","Stream", "Tributary",
+  #                                                 "Headwater \nLakes", "Upstream \nPonds", "Lake", "Lake",
+  #                                                 "Upriver","RO3","RO2", "RO1","Hypolimnion","Downriver",
+  #                                                 "Estuary"))
   pdataframe$sample.type.year <- factor(pdataframe$sample.type.year, levels = c("Soil","Sediment",
-                                                                                "Soilwater","Hyporheicwater", 
-                                                                                "Wellwater","Stream", "Tributary",
-                                                                                "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
-                                                                                "Upriver","RO3", "RO2", "RO1","Deep",
-                                                                                "Downriver",
-                                                                                "Marine"),
-                                        labels = c("Soil","Sediment",
-                                                   "Soilwater","Hyporheicwater", 
-                                                   "Groundwater","Stream", "Tributary",
-                                                   "Headwater \nLakes", "Upstream \nPonds", "Lake", "Lake",
-                                                   "Upriver","RO3","RO2", "RO1","Hypolimnion","Downriver",
-                                                   "Estuary"))
+                                                                        "Soilwater","Hyporheicwater", 
+                                                                        "Wellwater","Stream", "Tributary",
+                                                                        "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
+                                                                        "Upriver", "Downriver","RO3", "RO2", "RO1","Deep",
+                                                                        "Marine"),
+                                    labels = c("Soil","Sediment",
+                                               "Soilwater","Soilwater", 
+                                               "Groundwater","Stream", "Tributary",
+                                               "Riverine \nLakes", "Headwater \nPonds", "Lake", "Lake",
+                                               "Upriver","Downriver",
+                                               "Reservoirs","Reservoirs", "Reservoirs","Reservoirs",
+                                               "Estuary"))
   pdataframe$Season <- factor(pdataframe$Season, levels = c("spring", "summer", "autumn"), 
                               labels = c("Spring", "Summer","Autumn"))
   if(length(levels(factor(pdataframe$DnaType))) == 2){
@@ -216,57 +257,113 @@ plot_bray <- function(bray, colours = colvec, .id = NULL, output = F){
   # extract only colours that are in data frame
   colvec <- colvec[names(colvec) %in% as.character(levels(pdataframe$sample.type.year))]
   
-  # get legend of plot separately
-  (
-    side.leg2 <-
-      get_legend(
-        ggplot(pdataframe, aes(x = Axis.1, y = Axis.2)) +
-          theme_bw() +
-          geom_point(aes(fill = sample.type.year, shape = Season, alpha = DnaType),
-                     size = 2.5) +
-          scale_fill_manual(values = colvec, name = "Habitat Type") +
-          theme(legend.position = "right", legend.spacing = unit(1, "line")) +
-          scale_shape_manual(values = c(21, 23, 25)) +
-          scale_alpha_manual(values = c(1, 0.5), name = "Nucleic Acid \nType") +
-          guides(shape = guide_legend(order = 1),
-                 alpha = guide_legend(order = 2), fill = "none")
-      )
-  )
+  if(axes == "1+2"){
+    # get legend of plot separately
+    (
+      side.leg2 <-
+        get_legend(
+          ggplot(pdataframe, aes(x = Axis.1, y = Axis.2)) +
+            theme_cust() +
+            geom_point(aes(fill = sample.type.year, shape = Season, alpha = DnaType),
+                       size = 2.5) +
+            scale_fill_manual(values = colvec, name = "Habitat Type") +
+            scale_shape_manual(values = c(21, 23, 25)) +
+            scale_alpha_manual(values = c(1, 0.5), name = "Nucleic Acid \nType") +
+            guides(shape = guide_legend(order = 1, override.aes=list(size = 2)),
+                   alpha = guide_legend(order = 2, override.aes=list(size = 2)), fill = "none")
+        )
+    )
+    
+    (
+      side.leg1 <-
+        get_legend(
+          ggplot(pdataframe, aes(x = Axis.1, y = Axis.2)) +
+            theme_cust() +
+            geom_point(aes(fill = sample.type.year, shape = Season, alpha = DnaType),
+                       size = 2.5) +
+            scale_fill_manual(values = colvec, name = "Habitat Type") +
+            scale_shape_manual(values = c(21,23,25)) +
+            scale_alpha_manual(values = c(1,0.5), name = "Nucleic Acid \nType") +
+            guides(fill = guide_legend(order = 1, override.aes=list(shape=21)),
+                   shape = "none",
+                   alpha = "none")
+        )
+    )
+    
+    # main plot
+    (pcoa.bray <- ggplot(pdataframe, aes(x = Axis.1, y = Axis.2)) +
+        theme_cust() +
+        geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
+        geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
+        geom_point(aes(fill = sample.type.year, shape = Season, alpha = DnaType),
+                   size = 2.5) +
+        scale_fill_manual(values = colvec, name = "Habitat Type") +
+        scale_shape_manual(values = c(21,23,25)) +
+        scale_alpha_manual(values = c(1,0.5), name = "Nucleic Acid \nType") +
+        coord_fixed(1) + # ensure aspect ratio
+        labs(x = paste("PC1 [", unique(pdataframe$x),"%]"), 
+             y = paste("PC2 [", unique(pdataframe$y),"%]")) +
+        theme(panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank()) +
+        guides(shape = guide_legend(order = 2, override.aes=list(size = 2)),
+               alpha = guide_legend(order = 3, override.aes=list(size = 2)), 
+               fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2)))
+    ) 
+  }
   
-  (
-    side.leg1 <-
-      get_legend(
-        ggplot(pdataframe, aes(x = Axis.1, y = Axis.2)) +
-          theme_bw() +
-          geom_point(aes(fill = sample.type.year, shape = Season, alpha = DnaType),
-                     size = 2.5) +
-          scale_fill_manual(values = colvec, name = "Habitat Type") +
-          scale_shape_manual(values = c(21,23,25)) +
-          scale_alpha_manual(values = c(1,0.5), name = "Nucleic Acid \nType") +
-          theme(legend.position = "right") +
-          guides(fill = guide_legend(order = 1, override.aes=list(shape=21)),
-                 shape = "none",
-                 alpha = "none")
-      )
-  )
-  
-  # main plot
-  (pcoa.bray <- ggplot(pdataframe, aes(x = Axis.1, y = Axis.2)) +
-      theme_bw() +
-      geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
-      geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
-      geom_point(aes(fill = sample.type.year, shape = Season, alpha = DnaType),
-                 size = 2.5) +
-      scale_fill_manual(values = colvec, name = "Habitat Type") +
-      scale_shape_manual(values = c(21,23,25)) +
-      scale_alpha_manual(values = c(1,0.5), name = "Nucleic Acid \nType") +
-      coord_fixed(1) + # ensure aspect ratio
-      labs(x = paste("PC1 [", unique(pdataframe$x),"%]"), 
-           y = paste("PC2 [", unique(pdataframe$y),"%]")) +
-      theme(panel.grid.major = element_blank(),
-            panel.grid.minor = element_blank()) +
-      guides(fill = "none",
-             alpha = "none", shape = "none"))
+  if(axes == "2+3"){
+    # get legend of plot separately
+    (
+      side.leg2 <-
+        get_legend(
+          ggplot(pdataframe, aes(x = Axis.2, y = Axis.3)) +
+            theme_cust() +
+            geom_point(aes(fill = sample.type.year, shape = Season, alpha = DnaType),
+                       size = 2.5) +
+            scale_fill_manual(values = colvec, name = "Habitat Type") +
+            scale_shape_manual(values = c(21, 23, 25)) +
+            scale_alpha_manual(values = c(1, 0.5), name = "Nucleic Acid \nType") +
+            guides(shape = guide_legend(order = 1, override.aes=list(size = 2)),
+                   alpha = guide_legend(order = 2, override.aes=list(size = 2)), fill = "none")
+        )
+    )
+    
+    (
+      side.leg1 <-
+        get_legend(
+          ggplot(pdataframe, aes(x = Axis.2, y = Axis.3)) +
+            theme_cust() +
+            geom_point(aes(fill = sample.type.year, shape = Season, alpha = DnaType),
+                       size = 2.5) +
+            scale_fill_manual(values = colvec, name = "Habitat Type") +
+            scale_shape_manual(values = c(21,23,25)) +
+            scale_alpha_manual(values = c(1,0.5), name = "Nucleic Acid \nType") +
+            guides(fill = guide_legend(order = 1, override.aes=list(shape=21)),
+                   shape = "none",
+                   alpha = "none")
+        )
+    )
+    
+    # main plot
+    (pcoa.bray <- ggplot(pdataframe, aes(x = Axis.3, y = Axis.2)) +
+        theme_cust() +
+        geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
+        geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
+        geom_point(aes(fill = sample.type.year, shape = Season, alpha = DnaType),
+                   size = 2.5) +
+        scale_fill_manual(values = colvec, name = "Habitat Type") +
+        scale_shape_manual(values = c(21,23,25)) +
+        scale_alpha_manual(values = c(1,0.5), name = "Nucleic Acid \nType") +
+        coord_fixed(1) + # ensure aspect ratio
+        labs(x = paste("PC3 [", unique(pdataframe$z),"%]"), 
+             y = paste("PC2 [", unique(pdataframe$y),"%]")) +
+        theme(panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank()) +
+        guides(shape = guide_legend(order = 2, override.aes=list(size = 2)),
+               alpha = guide_legend(order = 3, override.aes=list(size = 2)), 
+               fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2)))
+    )
+  }
   
   if(output == T){
     return(list(df = pdataframe, legends = list(side.leg1, side.leg2), plot = pcoa.bray))
@@ -310,14 +407,14 @@ plot_bray_n_jacc <- function(bray, jacc, colours = colvec, plot.name = NULL, out
                                                                                 "Soilwater","Hyporheicwater", 
                                                                                 "Wellwater","Stream", "Tributary",
                                                                                 "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
-                                                                                "Upriver","RO3", "RO2", "RO1","Deep",
-                                                                                "Downriver",
+                                                                                "Upriver", "Downriver","RO3", "RO2", "RO1","Deep",
                                                                                 "Marine"),
                                         labels = c("Soil","Sediment",
-                                                   "Soilwater","Hyporheicwater", 
+                                                   "Soilwater","Soilwater", 
                                                    "Groundwater","Stream", "Tributary",
-                                                   "Headwater \nLakes", "Upstream \nPonds", "Lake", "Lake",
-                                                   "Upriver","RO3","RO2", "RO1","Hypolimnion","Downriver",
+                                                   "Riverine \nLakes", "Headwater \nPonds", "Lake", "Lake",
+                                                   "Upriver","Downriver",
+                                                   "Reservoirs","Reservoirs", "Reservoirs","Reservoirs",
                                                    "Estuary"))
   pdataframe$Season <- factor(pdataframe$Season, levels = c("spring", "summer", "autumn"), 
                               labels = c("Spring", "Summer","Autumn"))
@@ -420,7 +517,9 @@ conf.int <- function(x){
 }
 
 ## Function to calculate and plot DNA-RNA distance within PCoA space
-dist.dnarna <- function(data, save.name = NULL, output = F, dimensions = 2){
+
+# two metrics version
+dist.dnarna.metrics <- function(data, save.name = NULL, output = F, dimensions = 2){
   if (is.null(save.name) == T) {
     stop("'save.name' needs to be specified.")
   }
@@ -488,7 +587,7 @@ dist.dnarna <- function(data, save.name = NULL, output = F, dimensions = 2){
   dist.dr[, panels := "main"]
   dist.dr[sample.type.year == "Tributary" |
             sample.type.year == "Lake" |
-            sample.type.year == "Headwater \nLakes" |
+            sample.type.year == "Riverine \nLakes" |
             sample.type.year == "Sediment", panels := "side"]
   
   write.table(dist.dr, paste0("./Output/", save.name ,"_PCoA_distance.csv"),
@@ -507,7 +606,7 @@ dist.dnarna <- function(data, save.name = NULL, output = F, dimensions = 2){
       ggplot(dist.dr[panels == "main" & Metric == "Bray", ], aes(
         x = sample.type.year, y = mean, fill = Season
       )) +
-      theme_pubr() +
+      theme_cust(base_theme = "pubr") +
       geom_errorbar(aes(ymin = mean - conf.int, ymax = mean + conf.int, colour = Season),
                     position = position_dodge(0.7), width = 0) +
       geom_jitter(aes(fill = Season), shape = 21, 
@@ -533,7 +632,7 @@ dist.dnarna <- function(data, save.name = NULL, output = F, dimensions = 2){
       ggplot(dist.dr[panels == "side" & Metric == "Bray", ], aes(
         x = sample.type.year, y = mean, fill = Season
       )) +
-      theme_pubr() +
+      theme_cust(base_theme = "pubr") +
       geom_errorbar(aes(ymin = mean - conf.int, ymax = mean + conf.int, colour = Season),
                     position = position_dodge(0.7), width = 0) +
       geom_jitter(aes(fill = Season), shape = 21, 
@@ -562,7 +661,7 @@ dist.dnarna <- function(data, save.name = NULL, output = F, dimensions = 2){
       ggplot(dist.dr[panels == "main" & Metric == "Jaccard", ], aes(
         x = sample.type.year, y = mean, fill = Season
       )) +
-      theme_pubr() +
+      theme_cust(base_theme = "pubr") +
       geom_errorbar(aes(ymin = mean - conf.int, ymax = mean + conf.int, colour = Season),
                     position = position_dodge(0.7), width = 0) +
       geom_jitter(aes(fill = Season), shape = 21, 
@@ -588,7 +687,7 @@ dist.dnarna <- function(data, save.name = NULL, output = F, dimensions = 2){
       ggplot(dist.dr[panels == "side" & Metric == "Jaccard", ], aes(
         x = sample.type.year, y = mean, fill = Season
       )) +
-      theme_pubr() +
+      theme_cust(base_theme = "pubr") +
       geom_errorbar(aes(ymin = mean - conf.int, ymax = mean + conf.int, colour = Season),
                     position = position_dodge(0.7), width = 0) +
       geom_jitter(aes(fill = Season), shape = 21, 
@@ -640,18 +739,191 @@ dist.dnarna <- function(data, save.name = NULL, output = F, dimensions = 2){
          p, width = 18, height = 13, unit = "cm")
   
   if(output == T){
-    return(dist.dr)  
+    return(list(df = dist.dr, plot = ggarrange(main.b, 
+                                               side.b,
+                                               widths = c(3,1),
+                                               ncol = 2, nrow = 1, 
+                                               common.legend = T,
+                                               legend = "top",
+                                               align = "h",
+                                               font.label = list(size = 10))))  
+  }
+}
+
+
+## Function to calculate and plot DNA-RNA distance within PCoA space
+dist.dnarna <- function(data, save.name = NULL, output = F, dimensions = 2){
+  if (is.null(save.name) == T) {
+    stop("'save.name' needs to be specified.")
+  }
+  if(dimensions <= 1 | dimensions > 3){
+    stop("'dimensions' needs to be 2 or 3 to calculate distance in ordination space.")
+  }
+  
+  # correct a few wrong sample names for matching DNA and RNA
+  data[data$Sample == "RO2R52R", "Sample"] <- "RO2.52R"
+  data[data$Sample == "SWR34R", "Sample"] <- "SW34R"
+  data[data$Sample == "RO2.36pD", "Sample"] <- "RO2.36D"
+  data[data$Sample == "RO2.36pR", "Sample"] <- "RO2.36R"
+  data[data$Sample == "RO2111.60mD", "Sample"] <- "RO2111.90mD"
+  data[data$Sample == "RO2.30DPR", "Sample"] <- "RO2.30R" # two DNA
+  data[data$Sample == "RO301.HypoR", "Sample"] <- "RO31.HypoR"
+  data[data$Sample == "RO301R", "Sample"] <- "RO31R" 
+  data[data$Sample == "RO304R", "Sample"] <- "RO34R" 
+  data[data$Sample == "RO307R", "Sample"] <- "RO37R" 
+  data[data$Sample == "L230R", "Sample"] <- "L330R" # L230 does not exist
+  
+  # remove Ds and Rs to match counterpart samples
+  data$ID[data$DnaType == "DNA"] <- str_replace(data$Sample[data$DnaType == "DNA"], "D$", "")
+  data$ID[data$DnaType == "RNA"] <- str_replace(data$Sample[data$DnaType == "RNA"], "R$", "")
+  
+  # export table to look at point positions in GIS
+  #write.table(pb.scores, "./Output/BrayCurtis_scores_withmeta.csv", sep = ",", dec = ".", row.names = F)
+  
+  if(dimensions == 2){
+    # calculate mean coordinates for duplicates
+    sum <- data %>% 
+      filter(!Year == 2015) %>% 
+      dplyr::group_by(ID, DnaType) %>%
+      dplyr::summarise(x = mean(Axis.1), y = mean(Axis.2),
+                       n = n()) %>%
+      ungroup()
+    
+    setDT(sum)
+    # melt datatable
+    temp <- dcast(sum, ID ~ DnaType, value.var = c("x","y"))
+    # remove NAs
+    temp <- na.omit(temp)
+    # Calculate distance
+    temp[, distance := sqrt(abs((x_DNA - x_RNA))^2 + abs((y_DNA - y_RNA))^2)]
+    temp[, .(dist.pca1 = abs((x_DNA - x_RNA)),
+             dist.pca2 = abs((y_DNA - y_RNA)))]
+    
+  } else if(dimensions == 3){
+    # calculate mean coordinates for duplicates
+    sum <- data %>% 
+      filter(!Year == 2015) %>% 
+      dplyr::group_by(ID, DnaType) %>%
+      dplyr::summarise(x = mean(Axis.1), y = mean(Axis.2), z = mean(Axis.3),
+                       n = n()) %>%
+      ungroup()
+    
+    setDT(sum)
+    # melt data table
+    temp <- dcast(sum, ID ~ DnaType, value.var = c("x","y","z"))
+    # remove NAs
+    temp <- na.omit(temp)
+    # Calculate distance
+    temp[, distance := sqrt(abs((x_DNA - x_RNA))^2 + abs((y_DNA - y_RNA))^2 + abs((z_DNA - z_RNA))^2)]
+    temp <- temp[, c("dist.pc1",
+                     "dist.pc2",
+                     "dist.pc3") := list(abs((x_DNA - x_RNA)),
+                                         abs((y_DNA - y_RNA)),
+                                         abs((z_DNA - z_RNA)))]
+  }
+  
+  
+  # combine back with categories
+  dist.dr <- temp[data, c("sample.type.year",
+                          "Year", "Season") := list(i.sample.type.year,
+                                                     i.Year, i.Season), on = .(ID)]
+  # add new column to split plot into main and side panel
+  dist.dr[, panels := "main"]
+  dist.dr[sample.type.year == "Tributary" |
+            sample.type.year == "Lake" |
+            sample.type.year == "Riverine \nLakes" |
+            sample.type.year == "Sediment", panels := "side"]
+  
+  indiv.df <- dist.dr
+  
+  # calculate confidence interval and means of sample type and season combinations
+  dist.dr <- dist.dr[, .(mean =  mean(dist.pc2, na.rm = T),
+                         conf.int = conf.int(dist.pc2)), by = .(sample.type.year, Season, panels)]
+  
+  
+  # Plot
+  # Bray Curtis
+  # plot main plot
+  (
+    main.b <-
+      ggplot(dist.dr[panels == "main", ], aes(
+        x = sample.type.year, y = mean, fill = Season
+      )) +
+      theme_cust(base_theme = "pubr") +
+      geom_errorbar(aes(ymin = mean - conf.int, ymax = mean + conf.int, colour = Season),
+                    position = position_dodge(0.7), width = 0) +
+      geom_jitter(aes(fill = Season), shape = 21, 
+                  position = position_dodge(0.7), size = 2.5) +
+      scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
+      scale_colour_manual(values = c("#009E73", "#FFAA1D", "#D55E00")) +
+      labs(x = "Habitat type", 
+           y = paste0("Distance in \nordination space")) +
+      lims(y = c(min(dist.dr$mean - dist.dr$conf.int, na.rm = T),
+                 max(dist.dr$mean + dist.dr$conf.int, na.rm = T))) +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.text = element_text(size = 8),
+        axis.title.x = element_blank(),
+        axis.title = element_text(size = 10)
+      )
+  )
+  
+  # side panel
+  (
+    side.b <-
+      ggplot(dist.dr[panels == "side", ], aes(
+        x = sample.type.year, y = mean, fill = Season
+      )) +
+      theme_cust(base_theme = "pubr") +
+      geom_errorbar(aes(ymin = mean - conf.int, ymax = mean + conf.int, colour = Season),
+                    position = position_dodge(0.7), width = 0) +
+      geom_jitter(aes(fill = Season), shape = 21, 
+                  position = position_dodge(0.7), size = 2.5) +
+      scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
+      scale_colour_manual(values = c("#009E73", "#FFAA1D", "#D55E00")) +
+      labs(x = "Habitat type", 
+           y = paste0("Distance in ordination space")) +
+      lims(y = c(min(dist.dr$mean - dist.dr$conf.int, na.rm = T),
+                 max(dist.dr$mean + dist.dr$conf.int, na.rm = T))) +
+      theme(
+        axis.title.x = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.text = element_text(size = 8),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.line.y = element_blank(),
+        axis.ticks.y = element_blank()
+      )
+  )
+  
+  # combine both plots
+  (p <- ggarrange(main.b, 
+              side.b,
+              widths = c(3,1),
+              ncol = 2, nrow = 1, 
+              common.legend = T,
+              legend = "top",
+              align = "h",
+              font.label = list(size = 10))
+  )
+    
+  # add x axis title to be in the middle of two panels
+  (p <- annotate_figure(p, bottom = text_grob("Habitat Type")))
+  
+  if(output == T){
+    return(list(df = dist.dr, indiv.df = indiv.df, raw.df = data, 
+                plot.main = main.b, plot.side = side.b))  
   }
 }
 
 ## Function to calculate and plot DNA-RNA dissimilarity (not PCoA space)
 
-melt.dist <- function(x){
+melt.dist <- function(x, var.name = "dist"){
   # convert distance matrix into long format
   dist.mat <- as(x, "matrix")
   xy <- t(combn(colnames(dist.mat), 2))
   dist.df <- data.frame(xy, dist=dist.mat[xy], stringsAsFactors = F)
-  colnames(dist.df)[1:2] <- c("Sample.x", "Sample.y")
+  colnames(dist.df)[1:3] <- c("Sample.x", "Sample.y", var.name)
   return(dist.df)
 }
 
@@ -745,10 +1017,7 @@ dissim.dnarna <- function(physeq, save.name = NULL, output = F){
                             "Year", "Season" ) := list(i.sample.type.year,
                                                        i.Year, i.Season), on = .(ID)]
   
-  # correct one miscategorisation
-  dist.dr[ID == "RO2111.90m", sample.type.year := "Deep"]
-  
-  # add new column to split plot into main and side panel
+    # add new column to split plot into main and side panel
   dist.dr[, panels := "main"]
   dist.dr[sample.type.year == "Tributary" |
             sample.type.year == "Lake" |
@@ -756,40 +1025,41 @@ dissim.dnarna <- function(physeq, save.name = NULL, output = F){
             sample.type.year == "Sediment", panels := "side"]
   
   # calculate confidence interval and means of sample type and season combinations
-  dist.dr <- dist.dr[, .(mean =  mean(dist, na.rm = T),
+  plot.df <- dist.dr[, .(mean =  mean(dist, na.rm = T),
                          conf.int = conf.int(dist)), by = .(Metric, sample.type.year, Season, panels)]
   
   
-  dist.dr$sample.type.year <- factor(dist.dr$sample.type.year, levels = c("Soil","Sediment",
-                                                                          "Soilwater","Hyporheicwater", 
-                                                                          "Wellwater","Stream", "Tributary",
-                                                                          "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
-                                                                          "Upriver","RO3", "RO2", "RO1","Deep",
-                                                                          "Downriver",
-                                                                          "Marine"),
-                                     labels = c("Soil","Sediment",
-                                                "Soilwater","Hyporheicwater", 
-                                                "Groundwater","Stream", "Tributary",
-                                                "Headwater \nLakes", "Upstream \nPonds", "Lake", "Lake",
-                                                "Upriver","RO3","RO2", "RO1","Hypolimnion","Downriver",
-                                                "Estuary"))
-  dist.dr$Season <- factor(dist.dr$Season, levels = c("spring", "summer", "autumn"), 
+  plot.df$sample.type.year <- factor(plot.df$sample.type.year, levels = c("Soil","Sediment",
+                                                                                "Soilwater","Hyporheicwater", 
+                                                                                "Wellwater","Stream", "Tributary",
+                                                                                "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
+                                                                                "Upriver", "Downriver","RO3", "RO2", "RO1","Deep",
+                                                                                "Marine"),
+                                        labels = c("Soil","Sediment",
+                                                   "Soilwater","Soilwater", 
+                                                   "Groundwater","Stream", "Tributary",
+                                                   "Riverine \nLakes", "Headwater \nPonds", "Lake", "Lake",
+                                                   "Upriver","Downriver",
+                                                   "Reservoirs","Reservoirs", "Reservoirs","Reservoirs",
+                                                   "Estuary"))
+  plot.df$Season <- factor(plot.df$Season, levels = c("spring", "summer", "autumn"), 
                            labels = c("Spring", "Summer","Autumn"))
   
   # Plot Bray
   (
     main.b <-
-      ggplot(dist.dr[panels == "main" & Metric == "Bray", ], 
+      ggplot(plot.df[panels == "main" & Metric == "Bray", ], 
              aes(x = sample.type.year, y = mean, fill = Season
       )) +
-      theme_pubr() +
+      theme_cust(base_theme = "pubr")
+    +
       geom_errorbar(aes(ymin = mean - conf.int, ymax = mean + conf.int, colour = Season),
                     position = position_dodge(0.7), width = 0) +
       geom_jitter(aes(fill = Season), shape = 21, 
                   position = position_dodge(0.7), size = 2.5) +
       scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
       scale_colour_manual(values = c("#009E73", "#FFAA1D", "#D55E00")) +
-      labs(x = "Sample type", y = "Bray-Curtis dissimilarity") +
+      labs(x = "Sample type", y = "Pair-wise \nBray-Curtis dissimilarity") +
       #lims(y = c(0.25, 1)) +
       #facet_grid(.~Year, scales = "free") +
       theme(
@@ -803,10 +1073,10 @@ dissim.dnarna <- function(physeq, save.name = NULL, output = F){
   # side panel
   (
     side.b <-
-      ggplot(dist.dr[panels == "side"& Metric == "Bray", ], 
+      ggplot(plot.df[panels == "side"& Metric == "Bray", ], 
              aes(x = sample.type.year, y = mean, fill = Season
              )) +
-      theme_pubr() +
+      theme_cust(base_theme = "pubr") +
       geom_errorbar(aes(ymin = mean - conf.int, ymax = mean + conf.int, colour = Season),
                     position = position_dodge(0.7), width = 0) +
       geom_jitter(aes(fill = Season), shape = 21, 
@@ -830,10 +1100,10 @@ dissim.dnarna <- function(physeq, save.name = NULL, output = F){
   # Same for Jaccard
   (
     main.j <-
-      ggplot(dist.dr[panels == "main" & Metric == "Jaccard", ], 
+      ggplot(plot.df[panels == "main" & Metric == "Jaccard", ], 
              aes(x = sample.type.year, y = mean, fill = Season
       )) +
-      theme_pubr() +
+      theme_cust(base_theme = "pubr") +
       geom_errorbar(aes(ymin = mean - conf.int, ymax = mean + conf.int, colour = Season),
                     position = position_dodge(0.7), width = 0) +
       geom_jitter(aes(fill = Season), shape = 21, 
@@ -841,7 +1111,6 @@ dissim.dnarna <- function(physeq, save.name = NULL, output = F){
       scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
       scale_colour_manual(values = c("#009E73", "#FFAA1D", "#D55E00")) +
       labs(x = "Sample type", y = "Jaccard dissimilarity") +
-      #lims(y = c(0.25, 1)) +
       #facet_grid(.~Year, scales = "free") +
       theme(
         axis.text.x = element_text(angle = 45, hjust = 1),
@@ -854,10 +1123,10 @@ dissim.dnarna <- function(physeq, save.name = NULL, output = F){
   # side panel
   (
     side.j <-
-      ggplot(dist.dr[panels == "side"& Metric == "Jaccard", ], aes(
+      ggplot(plot.df[panels == "side"& Metric == "Jaccard", ], aes(
         x = sample.type.year, y = mean, fill = Season
       )) +
-      theme_pubr() +
+      theme_cust(base_theme = "pubr") +
       geom_errorbar(aes(ymin = mean - conf.int, ymax = mean + conf.int, colour = Season),
                     position = position_dodge(0.7), width = 0) +
       geom_jitter(aes(fill = Season), shape = 21, 
@@ -907,13 +1176,17 @@ dissim.dnarna <- function(physeq, save.name = NULL, output = F){
          p, width = 18, height = 13, unit = "cm")
   
   
-  wide.format <- dcast(dist.dr, ID + sample.type.year + Season ~ Metric, value.var = c("mean"))
+  wide.format <- dcast(dist.dr, ID + sample.type.year + Season ~ Metric, value.var = c("dist"))
   
   if(output == T){
-    out <- list(original = dist.dr, wide = wide.format)
+    out <- list(original.df = dist.dr, wide = wide.format,
+                sum.df = plot.df, plot.main = main.b, plot.side = side.b)
+    
     return(out)  
   }
 }
+
+
 
 ################################################################################
 # Adapted from NeatMap-package and phyloseq.
