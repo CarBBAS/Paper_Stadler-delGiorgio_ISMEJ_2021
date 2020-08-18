@@ -1,5 +1,10 @@
 \begin{thebibliography}{}
 
+\bibitem[Borcard et~al., 2011]{Borcard2011}
+Borcard, D., Gillet, F., and Legendre, P. (2011).
+\newblock {\em {Numerical Ecology with R}}.
+\newblock Springer, New York.
+
 \bibitem[Callahan et~al., 2017]{Callahan2017}
 Callahan, B.~J., McMurdie, P.~J., and Holmes, S.~P. (2017).
 \newblock {Exact sequence variants should replace operational taxonomic units
@@ -32,6 +37,11 @@ Hengl, T., de~Jesus, J., MacMillan, R., Batjes, N., Heuvelink, G., Ribeiro, E.,
 \bibitem[Kassambara, 2020]{Kassambara2018}
 Kassambara, A. (2020).
 \newblock {ggpubr: 'ggplot2' Based Publication Ready Plots}.
+
+\bibitem[Legendre and Legendre, 1998]{Legendre1998}
+Legendre, P. and Legendre, L. (1998).
+\newblock {\em {Numerical Ecology}}.
+\newblock Elsevier, Amsterdam, 2nd edition.
 
 \bibitem[Lehner and Grill, 2013]{Lehner2013}
 Lehner, B. and Grill, G. (2013).
