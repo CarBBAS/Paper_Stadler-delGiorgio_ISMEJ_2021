@@ -999,8 +999,8 @@ z <- z %>%
   dplyr::summarise(Diversity = mean(Diversity, na.rm = T),
                    distance.bray = mean(distance.bray, na.rm = T))
 plot(Diversity ~ distance.bray, data = z) # does not seem linear
-lm0 <- lm(z$Diversity ~ 1)
-lm1 <- lm(z$Diversity ~ z$distance.bray)
+lm0 <- lm(z$Diversity ~ 1); summary(lm0)
+lm1 <- lm(z$Diversity ~ z$distance.bray) ; summary(lm1)
 lm2 <- lm(z$Diversity ~ poly(z$distance.bray, 2))
 lm3 <- lm(z$Diversity ~ poly(z$distance.bray, 3))
 anova(lm0,lm1) # preferred model is lm1
@@ -1015,8 +1015,8 @@ z <- z %>%
   dplyr::summarise(Diversity = mean(Diversity, na.rm = T),
                    distance.bray = mean(distance.bray, na.rm = T))
 plot(Diversity ~ distance.bray, data = z) # does not seem linear
-lm0 <- lm(z$Diversity ~ 1)
-lm1 <- lm(z$Diversity ~ z$distance.bray)
+lm0 <- lm(z$Diversity ~ 1); summary(lm0) 
+lm1 <- lm(z$Diversity ~ z$distance.bray); summary(lm1)
 lm2 <- lm(z$Diversity ~ poly(z$distance.bray, 2))
 lm3 <- lm(z$Diversity ~ poly(z$distance.bray, 3))
 anova(lm0,lm1)
@@ -1758,6 +1758,7 @@ nmds <- metaMDS(pb.bray, k = 6, trymax = 1000) # k = 6, minimum dim fulfilling s
 #pb.mat <-decostand(pb.mat, method = "norm") # chord transformation
 #pb.mat <-decostand(pb.mat, method = "hellinger") # hellinger transformation
 # Transformations were explored, no major difference, go with simplest solution
+pb.mat <- decostand(log2(pb.mat + 1), "hellinger")
 
 pca<-prcomp(pb.mat,retx=T,center=T,scale.=F)
 scores<-pca$x
@@ -1786,8 +1787,8 @@ pca.species <- data.frame(PC1 = pca.species[,1], PC2 = pca.species[,2], Species 
 # export PCA scores and merge with meta data
 ord.df<-data.frame(PC1=pca.sites$PC1,PC2=pca.sites$PC2, Samples = row.names(pca.sites),
                    stringsAsFactors = F)
-ord.df <- merge(ord.df, sample_df(dna) %>% 
-                  mutate(Samples = row.names(sample_df(dna))) %>%
+ord.df <- merge(ord.df, sample_df(pb) %>% 
+                  mutate(Samples = row.names(sample_df(pb))) %>%
                   dplyr::select(Samples, Year, Season, sample.type.year, DnaType), by = "Samples")
 
 # set factors for plotting
@@ -1834,7 +1835,7 @@ colvec <- colvec[names(colvec) %in% as.character(levels(ord.df$sample.type.year)
     geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
     geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
     geom_point(data = ord.df, aes(x = PC1, y = PC2,
-                                  fill = sample.type.year, shape = Season),
+                                  fill = sample.type.year, shape = Season, alpha = DnaType),
                size = 2.5) +
     #geom_text(data = pca.species, 
     #          aes(x = PC1, y = PC2, label = Species),
@@ -1842,6 +1843,7 @@ colvec <- colvec[names(colvec) %in% as.character(levels(ord.df$sample.type.year)
     #coord_fixed(ratio = .75) +
     scale_fill_manual(values = colvec, name = "Ecosystem Type") +
     scale_shape_manual(values = c(21,23,25)) +
+    scale_alpha_manual(values = c(1, 0.5)) +
     labs(x = paste("PC1 [", round(exp$PC1[2] * 100,2),"%]"), 
          y = paste("PC2 [", round(exp$PC2[2] * 100,2),"%]")) +
     theme(legend.key.size = unit(1, "lines"),
