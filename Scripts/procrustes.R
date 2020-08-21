@@ -12,8 +12,26 @@ rna.df <- setDT(as.data.frame(rna.mat), keep.rownames = 'Sample')
 
 # Get meta data to rename DNA and RNA data
 meta <- data.frame(Sample = as.character(row.names(sample_df(pb))),
-                   sample_df(pb) %>% dplyr::select(DnaType), 
+                   sample_df(pb) %>% dplyr::select(DnaType, sample.type.year, Season), 
                    stringsAsFactors = F)
+
+# merge some sample types
+meta$sample.type.year <- factor(meta$sample.type.year, levels = c("Soil","Sediment",
+                                                                      "Soilwater","Hyporheicwater", 
+                                                                      "Wellwater","Stream", "Tributary",
+                                                                      "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
+                                                                      "Upriver", "Downriver","RO3", "RO2", "RO1","Deep",
+                                                                      "Marine"),
+                                  labels = c("Soil","Sediment",
+                                             "Soilwater","Soilwater", 
+                                             "Groundwater","Stream", "Tributary",
+                                             "Riverine \nLakes", "Headwater \nPonds", "Lake", "Lake",
+                                             "Upriver","Downriver",
+                                             "Reservoirs","Reservoirs", "Reservoirs","Reservoirs",
+                                             "Estuary"))
+
+meta$Season <- factor(meta$Season, levels = c("spring", "summer", "autumn"), 
+                            labels = c("Spring", "Summer","Autumn"))
 
 dna.df <- merge(dna.df, meta, by =  "Sample")
 rna.df <- merge(rna.df, meta, by = "Sample")
@@ -57,21 +75,138 @@ sum <- llply(uni.name, function(x){
   mel.df <- mel.df[, .(reads = mean(reads, na.rm = T)), by = .(ASV, ID)]
   out <- dcast(mel.df, ID ~ ASV, value.var = "reads")
   return(out)
-})
+}, .parallel = T)
 
 pcoa.ls <- llply(sum, function(x){
-  pb.mat <- as.matrix(x[,c(2:ncol(x))], rownames = x$ID)
-  pb.mat <- log2(pb.mat + 1)
+  pb.mat <- as.matrix(x[,-1])
+  rownames(pb.mat) <- x$ID
+  #pb.mat <- log2(pb.mat + 1)
   bray <- vegdist(pb.mat, method = "bray")
   bray <- sqrt(bray) # make euclidean
   
-  pcoa <- ape::pcoa(bray)
+  pcoa <- cmdscale(bray, k = nrow(pb.mat)-1, eig = T)
+  #PCoA will return the number of axis given as k, usually df
+  # eigenvalues should be returned
   
-  return(list(Bray = bray, PCOA = pcoa))
-})
+  return(list(Bray = bray, Pcoa = pcoa))
+}, .parallel = T)
+
+# Map RNA on DNA ordination, only first two axes
+proc <- procrustes(pcoa.ls[[1]]$Pcoa, pcoa.ls[[2]]$Pcoa, scores = "sites", choices = c(1,2))
+summary(proc)
+
+# The sum of squared residuals between scaled and rotated configurations 
+# of each matrix is used as a metric of association (m2) (Peres-Neto and Jackson, 2001).
+# The m2 metric varies between 0 and 1, and smaller values of m2 indicate stronger concordance between
+# dissimilarity matrices.
+
+protest(pcoa.ls[[1]]$Pcoa, pcoa.ls[[2]]$Pcoa, scores = "sites", permutations = 999)
+# report 
+# procrustes sum of squares m12 squared
+# correlation r
+# significance p
+
+# get residuals of procrustes
+resid <- data.frame(ID = names(residuals(proc)), 
+                    Resid = as.vector(residuals(proc)))
+setDT(resid)
+#merge with meta data
+resid[uni.name[[1]], c("sample.type.year",
+                        "Season" ) := list(i.sample.type.year,
+                                                   i.Season), on = .(ID)]
+
+# add panels for plotting
+resid[, panels := "main"]
+resid[sample.type.year == "Tributary" |
+          sample.type.year == "Lake" |
+          sample.type.year == "Riverine \nLakes" |
+          sample.type.year == "Sediment", panels := "side"]
+
+# calculate confidence interval and means of sample type and season combinations
+resid <- resid[, .(mean =  mean(Resid, na.rm = T),
+                       conf.int = conf.int(Resid),
+                   std = sd(Resid)),
+               by = .(sample.type.year, Season, panels)]
+
+(
+  main.b <-
+    ggplot(resid[panels == "main", ], aes(
+      x = sample.type.year, y = mean, fill = Season
+    )) +
+    theme_cust(base_theme = "pubr") +
+    geom_errorbar(aes(ymin = mean - std, ymax = mean + std, colour = Season),
+                  position = position_dodge(0.7), width = 0) +
+    geom_jitter(aes(fill = Season), shape = 21, 
+                position = position_dodge(0.7), size = 2.5) +
+    scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
+    scale_colour_manual(values = c("#009E73", "#FFAA1D", "#D55E00")) +
+    labs(x = "Sample type", 
+         y = paste0("Procrustes residuals")) +
+    lims(y = c(min(resid$mean - resid$std, na.rm = T),
+               max(resid$mean + resid$std, na.rm = T))) +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      axis.text = element_text(size = 8),
+      axis.title.x = element_blank(),
+      axis.title = element_text(size = 10)
+    )
+)
+
+# side panel
+(
+  side.b <-
+    ggplot(resid[panels == "side", ], aes(
+      x = sample.type.year, y = mean, fill = Season
+    )) +
+    theme_cust(base_theme = "pubr") +
+    geom_errorbar(aes(ymin = mean - std, ymax = mean + std, colour = Season),
+                  position = position_dodge(0.7), width = 0) +
+    geom_jitter(aes(fill = Season), shape = 21, 
+                position = position_dodge(0.7), size = 2.5) +
+    scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
+    scale_colour_manual(values = c("#009E73", "#FFAA1D", "#D55E00")) +
+    labs(x = "Sample type", 
+         y = paste0("Procrustes residuals")) +
+    lims(y = c(min(resid$mean - resid$std, na.rm = T),
+               max(resid$mean + resid$std, na.rm = T))) +
+    theme(
+      axis.title.x = element_blank(),
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      axis.text = element_text(size = 8),
+      axis.title.y = element_blank(),
+      axis.text.y = element_blank(),
+      axis.line.y = element_blank(),
+      axis.ticks.y = element_blank()
+    )
+)
+
+ggarrange(main.b, 
+          side.b,
+          widths = c(3,1),
+          ncol = 2, nrow = 1, 
+          common.legend = T,
+          legend = "top",
+          align = "h",
+          font.label = list(size = 10))
+
+# calculate means and confidence intervals by habitat
+resid[, .(mean)]
+
+resid <- merge(resid, uni.name[[1]] %>% select(ID, sample.type.year, Season))
+
+setDT(resid)
+
+plot(proc, kind = 1)
+# residuals indicate the disagreement of points after rotation and adjustment
+plot(proc, kind = 2)
+
+biplot(pcoa.ls[[2]]$PCOA)
 
 
 
+t <- data.frame(fit.1 = fitted(proc)[,1], fit.2 = fitted(proc)[,2],
+           dna.1 = pcoa.ls[[1]]$Pcoa$points[,1], pcoa.ls[[1]]$Pcoa$points[,2],
+           rna.1 = pcoa.ls[[2]]$Pcoa$points[,1], pcoa.ls[[2]]$Pcoa$points[,2])
 
 # convert distance matrix into long format
 bray.melt <- melt.dist(bray) %>% mutate(Metric = "Bray")

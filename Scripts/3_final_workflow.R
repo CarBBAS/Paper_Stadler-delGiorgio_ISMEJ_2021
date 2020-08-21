@@ -17,6 +17,7 @@ library(doMC) # parallel computing
 library(vegan) #vegdist, diversity
 library(ape) #pcoa
 library(ade4) #is.euclid
+library(mvabund) # multivariate glm
 
 #-----------#
 # FUNCTIONS #
@@ -45,32 +46,6 @@ cl <- makeCluster(numCores, type = "FORK") # using forking
 # Read data #
 #-----------#
 
-# full tidy data set
-rel.df <- select_newest("./Objects", "201520162017_css")
-rel.df <- readRDS(
-  paste0("./Objects/", rel.df))
-
-# read in parts of data set for phyloseq
-# correct one miscategorisation
-rel.df[rel.df$Sample == "RO2111.60mD",]$sample.type.year <- "Deep"
-
-## RAREFIED DATASET ##
-# read in rarefied datasets
-min_lib <- c(15000, 25000, 50000)
-perm.rar <- select_newest("./Output",
-                          "perm.rar_lib", by = min_lib)
-
-perm.rar <- c(perm.rar, select_newest("./Output", "201520162017_CSS_asvtab"))
-
-rar <- read.csv(paste0("./Output/", perm.rar[2]), sep = ";", stringsAsFactors = F)
-
-data.table::setDT(rar)
-# make mean column to count
-rar <- setDF(dcast(rar, Sample ~ ASV, value.var = "iter.mean"))
-rownames(rar) <- rar$Sample
-rar$Sample <- NULL
-rar < t(as.matrix(rar))
-rar <- rar[order(row.names(rar)),]
 
 # do we have several files per object? -> take newest version
 # ASV CSS transformed table
@@ -115,6 +90,24 @@ met.df <-
 # correct one miscategorisation
 met.df[met.df$DadaNames == "RO2111.60mD",]$sample.type.year <- "Deep"
 
+# merge some sample types
+met.df$sample.type.year <- factor(met.df$sample.type.year, levels = c("Soil","Sediment",
+                                                                      "Soilwater","Hyporheicwater", 
+                                                                      "Wellwater","Stream", "Tributary",
+                                                                      "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
+                                                                      "Upriver", "Downriver","RO3", "RO2", "RO1","Deep",
+                                                                      "Marine"),
+                                  labels = c("Soil","Sediment",
+                                             "Soilwater","Soilwater", 
+                                             "Groundwater","Stream", "Tributary",
+                                             "Riverine \nLakes", "Headwater \nPonds", "Lake", "Lake",
+                                             "Upriver","Downriver",
+                                             "Reservoirs","Reservoirs", "Reservoirs","Reservoirs",
+                                             "Estuary"))
+
+met.df$Season <- factor(met.df$Season, levels = c("spring","summer","autumn"),
+                        labels = c("Spring","Summer","Autumn"))
+
 # phyloseq needs the sample names of the meta data to be the same as the microbial data
 met.df <- sample_data(met.df)
 
@@ -126,7 +119,35 @@ pb <- phyloseq(otu_table(asv.tab, taxa_are_rows = T),
                sample_data(met.df),
                tax_table(tax.tab))
 
+#####################################################################################################
 # For rarefied table
+
+# full tidy data set
+rel.df <- select_newest("./Objects", "201520162017_css")
+rel.df <- readRDS(
+  paste0("./Objects/", rel.df))
+
+# read in parts of data set for phyloseq
+# correct one miscategorisation
+rel.df[rel.df$Sample == "RO2111.60mD",]$sample.type.year <- "Deep"
+
+## RAREFIED DATASET ##
+# read in rarefied datasets
+min_lib <- c(15000, 25000, 50000)
+perm.rar <- select_newest("./Output",
+                          "perm.rar_lib", by = min_lib)
+
+perm.rar <- c(perm.rar, select_newest("./Output", "201520162017_CSS_asvtab"))
+
+rar <- read.csv(paste0("./Output/", perm.rar[2]), sep = ";", stringsAsFactors = F)
+
+data.table::setDT(rar)
+# make mean column to count
+rar <- setDF(dcast(rar, Sample ~ ASV, value.var = "iter.mean"))
+rownames(rar) <- rar$Sample
+rar$Sample <- NULL
+rar < t(as.matrix(rar))
+rar <- rar[order(row.names(rar)),]
 
 tax.tab <- tax.tab[row.names(tax.tab) %in% colnames(rar),]
 tax.tab <- tax.tab[order(match(row.names(tax.tab), colnames(rar))),]
@@ -138,6 +159,8 @@ pb <- phyloseq(otu_table(t(rar), taxa_are_rows = T),
                tax_table(tax.tab))
 # remove taxa without observation
 pb <- prune_taxa(!taxa_sums(pb) == 0, pb)
+
+#####################################################################################################
 
 
 # create colour vector for later plotting
@@ -240,6 +263,139 @@ dna <- subset_samples(pb, DnaType == "DNA")
 
 # extract ASV matrix
 pb.mat <- t(otu_mat(dna))
+#pb.mat <- log2(pb.mat + 1)
+# PCoA with Bray-Curtis
+
+# melt to calculate mean variance relationship
+melt.mat <- melt.data.table(
+  setDT(as.data.frame(pb.mat), keep.rownames = "Sample"),
+  id.vars = "Sample",
+  measure.vars = patterns("^ASV_"),
+  variable.name = "ASV",
+  value.name = "reads"
+)
+
+
+plot.df <- melt.mat[, .(mean = mean(reads, na.rm = T),
+             variance = var(reads, na.rm = T)), by = .(ASV)]
+
+ggplot(plot.df, aes(x = log1p(mean), y = log(variance))) +
+  geom_point()
+
+ord.asv <- plot.df$ASV[order(plot.df$mean, decreasing = T)]
+melt.mat$ASV <- factor(melt.mat$ASV, levels = ord.asv)
+melt.mat <- melt.mat[data.frame(Sample = as.character(row.names(sample_df(pb))),
+                    sample_df(pb) %>% dplyr::select(sample.type.year, Season, Year, DnaType), 
+                    stringsAsFactors = F), c("sample.type.year", "Season") := list(i.sample.type.year,
+                                                                i.Season), on = .(Sample)]
+
+ggplot(melt.mat, aes(x = ASV, y = log2(reads + 1), colour = sample.type.year)) +
+  geom_point()
+
+# ASVs with high means also have high variances
+
+# make mvabund object of community matrix
+dna.sp <- mvabund(pb.mat)
+
+# check mean variance relationsip
+meanvar.plot(dna.sp)
+
+pb.mat <- decostand(pb.mat, "hellinger")
+pb.mori <- vegdist(pb.mat, method = "horn")
+is.euclid(pb.mori) # FALSE
+pb.mori <- sqrt(pb.mori) # make Euclidean
+is.euclid(pb.mori) # TRUE
+
+pb.bray <- vegdist(pb.mat, method = "bray")
+is.euclid(pb.bray) # FALSE
+pb.bray <- sqrt(pb.bray) # make Euclidean
+is.euclid(pb.bray) # TRUE
+
+# make PCoA
+pb.bray.pcoa <- ape::pcoa(pb.mori)
+# plot with custom function
+dna.pcoa <- plot_bray(pb.bray.pcoa, .id = "DNA", colours = colvec, output = T)
+
+p <- dna.pcoa$plot + guides(alpha = "none")
+
+# save
+ggsave(paste0("./Figures/Final/PCoA_log_DNA_SampleType.tiff"), p,
+       width = 12, height = 10, unit = "cm")
+ggsave(paste0("./Figures/Final/PCoA_log_DNA_SampleType.png"),  p,
+       width = 12, height = 10, unit = "cm")
+
+
+# PERMANOVA is sensitive towards unbalanced sampling designs
+# First option: Remove samples from groups that have many more samples
+ord.df <- dna.pcoa[["df"]]
+ord.df$groups <- paste(ord.df$sample.type.year, ord.df$Season, sep = "_")
+
+setDT(ord.df)
+
+numbers <- ord.df[, .(n = .N), by = .(groups)]
+
+too.many <- numbers$groups[numbers$n >= 3]
+# we will drop all habitat type ~ season combination that have less than three samples
+set.seed(3)
+random <- ord.df[groups %in% too.many, .(Sample = sample(Sample, size = 3, replace = F)), by = .(groups)]$Sample
+
+# redo PCoA
+pb.bray <- vegdist(pb.mat[rownames(pb.mat) %in% random,], method = "bray")
+is.euclid(pb.bray) # FALSE
+pb.bray <- sqrt(pb.bray) # make Euclidean
+
+# Test for significant difference between factors
+adonis(pb.mat[rownames(pb.mat) %in% random,] ~ sample.type.year * Season, data = ord.df[Sample %in% random,], 
+       sqrt.dist = T, method = "bray")
+
+adonis(pb.mat ~ sample.type.year * Season, data = ord.df, 
+       sqrt.dist = T, method = "horn")
+
+#Permutation: free
+#Number of permutations: 999
+
+#Terms added sequentially (first to last)
+
+#Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+#sample.type.year        12   10.8058 0.90048  4.1826 0.39986  0.001 ***
+#  Season                   2    1.3304 0.66518  3.0896 0.04923  0.001 ***
+#  sample.type.year:Season 12    3.2618 0.27182  1.2625 0.12070  0.008 ** 
+#  Residuals               54   11.6259 0.21529         0.43021           
+#Total                   80   27.0238                 1.00000           
+#---
+#  Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+# calculate multivaraite dispersions
+mod <- betadisper(pb.bray, group = ord.df[Sample %in% random,]$groups, bias.adjust = T)
+mod <- betadisper(pb.mori, group = ord.df$groups, bias.adjust = T)
+
+## Perform test
+anova(mod) # significant..., homogeneity of variance not fullfilled
+
+## Permutation test for F
+pmod <- permutest(mod, permutations = 999, pairwise = T)
+
+TukeyHSD(mod)
+plot(mod, label.cex = 0.5)
+boxplot(mod)
+
+# Plot for supplements
+# make PCoA
+pb.bray.pcoa <- ape::pcoa(pb.bray)
+dna.pcoa <- plot_bray(pb.bray.pcoa, .id = "DNA", colours = colvec, output = T)
+
+p <- dna.pcoa$plot + guides(alpha = "none")
+p
+
+
+############
+# Only RNA #
+############
+# subset only DNA samples
+rna <- subset_samples(pb, DnaType == "cDNA")
+
+# extract ASV matrix
+pb.mat <- t(otu_mat(rna))
 pb.mat <- log2(pb.mat + 1)
 # PCoA with Bray-Curtis
 #pb.mat <- decostand(pb.mat, "hellinger")
@@ -252,30 +408,48 @@ is.euclid(pb.bray) # TRUE
 # make PCoA
 pb.bray.pcoa <- ape::pcoa(pb.bray)
 # plot with custom function
-dna.pcoa <- plot_bray(pb.bray.pcoa, .id = "DNA", colours = colvec, output = T)
+rna.pcoa <- plot_bray(pb.bray.pcoa, .id = "DNA", colours = colvec, output = T)
 
-p <- dna.pcoa$plot + guides(alpha = "none")
+p <- rna.pcoa$plot + guides(alpha = "none")
 
 # save
-ggsave(paste0("./Figures/Final/PCoA_log_DNA_SampleType.tiff"), p,
+ggsave(paste0("./Figures/Final/PCoA_log_RNA_SampleType.tiff"), p,
        width = 12, height = 10, unit = "cm")
-ggsave(paste0("./Figures/Final/PCoA_log_DNA_SampleType.png"),  p,
+ggsave(paste0("./Figures/Final/PCoA_log_RNA_SampleType.png"),  p,
        width = 12, height = 10, unit = "cm")
 
 # Test for significant difference between factors
-ord.df <- dna.pcoa[["df"]]
-adonis(pb.mat ~ sample.type.year + Season, data = ord.df, 
+ord.df <- rna.pcoa[["df"]]
+ord.df$groups <- paste(ord.df$sample.type.year, ord.df$Season, sep = "_")
+adonis(pb.mat ~ sample.type.year * Season, data = ord.df, 
        sqrt.dist = T, method = "bray")
+
 #Permutation: free
 #Number of permutations: 999
-# Terms added sequentially (first to last)
+
+#Terms added sequentially (first to last)
+
 #                  Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-#sample.type.year  16    47.563 2.97269  14.277 0.36315  0.001 ***
-#  Season             2     5.124 2.56221  12.306 0.03913  0.001 ***
-#  Residuals        376    78.286 0.20821         0.59772           
-#Total            394   130.974                 1.00000           
+#sample.type.year  10    17.787 1.77874  8.2872 0.28759  0.001 ***
+#  Season             2     3.496 1.74812  8.1446 0.05653  0.001 ***
+# sample.type.year:Season  13     4.919 0.37841  1.8683 0.07954  0.001 ***
+#  Residuals               176    35.647 0.20254         0.57635           
+#Total                   201    61.850                 1.00000           
 #---
 #  Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+# calculate multivaraite dispersions
+mod <- betadisper(pb.bray, group = ord.df$groups)
+
+## Perfmom test
+anova(mod) #highly significant
+
+## Permutation test for F
+pmod <- permutest(mod, permutations = 999, pairwise = T)
+
+TukeyHSD(mod)
+plot(mod, label.cex = 0.5)
+boxplot(mod)
 
 ####################
 #---------------------------------------------------------------------------------------------------#
