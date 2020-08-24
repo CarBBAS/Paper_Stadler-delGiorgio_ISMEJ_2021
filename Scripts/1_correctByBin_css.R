@@ -137,34 +137,12 @@ pb <- subset_samples(pb, !(sample.type.year == "Bioassay" | sample.type.year == 
 # remove ASVs that do not appear in this dataset
 pb <- prune_taxa(taxa_sums(pb) != 0, pb)
 
-# export shrinked ASV table
+# extract individual tables from phyloseq obj
 asv.tab <- otu_table(pb)
-write.table(
-  asv.tab,
-  paste0("./Output/201520162017_raw_otu99_table_", Sys.Date(), ".csv"),
-  sep = ";",
-  dec = ".",
-  row.names = F
-)
 
-# export shrinked data
 met.df <- sample_df(pb)
-write.table(
-  met.df,
-  paste0("./Output/201520162017_meta_otu99_data_", Sys.Date(), ".csv"),
-  sep = ";",
-  dec = ".",
-  row.names = F
-)
 
 tax.df <- tax_mat(pb)
-write.table(
-  tax.df,
-  paste0("./Output/201520162017_tax_otu99_table_", Sys.Date(), ".csv"),
-  sep = ";",
-  dec = ".",
-  row.names = T
-)
 
 # remove unnecessary objects
 rm(asv_id, meta, ps, seqtab, tax)
@@ -474,6 +452,8 @@ write.table(
   row.names = T
 )
 
+#rm(met.df, out, pb, pb.mat, pb.ms, present, san, seqdf, sum.reads, sumdf, tax.df, tax.tab, test,notindna, p, absent,
+#   asv.tab, cor.reads, css, dupl.mean, fin)
 ##################################################################
 ###################################################################################################
 ## Rarefaction
@@ -526,7 +506,7 @@ for (j in 1:length(min_lib)) {
       data.table(
         otu_mat(
           rarefy_even_depth(
-            pb,
+            cor.pb,
             sample.size = min_lib[j],
             verbose = F,
             replace = T
