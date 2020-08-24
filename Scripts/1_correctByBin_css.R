@@ -39,6 +39,14 @@ library(pbapply)
 #-----------#
 source("./Functions/custom_fun.R")
 
+#-----------------#
+# PARALLEL SET-UP #
+#-----------------#
+# register number of cores for parallel computing with 'apply' family
+detectCores() # 24 (private PC: 4), we do not have 24 cores. It's 12 cores, 24 threads.
+registerDoMC()
+getDoParWorkers() # 12 (private PC: 2)
+
 #---------------------#
 # Raw data processing #
 #---------------------#
@@ -46,6 +54,10 @@ source("./Functions/custom_fun.R")
 tax <-
   readRDS("./MotherData/taxtab_idtaxa_silva_v138_2018.rds") # assigned taxonomy
 seqtab <- readRDS("./MotherData/nochim_seqtab_2018.rds")
+
+# OTU table
+tax <- readRDS("./Objects/otu_taxtab_99.rds")
+seqtab <- readRDS("./Objects/otu_seqtab_99.rds")
 
 # Read in meta data
 meta <-
@@ -102,13 +114,13 @@ taxa_names(pb) <-
   paste("ASV", seq(length = length(taxa_names(pb))), sep = "_")
 taxa_names(pb)[1:5]
 
+#--------------------------------#
+# Shrink data to relevant subset #
+#--------------------------------#
 # Filter out ASVs that do not have any abundance in data set
 pb <- filter_taxa(pb, function(x)
   sum(x) > 0, TRUE)
 
-#--------------------------------#
-# Shrink data to relevant subset #
-#--------------------------------#
 # Add another column of library size to meta data
 sample_data(pb)$LibrarySize <- sample_sums(pb)
 
@@ -129,7 +141,7 @@ pb <- prune_taxa(taxa_sums(pb) != 0, pb)
 asv.tab <- otu_table(pb)
 write.table(
   asv.tab,
-  paste0("./Output/201520162017_raw_asv_table_", Sys.Date(), ".csv"),
+  paste0("./Output/201520162017_raw_otu99_table_", Sys.Date(), ".csv"),
   sep = ";",
   dec = ".",
   row.names = F
@@ -139,7 +151,7 @@ write.table(
 met.df <- sample_df(pb)
 write.table(
   met.df,
-  paste0("./Output/201520162017_meta_data_", Sys.Date(), ".csv"),
+  paste0("./Output/201520162017_meta_otu99_data_", Sys.Date(), ".csv"),
   sep = ";",
   dec = ".",
   row.names = F
@@ -148,7 +160,7 @@ write.table(
 tax.df <- tax_mat(pb)
 write.table(
   tax.df,
-  paste0("./Output/201520162017_tax_table_", Sys.Date(), ".csv"),
+  paste0("./Output/201520162017_tax_otu99_table_", Sys.Date(), ".csv"),
   sep = ";",
   dec = ".",
   row.names = T
@@ -163,16 +175,16 @@ rm(asv_id, meta, ps, seqtab, tax)
 # transform ASV table into data.table
 asv.tab <- setDT(as.data.frame(asv.tab, strings.As.Factors = F), keep.rownames = "Sample")
 
-# melt asv table into long format
+# melt OTU table into long format
 asv.tab <- melt.data.table(
   asv.tab,
   id.vars = "Sample",
-  measure.vars = patterns("^ASV_"),
-  variable.name = "ASV",
+  measure.vars = patterns("^OTU_"),
+  variable.name = "OTU",
   value.name = "reads"
 )
 
-# Join asv and meta table
+# Join OTU and meta table
 sumdf <- left_join(
   asv.tab,
   met.df[met.df$DadaNames %in% asv.tab$Sample,] %>%
@@ -200,9 +212,11 @@ sumdf[sample.type.year == "Soil", catchment.area := -10]
 sumdf[sample.type.year == "Soilwater", catchment.area := -20]
 sumdf[sample.type.year == "Hyporheicwater", catchment.area := -30]
 
-# add ID column for parallel computing
-sumdf[, ID := paste(Year, Season, DnaType, ASV, sep = ".")]
+# correct one miscategorisation
+sumdf[sumdf$Sample == "RO2111.60mD",]$sample.type.year <- "Deep"
 
+
+#-- Match DNA and RNA --#
 # new sample name column to identify which DNAs belong to which RNA
 sumdf[, DR.names := Sample]
 # correct a few wrong sample names for matching DNA and RNA
@@ -222,8 +236,26 @@ sumdf[sumdf$DR.names == "L230R", "DR.names"] <- "L330R" # L230 does not exist
 sumdf$DR.names[sumdf$DnaType == "DNA"] <- str_replace(sumdf$DR.names[sumdf$DnaType == "DNA"], "D$", "")
 sumdf$DR.names[sumdf$DnaType == "cDNA"] <- str_replace(sumdf$DR.names[sumdf$DnaType == "cDNA"], "R$", "")
 
+# calculate the sum of OTUs per DnaType, omit those OTUs that only appear in RNA
+sum.reads <- sumdf[, .(sum.reads = sum(reads)), by = .(DnaType, OTU)]
+notindna <- sum.reads[DnaType == "DNA" & sum.reads == 0,]$OTU
+
+# order for overview
+sum.reads <- sum.reads[order(OTU, DnaType),]
+
+nrow(tax.df[rownames(tax.df) %in% sum.reads[OTU %in% as.character(notindna) & sum.reads > 100,]$OTU,])
+# 163 OTUs only in RNA and that have a high read number (> 100)
+# 490 with ASVs and clustering by 99.7% similarity
+
+sumdf <- sumdf[!(OTU %in% notindna),]
+# removing 3357 OTUs
+
+#combine back with some meta Data and sample names
 # order by catchment.area
 sumdf <- sumdf[order(ID, catchment.area)]
+
+# add ID column for parallel computing
+sumdf[, ID := paste(Year, Season, DnaType, OTU, sep = ".")]
 
 # split data frame in present and absent
 # (Otherwise computational power is overwhelmed)
@@ -238,10 +270,6 @@ sumdf[is.na(PA) & n.obs > 0, PA := "Present", by = .(ID)]
 # all observations above 0 are present
 
 #- Actual quality control -#
-
-# register number of cores
-detectCores() #24, we do not have 24. It's 12 cores, 24 threads.
-registerDoMC()
 getDoParWorkers() # 12
 # check if cores were allocated correctly
 
@@ -252,7 +280,7 @@ present <- sumdf[PA == "Present",]
 absent <- sumdf[PA == "Absent",]
 
 # remove single observations with read numbers lower than 10 reads by sample.type ~ Year ~ Season ~ DnaType combination
-present[, bin := paste(sample.type.year, Year, Season, DnaType, ASV, sep = "_")]
+present[, bin := paste(sample.type.year, Year, Season, DnaType, OTU, sep = "_")]
 # number of observations by bin
 present[, n.bin := .N, by = .(bin)]
 present[n.bin == 1 & reads < 10, cor.reads := 0] # select all with only one observation by bin, overwrite all reads less than 10 with 0
@@ -266,15 +294,18 @@ absent[, cor.reads := 0]
 fin <- bind_rows(present, absent)
 
 # extract corrected reads for metagenomeseq as matrix
-cor.reads <- setDF(spread(fin %>% select(Sample, ASV, cor.reads), key = ASV, value = cor.reads))
+cor.reads <- setDF(spread(fin %>% select(Sample, OTU, cor.reads), key = OTU, value = cor.reads))
 row.names(cor.reads) <- cor.reads$Sample
 cor.reads$Sample <- NULL
 cor.reads <- as.matrix(cor.reads)
 
+# one sample has no OTU reads left
+cor.reads <- cor.reads[which(rowSums(cor.reads) != 0),]
+
 # join back to phyloseq so that orders of samples and ASVs match across data frames
 cor.pb <- phyloseq(otu_table(cor.reads, taxa_are_rows = F),
                    sample_data(met.df),
-                   tax_table(tax.df))
+                   tax_table(tax.df[row.names(tax.df) %in% colnames(cor.reads),]))
 
 ######################
 # CSS transformation #
@@ -282,7 +313,7 @@ cor.pb <- phyloseq(otu_table(cor.reads, taxa_are_rows = F),
 # We apply the cumuluative sum scaling transformation (Paulson et al. Nature Methods 2013)
 # metagenomeSeq needs, samples in columns, "features" (= ASVs) in rows
 # export phyloseq object into MRexperiment
-pb.ms <- phyloseq_to_metagenomeSeq_mod(cor.pb) # encountered error with original function use customised function
+pb.ms <- physeq_to_metagenomeSeq_mod(cor.pb) # encountered error with original function use customised function
 
 # inspect data
 head(pData(pb.ms), 3) # meta data
@@ -298,17 +329,18 @@ p <- round(cumNormStatFast(pb.ms), digits = 2)
 pb.ms <- cumNorm(pb.ms, p = p)
 
 # check if normalisation was succesful
-t(otu_table(cor.pb))[1:5, 1:5]
-MRcounts(pb.ms, norm = T)[1:5, 1:5]
+t(otu_table(cor.pb))[1100:1110, 1:5]
+MRcounts(pb.ms, norm = T)[1100:1110, 1:5]
 
 # export normalised count matrices
 pb.mat <- MRcounts(pb.ms, norm = T)
-exportMat(pb.mat, file = paste0("./Output/201520162017_CSS_asvtab_", Sys.Date(),".tsv"))
+pb.mat <- round(pb.mat, digits = 0) # export as count data instead of decimals
+exportMat(pb.mat, file = paste0("./Output/201520162017_CSS_otu99_asvtab_", Sys.Date(),".tsv"))
 
 # export sample statistics
 # create folder for saving
 dir.create(file.path("./Output/StatTables"))
-exportStats(pb.ms, file = paste0("./Output/StatTables/201520162017_CSS_transf_stats_",Sys.Date(),".tsv"))
+exportStats(pb.ms, file = paste0("./Output/StatTables/201520162017_CSS_otu99_transf_stats_",Sys.Date(),".tsv"))
 # read with read.csv(file, sep = "\t")
 
 # transform data into long format to merge with fin
@@ -317,12 +349,12 @@ exportStats(pb.ms, file = paste0("./Output/StatTables/201520162017_CSS_transf_st
 css <- melt.data.table(
   setDT(as.data.frame(t(pb.mat)), keep.rownames = "Sample"),
   id.vars = "Sample",
-  measure.vars = patterns("^ASV_"),
-  variable.name = "ASV",
+  measure.vars = patterns("^OTU_"),
+  variable.name = "OTU",
   value.name = "css.reads"
 )
 
-fin <- merge(fin, css, by = c("Sample", "ASV"))
+fin <- merge(fin, css, by = c("Sample", "OTU"))
 
 #---------------------#
 # Relative abundances #
@@ -348,20 +380,31 @@ fin[, n.obs := nrow(.SD[css.reads > 0]), by = .(ID)] # how many of those have an
 # add z-standardised css.reads to compare rare and abundant things later in regressions
 fin[, z.css.reads := (css.reads - mean(css.reads, na.rm = T)) / sd(css.reads, na.rm = T)]
 
+# calculate mean reads for duplicates
+dupl.mean <- fin[, .(reads = mean(reads, na.rm = T),
+                  cor.reads = mean(cor.reads, na.rm = T),
+                  css.reads = mean(css.reads, na.rm = T), 
+                  rel.abund = mean(rel.abund, na.rm = T),
+                  z.css.reads = mean(z.css.reads, na.rm = T)), by = .(DR.names, DnaType, OTU)]
+out <- dupl.mean[fin, c("Sample","Season","Year","sample.type.year","soilorwater","catchment.area",
+              "distance.from.mouth", "n", "n.obs", "PA", "ID", "library.size") := 
+            list(i.Sample,i.Season,i.Year,i.sample.type.year,i.soilorwater,i.catchment.area,
+                 i.distance.from.mouth, i.n, i.n.obs, i.PA, i.ID, i.library.size), on = .(DR.names, DnaType, OTU)]
+
 #------#
 # Save #
 #------#
 # rearrange data frame before saving
 setcolorder(
-  fin,
+  out,
   c(
     "ID",
     "Sample",
-    "ASV",
+    "DR.names",
+    "OTU",
     "Year",
     "Season",
     "DnaType",
-    "sample.type",
     "sample.type.year",
     "soilorwater",
     "catchment.area",
@@ -378,10 +421,58 @@ setcolorder(
   )
 )
 
-saveRDS(fin,
-        paste0("./Objects/201520162017_css_",
+saveRDS(out,
+        paste0("./Objects/201520162017_css_otu99_",
                Sys.Date(),
                ".rds"))
+
+## Extract final info from all phyloseq objects
+# export shrinked ASV table
+
+asv.tab <- setDF(dcast(out, Sample ~ OTU, value.var = "css.reads"))
+row.names(asv.tab) <- asv.tab$Sample; asv.tab[, "Sample"] <- NULL
+asv.tab <- as.matrix(asv.tab)
+# row orders need to match between tax.tab and asv.tab
+asv.tab <- asv.tab[order(row.names(asv.tab)),]
+write.table(
+  asv.tab,
+  paste0("./Output/201520162017_fin_css_otu99_table_", Sys.Date(), ".csv"),
+  sep = ";",
+  dec = ".",
+  row.names = T
+)
+
+# export shrinked meta data
+met.df <- sample_df(pb)
+
+# only take those in last df, will remove duplicates and one lost sample
+met.df <- met.df[met.df$DadaNames %in% levels(factor(out$Sample)),]
+setDT(met.df)
+met.df <- met.df[out, c("DR.names", "sample.type.year") := 
+                 list(i.DR.names, i.sample.type.year), on = .(DadaNames == Sample)]
+setDF(met.df)
+# Assign rownames to be Sample ID's
+rownames(met.df) <- met.df$DadaNames
+write.table(
+  met.df,
+  paste0("./Output/201520162017_meta_otu99_data_", Sys.Date(), ".csv"),
+  sep = ";",
+  dec = ".",
+  row.names = T
+)
+
+tax.df <- tax_mat(pb)
+tax.df <- tax.df[row.names(tax.df) %in% levels(factor(out$OTU)),]
+# orders need to match between tax.tab and asv.tab
+tax.df <- tax.df[order(row.names(tax.df)),]
+
+write.table(
+  tax.df,
+  paste0("./Output/201520162017_tax_otu99_table_", Sys.Date(), ".csv"),
+  sep = ";",
+  dec = ".",
+  row.names = T
+)
 
 ##################################################################
 ###################################################################################################
@@ -465,20 +556,20 @@ for (j in 1:length(min_lib)) {
   melmean <- melt.data.table(
     means,
     id.vars = c("rn"),
-    measure.vars = patterns("^ASV_"),
-    variable.name = "ASV",
+    measure.vars = patterns("^OTU_"),
+    variable.name = "OTU",
     value.name = "iter.mean"
   )
   melsd <- melt.data.table(
     sd,
     id.vars = c("rn"),
-    measure.vars = patterns("^ASV_"),
-    variable.name = "ASV",
+    measure.vars = patterns("^OTU_"),
+    variable.name = "OTU",
     value.name = "iter.sd"
   )
   
   # merge
-  perm.rar <- merge(melmean, melsd, by = c("rn", "ASV"), all = T)
+  perm.rar <- merge(melmean, melsd, by = c("rn", "OTU"), all = T)
   apply(perm.rar, 2, function(x)
     any(is.na(x))) # any NAs? - yes in SD
   colnames(perm.rar)[1] <- "Sample" # rename first ID column
@@ -486,7 +577,7 @@ for (j in 1:length(min_lib)) {
   # save
   write.table(
     perm.rar,
-    paste0("./Output/perm.rar_lib", min_lib[j], "_", Sys.Date(), ".csv"),
+    paste0("./Output/perm.rar_lib_otu99_", min_lib[j], "_", Sys.Date(), ".csv"),
     sep = ";",
     dec = ".",
     row.names = F

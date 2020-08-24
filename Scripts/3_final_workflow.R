@@ -49,23 +49,20 @@ cl <- makeCluster(numCores, type = "FORK") # using forking
 
 # do we have several files per object? -> take newest version
 # ASV CSS transformed table
-asv.tab <- select_newest("./Output", "201520162017_CSS_asvtab")
-asv.tab <- read.csv(
+asv.tab <- select_newest("./Output", "201520162017_fin_css_otu99_table_")
+asv.tab <- as.matrix(read.csv(
   paste0("./Output/", asv.tab),
-  sep = "\t",
+  sep = ";",
   dec = ".",
+  row.names = 1,
   stringsAsFactors = F
-)
+))
 
-# transpose back to ASV in cols, samples in rows
-row.names(asv.tab) <- asv.tab$Taxa.and.Samples
-asv.tab[, "Taxa.and.Samples"] <- NULL
-asv.tab <- as.matrix(asv.tab)
 # row orders need to match between tax.tab and asv.tab
 asv.tab <- asv.tab[order(row.names(asv.tab)),]
 
 # Taxonomy table
-tax.tab <- select_newest("./Output", "201520162017_tax_table")
+tax.tab <- select_newest("./Output", "201520162017_tax_otu99_table_")
 tax.tab <-
   as.matrix(read.csv(
     paste0("./Output/", tax.tab),
@@ -79,12 +76,13 @@ tax.tab <- tax.tab[order(row.names(tax.tab)),]
 
 # Meta data
 met.df <-
-  select_newest(path = "./Output", file.pattern = "201520162017_meta_data")
+  select_newest(path = "./Output", file.pattern = "201520162017_meta_otu99_data_")
 met.df <-
   read.csv(
     paste0("./Output/", met.df),
     sep = ";",
     dec = ".",
+    row.names = 1,
     stringsAsFactors = F
   )
 # correct one miscategorisation
@@ -115,7 +113,7 @@ met.df <- sample_data(met.df)
 rownames(met.df) <- met.df$DadaNames
 
 # Construct phyloseq object
-pb <- phyloseq(otu_table(asv.tab, taxa_are_rows = T),
+pb <- phyloseq(otu_table(asv.tab, taxa_are_rows = F),
                sample_data(met.df),
                tax_table(tax.tab))
 

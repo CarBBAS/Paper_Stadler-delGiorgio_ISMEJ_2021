@@ -8,6 +8,10 @@ library(tidyverse)
 library(plyr)
 library(doMC)
 
+#-----------#
+# FUNCTIONS #
+#-----------#
+
 #-----------------#
 # PARALLEL SET-UP #
 #-----------------#
@@ -36,12 +40,15 @@ align.ls <- dlply(align.group, .(align.group), function(x){
   return(vec)
 }, .parallel = T)
 
+# do not include un-classified ASVs, they will be removed downstream anyway
+align.ls[[1]] <- NULL
+
 # set to number of cpus/processors to use for the clustering
 nproc <- (detectCores() / 2) - 2 
 
 #align.ls <- align.ls[2:length(align.ls)]
 
-#cl.out <- list()
+cl.out <- list()
 
 # run loop to do sequence alignment and similarity collapse at 99% within each taxonomical classification
 for(i in 1:length(align.ls)){
@@ -57,7 +64,7 @@ for(i in 1:length(align.ls)){
     clusters <- DECIPHER::IdClusters(
       d, 
       method = "complete",
-      cutoff = 0.01, # use `cutoff = 0.03` for a 97% OTU 
+      cutoff = 0.01, # use `cutoff = 0.01` for a 99% OTU ; 0.003 for 99.7%
       processors = nproc)
     
     cl.out[[i]] <- clusters
@@ -68,7 +75,7 @@ for(i in 1:length(align.ls)){
   }
 }
 
-saveRDS(cl.out, "./Objects/OTU_clusters.rds")
+saveRDS(cl.out, "./Objects/OTU_99_clusters.rds")
 cl.out <- readRDS("./Objects/OTU_clusters.rds")
 
 for(i in 1:length(cl.out)){
@@ -101,7 +108,7 @@ row.names(fin.df) <- fin.df$OTU
 tax <- data.frame(OTU = fin.df$OTU, all = fin.df$tax)
 tax <- tax %>% separate(col = "all", into = c("domain","phylum","class","order","family","genus","species"),
                 sep = "[_]")
-row.names(tax) <- tax$OTU ; tax$OTU <- NULL
+rownames(tax) <- tax$OTU ; tax$OTU <- NULL
 tax <- as.matrix(tax)
 
 fin.df$cluster <- NULL; fin.df$OTU <- NULL; fin.df$tax <- NULL
