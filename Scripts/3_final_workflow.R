@@ -199,35 +199,8 @@ pb <- prune_taxa(!taxa_sums(pb) == 0, pb)
 # create colour vector for later plotting
 # ensure consistent colours for all sample types
 
-# merge some sample types
-met.df$sample.type.year <- factor(met.df$sample.type.year, levels = c("Soil","Sediment",
-                                                                      "Soilwater","Hyporheicwater", 
-                                                                      "Wellwater","Stream", "Tributary",
-                                                                      "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
-                                                                      "Upriver", "Downriver","RO3", "RO2", "RO1","Deep",
-                                                                      "Marine"),
-                                  labels = c("Soil","Sediment",
-                                             "Soilwater","Soilwater", 
-                                             "Groundwater","Stream", "Tributary",
-                                             "Riverine \nLakes", "Headwater \nPonds", "Lake", "Lake",
-                                             "Upriver","Downriver",
-                                             "Reservoirs","Reservoirs", "Reservoirs","Reservoirs",
-                                             "Estuary"))
-
+# export factors for colouring
 sample.factors <- levels(met.df$sample.type.year)
-# create colour vector for plotting
-#colvec <- c("red4","chocolate3","orangered2","orange3",
-#            "khaki","cadetblue","darksalmon",
-#            "darkolivegreen","darkolivegreen3","gold",
-#            "royalblue","mediumorchid4", "violet","palevioletred2","navy","skyblue",
-#            "seagreen3")
-
-# old palette
-#colvec <- c("red4","chocolate3","tomato4",
-#            "khaki","cadetblue","darksalmon",
-#            "darkolivegreen","darkolivegreen3","gold",
-#            "royalblue", "orchid","skyblue",
-#           "navy")
 
 # more colour blind friendly
 colvec <- c("#FCFDBFFF", #"#FEC589FF", #Soil
@@ -245,16 +218,20 @@ colvec <- c("#FCFDBFFF", #"#FEC589FF", #Soil
   "#050416FF") #Estuary)
 
 names(colvec) <- as.character(sample.factors)
-#col <- viridis(26, option = "viridis")
-#df <- data.frame(col = col, x = c(1:26),  y = c(1:26)) 
 
-#ggplot(df, aes(x = x, y = y, fill = col)) +
-#  geom_tile() +
-#  scale_fill_viridis_d(option = "magma")
-#  scale_fill_manual(values = col)
-  
+# create colour vector for plotting
+#colvec <- c("red4","chocolate3","orangered2","orange3",
+#            "khaki","cadetblue","darksalmon",
+#            "darkolivegreen","darkolivegreen3","gold",
+#            "royalblue","mediumorchid4", "violet","palevioletred2","navy","skyblue",
+#            "seagreen3")
 
-
+# old palette
+#colvec <- c("red4","chocolate3","tomato4",
+#            "khaki","cadetblue","darksalmon",
+#            "darkolivegreen","darkolivegreen3","gold",
+#            "royalblue", "orchid","skyblue",
+#           "navy")
 
 
 ############
@@ -296,8 +273,13 @@ dna <- subset_samples(pb, DnaType == "DNA")
 
 # extract ASV matrix
 pb.mat <- t(otu_mat(dna))
+pb.mat <- round(pb.mat, 0) # round to mimic count data
 #pb.mat <- log2(pb.mat + 1)
 # PCoA with Bray-Curtis
+
+meta <- data.frame(Sample = as.character(row.names(sample_df(dna))),
+                    sample_df(dna) %>% dplyr::select(sample.type.year, Season, Year, DnaType), 
+                    stringsAsFactors = F)
 
 # melt to calculate mean variance relationship
 melt.mat <- melt.data.table(
@@ -308,30 +290,30 @@ melt.mat <- melt.data.table(
   value.name = "reads"
 )
 
-
 plot.df <- melt.mat[, .(mean = mean(reads, na.rm = T),
              variance = var(reads, na.rm = T)), by = .(ASV)]
 
 ggplot(plot.df, aes(x = log1p(mean), y = log(variance))) +
   geom_point()
 
-ord.asv <- plot.df$ASV[order(plot.df$mean, decreasing = T)]
-melt.mat$ASV <- factor(melt.mat$ASV, levels = ord.asv)
-melt.mat <- melt.mat[data.frame(Sample = as.character(row.names(sample_df(pb))),
-                    sample_df(pb) %>% dplyr::select(sample.type.year, Season, Year, DnaType), 
-                    stringsAsFactors = F), c("sample.type.year", "Season") := list(i.sample.type.year,
-                                                                i.Season), on = .(Sample)]
-
-ggplot(melt.mat, aes(x = ASV, y = log2(reads + 1), colour = sample.type.year)) +
-  geom_point()
-
 # ASVs with high means also have high variances
+
+#ord.asv <- plot.df$ASV[order(plot.df$mean, decreasing = T)]
+#melt.mat$ASV <- factor(melt.mat$ASV, levels = ord.asv)
+#melt.mat <- melt.mat[meta, c("sample.type.year", "Season") := list(i.sample.type.year,
+#                                                               i.Season), on = .(Sample)]
+#ggplot(melt.mat, aes(x = ASV, y = log2(reads + 1), colour = sample.type.year)) +
+#  geom_point()
+
+
 
 # make mvabund object of community matrix
 dna.sp <- mvabund(pb.mat)
 
-# check mean variance relationsip
-meanvar.plot(dna.sp)
+mod <- manyglm(dna.sp ~ meta$sample.type.year * meta$Season, family = "poisson")
+saveRDS(mod, "./Objects/manyglm.dna.negbinom.rds")
+
+p <- plot(mod)
 
 pb.mat <- decostand(pb.mat, "hellinger")
 pb.mori <- vegdist(pb.mat, method = "horn")
