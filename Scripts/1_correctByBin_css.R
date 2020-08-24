@@ -203,6 +203,25 @@ sumdf[sample.type.year == "Hyporheicwater", catchment.area := -30]
 # add ID column for parallel computing
 sumdf[, ID := paste(Year, Season, DnaType, ASV, sep = ".")]
 
+# new sample name column to identify which DNAs belong to which RNA
+sumdf[, DR.names := Sample]
+# correct a few wrong sample names for matching DNA and RNA
+sumdf[sumdf$DR.names == "RO2R52R", "DR.names"] <- "RO2.52R"
+sumdf[sumdf$DR.names == "SWR34R", "DR.names"] <- "SW34R"
+sumdf[sumdf$DR.names == "RO2.36pD", "DR.names"] <- "RO2.36D"
+sumdf[sumdf$DR.names == "RO2.36pR", "DR.names"] <- "RO2.36R"
+sumdf[sumdf$DR.names == "RO2111.60mD", "DR.names"] <- "RO2111.90mD"
+sumdf[sumdf$DR.names == "RO2.30DPR", "DR.names"] <- "RO2.30R" # two DNA
+sumdf[sumdf$DR.names == "RO301.HypoR", "DR.names"] <- "RO31.HypoR"
+sumdf[sumdf$DR.names == "RO301R", "DR.names"] <- "RO31R" 
+sumdf[sumdf$DR.names == "RO304R", "DR.names"] <- "RO34R" 
+sumdf[sumdf$DR.names == "RO307R", "DR.names"] <- "RO37R" 
+sumdf[sumdf$DR.names == "L230R", "DR.names"] <- "L330R" # L230 does not exist
+
+# remove Ds and Rs to match counterpart DR.namess
+sumdf$DR.names[sumdf$DnaType == "DNA"] <- str_replace(sumdf$DR.names[sumdf$DnaType == "DNA"], "D$", "")
+sumdf$DR.names[sumdf$DnaType == "cDNA"] <- str_replace(sumdf$DR.names[sumdf$DnaType == "cDNA"], "R$", "")
+
 # order by catchment.area
 sumdf <- sumdf[order(ID, catchment.area)]
 

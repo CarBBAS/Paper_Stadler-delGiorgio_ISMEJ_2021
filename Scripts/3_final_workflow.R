@@ -131,6 +131,39 @@ rel.df <- readRDS(
 # correct one miscategorisation
 rel.df[rel.df$Sample == "RO2111.60mD",]$sample.type.year <- "Deep"
 
+# new sample name column to identify which DNAs belong to which RNA
+rel.df[, DR.names := Sample]
+# correct a few wrong sample names for matching DNA and RNA
+rel.df[rel.df$DR.names == "RO2R52R", "DR.names"] <- "RO2.52R"
+rel.df[rel.df$DR.names == "SWR34R", "DR.names"] <- "SW34R"
+rel.df[rel.df$DR.names == "RO2.36pD", "DR.names"] <- "RO2.36D"
+rel.df[rel.df$DR.names == "RO2.36pR", "DR.names"] <- "RO2.36R"
+rel.df[rel.df$DR.names == "RO2111.60mD", "DR.names"] <- "RO2111.90mD"
+rel.df[rel.df$DR.names == "RO2.30DPR", "DR.names"] <- "RO2.30R" # two DNA
+rel.df[rel.df$DR.names == "RO301.HypoR", "DR.names"] <- "RO31.HypoR"
+rel.df[rel.df$DR.names == "RO301R", "DR.names"] <- "RO31R" 
+rel.df[rel.df$DR.names == "RO304R", "DR.names"] <- "RO34R" 
+rel.df[rel.df$DR.names == "RO307R", "DR.names"] <- "RO37R" 
+rel.df[rel.df$DR.names == "L230R", "DR.names"] <- "L330R" # L230 does not exist
+
+# remove Ds and Rs to match counterpart DR.namess
+rel.df$DR.names[rel.df$DnaType == "DNA"] <- str_replace(rel.df$DR.names[rel.df$DnaType == "DNA"], "D$", "")
+rel.df$DR.names[rel.df$DnaType == "cDNA"] <- str_replace(rel.df$DR.names[rel.df$DnaType == "cDNA"], "R$", "")
+
+# calculate mean reads for duplicates
+sum <- rel.df[, .(reads = mean(reads, na.rm = T),
+           cor.reads = mean(cor.reads, na.rm = T),
+           css.reads = mean(css.reads, na.rm = T), 
+           rel.abund = mean(rel.abund, na.rm = T),
+           z.css.reads = mean(z.css.reads, na.rm = T)), by = .(DR.names, DnaType, ASV)]
+
+# calculate the sum of ASVs per DnaType, omit those ASVs that only appear in RNA
+sum.reads <- sum[, .(sum.reads = sum(css.reads)), by = .(DnaType, ASV)]
+notindna <- sum.reads[DnaType == "DNA" & sum.reads == 0,]$ASV
+
+sum.reads <- sum.reads[order(ASV, DnaType),]
+sum.reads[ASV %in% as.character(notindna),]
+
 ## RAREFIED DATASET ##
 # read in rarefied datasets
 min_lib <- c(15000, 25000, 50000)
