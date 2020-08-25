@@ -85,8 +85,7 @@ met.df <-
     row.names = 1,
     stringsAsFactors = F
   )
-# correct one miscategorisation
-met.df[met.df$DadaNames == "RO2111.60mD",]$sample.type.year <- "Deep"
+
 
 # merge some sample types
 met.df$sample.type.year <- factor(met.df$sample.type.year, levels = c("Soil","Sediment",
@@ -106,11 +105,8 @@ met.df$sample.type.year <- factor(met.df$sample.type.year, levels = c("Soil","Se
 met.df$Season <- factor(met.df$Season, levels = c("spring","summer","autumn"),
                         labels = c("Spring","Summer","Autumn"))
 
-# phyloseq needs the sample names of the meta data to be the same as the microbial data
-met.df <- sample_data(met.df)
-
-# Assign rownames to be Sample ID's
-rownames(met.df) <- met.df$DadaNames
+met.df$DnaType <- factor(met.df$DnaType, levels = c("DNA","cDNA"),
+                        labels = c("DNA","RNA"))
 
 # Construct phyloseq object
 pb <- phyloseq(otu_table(asv.tab, taxa_are_rows = F),
@@ -121,46 +117,9 @@ pb <- phyloseq(otu_table(asv.tab, taxa_are_rows = F),
 # For rarefied table
 
 # full tidy data set
-rel.df <- select_newest("./Objects", "201520162017_css")
-rel.df <- readRDS(
-  paste0("./Objects/", rel.df))
-
-# read in parts of data set for phyloseq
-# correct one miscategorisation
-rel.df[rel.df$Sample == "RO2111.60mD",]$sample.type.year <- "Deep"
-
-# new sample name column to identify which DNAs belong to which RNA
-rel.df[, DR.names := Sample]
-# correct a few wrong sample names for matching DNA and RNA
-rel.df[rel.df$DR.names == "RO2R52R", "DR.names"] <- "RO2.52R"
-rel.df[rel.df$DR.names == "SWR34R", "DR.names"] <- "SW34R"
-rel.df[rel.df$DR.names == "RO2.36pD", "DR.names"] <- "RO2.36D"
-rel.df[rel.df$DR.names == "RO2.36pR", "DR.names"] <- "RO2.36R"
-rel.df[rel.df$DR.names == "RO2111.60mD", "DR.names"] <- "RO2111.90mD"
-rel.df[rel.df$DR.names == "RO2.30DPR", "DR.names"] <- "RO2.30R" # two DNA
-rel.df[rel.df$DR.names == "RO301.HypoR", "DR.names"] <- "RO31.HypoR"
-rel.df[rel.df$DR.names == "RO301R", "DR.names"] <- "RO31R" 
-rel.df[rel.df$DR.names == "RO304R", "DR.names"] <- "RO34R" 
-rel.df[rel.df$DR.names == "RO307R", "DR.names"] <- "RO37R" 
-rel.df[rel.df$DR.names == "L230R", "DR.names"] <- "L330R" # L230 does not exist
-
-# remove Ds and Rs to match counterpart DR.namess
-rel.df$DR.names[rel.df$DnaType == "DNA"] <- str_replace(rel.df$DR.names[rel.df$DnaType == "DNA"], "D$", "")
-rel.df$DR.names[rel.df$DnaType == "cDNA"] <- str_replace(rel.df$DR.names[rel.df$DnaType == "cDNA"], "R$", "")
-
-# calculate mean reads for duplicates
-sum <- rel.df[, .(reads = mean(reads, na.rm = T),
-           cor.reads = mean(cor.reads, na.rm = T),
-           css.reads = mean(css.reads, na.rm = T), 
-           rel.abund = mean(rel.abund, na.rm = T),
-           z.css.reads = mean(z.css.reads, na.rm = T)), by = .(DR.names, DnaType, ASV)]
-
-# calculate the sum of ASVs per DnaType, omit those ASVs that only appear in RNA
-sum.reads <- sum[, .(sum.reads = sum(css.reads)), by = .(DnaType, ASV)]
-notindna <- sum.reads[DnaType == "DNA" & sum.reads == 0,]$ASV
-
-sum.reads <- sum.reads[order(ASV, DnaType),]
-sum.reads[ASV %in% as.character(notindna),]
+#rel.df <- select_newest("./Objects", "201520162017_css")
+#rel.df <- readRDS(
+#  paste0("./Objects/", rel.df))
 
 ## RAREFIED DATASET ##
 # read in rarefied datasets
@@ -270,8 +229,7 @@ names(colvec) <- as.character(sample.factors)
 dna <- subset_samples(pb, DnaType == "DNA")
 
 # extract ASV matrix
-pb.mat <- t(otu_mat(dna))
-pb.mat <- round(pb.mat, 0) # round to mimic count data
+pb.mat <- otu_mat(dna)
 #pb.mat <- log2(pb.mat + 1)
 # PCoA with Bray-Curtis
 
@@ -283,13 +241,13 @@ meta <- data.frame(Sample = as.character(row.names(sample_df(dna))),
 melt.mat <- melt.data.table(
   setDT(as.data.frame(pb.mat), keep.rownames = "Sample"),
   id.vars = "Sample",
-  measure.vars = patterns("^ASV_"),
-  variable.name = "ASV",
+  measure.vars = patterns("^OTU_"),
+  variable.name = "OTU",
   value.name = "reads"
 )
 
 plot.df <- melt.mat[, .(mean = mean(reads, na.rm = T),
-             variance = var(reads, na.rm = T)), by = .(ASV)]
+             variance = var(reads, na.rm = T)), by = .(OTU)]
 
 ggplot(plot.df, aes(x = log1p(mean), y = log(variance))) +
   geom_point()
@@ -304,14 +262,20 @@ ggplot(plot.df, aes(x = log1p(mean), y = log(variance))) +
 #  geom_point()
 
 
-
 # make mvabund object of community matrix
 dna.sp <- mvabund(pb.mat)
 
-mod <- manyglm(dna.sp ~ meta$sample.type.year * meta$Season, family = "poisson")
+mod <- manyglm(dna.sp ~ meta$sample.type.year * meta$Season, family = "negative.binomial")
+# warning but is integer
 saveRDS(mod, "./Objects/manyglm.dna.negbinom.rds")
 
-p <- plot(mod)
+# check residuals, it's not optimal, but compared to other families, there is less of a pattern
+png(filename="./Figures/General/manyglm_dna_residuals_binom.png")
+plot(mod)
+dev.off()
+
+# test for habitat type and season effect
+anova <- anova(mod)
 
 pb.mat <- decostand(pb.mat, "hellinger")
 pb.mori <- vegdist(pb.mat, method = "horn")
