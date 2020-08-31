@@ -410,6 +410,11 @@ saveRDS(out,
 asv.tab <- setDF(dcast(out, Sample ~ OTU, value.var = "css.reads"))
 row.names(asv.tab) <- asv.tab$Sample; asv.tab[, "Sample"] <- NULL
 asv.tab <- as.matrix(asv.tab)
+
+# remove empty samples or empty OTUs
+asv.tab <- asv.tab[rowSums(asv.tab) > 0,]
+asv.tab <- asv.tab[, colSums(asv.tab) > 0]
+
 # row orders need to match between tax.tab and asv.tab
 asv.tab <- asv.tab[order(row.names(asv.tab)),]
 write.table(
@@ -423,8 +428,8 @@ write.table(
 # export shrinked meta data
 met.df <- sample_df(pb)
 
-# only take those in last df, will remove duplicates and one lost sample
-met.df <- met.df[met.df$DadaNames %in% levels(factor(out$Sample)),]
+# only take those samples in OTU table, will remove duplicates and one lost sample
+met.df <- met.df[met.df$DadaNames %in% levels(factor(row.names(asv.tab))),]
 setDT(met.df)
 met.df <- met.df[out, c("DR.names", "sample.type.year") := 
                  list(i.DR.names, i.sample.type.year), on = .(DadaNames == Sample)]
@@ -440,7 +445,7 @@ write.table(
 )
 
 tax.df <- tax_mat(pb)
-tax.df <- tax.df[row.names(tax.df) %in% levels(factor(out$OTU)),]
+tax.df <- tax.df[row.names(tax.df) %in% levels(factor(colnames(asv.tab))),]
 # orders need to match between tax.tab and asv.tab
 tax.df <- tax.df[order(row.names(tax.df)),]
 

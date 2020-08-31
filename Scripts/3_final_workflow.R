@@ -230,7 +230,7 @@ dna <- subset_samples(pb, DnaType == "DNA")
 
 # extract ASV matrix
 pb.mat <- otu_mat(dna)
-#pb.mat <- log2(pb.mat + 1)
+pb.mat <- log2(pb.mat + 1)
 # PCoA with Bray-Curtis
 set.seed(3)
 t <- sample(1:nrow(pb.mat),10)
@@ -274,14 +274,15 @@ dna.sp <- mvabund(submat)
 
 mod <- manyglm(dna.sp ~ meta$sample.type.year * meta$Season, family = "negative.binomial")
 # warning but is integer
-saveRDS(mod, "./Objects/manyglm.dna.negbinom.rds")
+saveRDS(mod, "./Objects/manyglm.dna.negbinom.log.rds")
 
 # check residuals, it's not optimal, but compared to other families, there is less of a pattern
-png(filename="./Figures/General/manyglm_dna_residuals_binom.png")
+png(filename="./Figures/General/manyglm_dna_residuals_binom_log.png")
 plot(mod)
 dev.off()
 
 # test for habitat type and season effect
+<<<<<<< HEAD
 anova.mod <- anova(mod)
 saveRDS(anova.mod, "./Objects/manyglm.dna.negbinom.anova.rds")
 print("DONE")
@@ -290,24 +291,116 @@ pb.mori <- vegdist(pb.mat, method = "horn")
 is.euclid(pb.mori) # FALSE
 pb.mori <- sqrt(pb.mori) # make Euclidean
 is.euclid(pb.mori) # TRUE
+=======
+anova <- anova(mod)
 
+## Run bayesian ordination
+# test control options, for quick building. Not final
+mcmc.control. <- list(n.burnin = 10, 
+                      n.iteration = 400, 
+                      n.thin = 30, 
+                      seed = 3)
+
+>>>>>>> aafb2ec98cbf3ab52bed36795c9348d9ff653935
+
+fit.lvmbinom <- boral(y = pb.mat, 
+                      family = "negative.binomial", 
+                      num.lv = 2, 
+                      mcmc.control = mcmc.control.,
+                      row.eff = "fixed")
+
+####################################################################
 pb.bray <- vegdist(pb.mat, method = "bray")
 is.euclid(pb.bray) # FALSE
 pb.bray <- sqrt(pb.bray) # make Euclidean
 is.euclid(pb.bray) # TRUE
 
 # make PCoA
-pb.bray.pcoa <- ape::pcoa(pb.mori)
+pb.bray.pcoa <- ape::pcoa(pb.bray)
 # plot with custom function
 dna.pcoa <- plot_bray(pb.bray.pcoa, .id = "DNA", colours = colvec, output = T)
 
 p <- dna.pcoa$plot + guides(alpha = "none")
+
+(zoom.terr <- ggplot(dna.pcoa$df, aes(x = Axis.1, y = Axis.2)) +
+    theme_cust() +
+    geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
+    geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
+    geom_point(size = 2.5, alpha = 0.2, fill = "gray20") +
+    new_scale_fill() +
+    geom_point(data = dna.pcoa$df[dna.pcoa$df$sample.type.year == "Soil" | 
+                                    dna.pcoa$df$sample.type.year == "Soilwater" |
+                                    dna.pcoa$df$sample.type.year == "Sediment",], 
+               aes(x = Axis.1, y = Axis.2, fill = Season, shape = sample.type.year), size = 3) +
+    scale_fill_viridis_d(option = "cividis", name = "Season") +
+    scale_shape_manual(values = c(21,23, 25), "Habitat type") +
+    coord_cartesian(ylim = c(-0.15, 0.1), xlim = c(-0.42, -0.22), expand = F) + 
+    labs(x = paste("PC1"), 
+         y = paste("PC2")) +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank()) +
+  guides(shape = guide_legend(order = 2, override.aes=list(size = 2)),
+         alpha = guide_legend(order = 3, override.aes=list(size = 2)), 
+         fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2)))
+)
+
+
+(zoom.est <- ggplot(dna.pcoa$df, aes(x = Axis.1, y = Axis.2)) +
+  theme_cust() +
+  geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
+  geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
+  geom_point(size = 2.5, alpha = 0.2, fill = "gray20") +
+  new_scale_fill() +
+  geom_point(data = dna.pcoa$df[dna.pcoa$df$sample.type.year == "Estuary",], 
+             aes(x = Axis.1, y = Axis.2, fill = abs(distance.from.mouth), shape = Season), size = 3) +
+  scale_fill_viridis_c(name = "Distance from \nmouth (km)", direction = -1) +
+  scale_shape_manual(values = c(21,23,25)) +
+  scale_alpha_manual(values = c(1,0.5), name = "Nucleic Acid \nType") +
+  coord_cartesian(ylim = c(-0.15, 0.25), xlim = c(-0.05, 0.3), expand = F) + # ensure aspect ratio
+  labs(x = paste("PC1"), 
+       y = paste("PC2")) +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+  #guides(shape = guide_legend(order = 2, override.aes=list(size = 2)),
+  #       alpha = guide_legend(order = 3, override.aes=list(size = 2)), 
+  #       fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2)))
+)
+(zoom.river <- ggplot(dna.pcoa$df, aes(x = Axis.1, y = Axis.2)) +
+  theme_cust() +
+  geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
+  geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
+  geom_point(size = 2.5, alpha = 0.2, shape = 21, fill = "gray20") +
+  #scale_fill_manual(values = colvec, name = "Habitat Type") +
+  new_scale_fill() +
+  geom_point(data = dna.pcoa$df[dna.pcoa$df$sample.type.year == "Downriver" | dna.pcoa$df$sample.type.year == "Upriver",], 
+             aes(x = Axis.1, y = Axis.2, fill = abs(distance.from.mouth), shape = sample.type.year), size = 3) +
+  scale_fill_continuous(type = "viridis", name = "Distance from \nmouth (km)", direction = -1) +
+  #scale_fill_viridis_b(name = "Distance from mouth", direction = -1) +
+  scale_shape_manual(values = c(21,23), name = "Habitat Type") +
+  coord_cartesian(xlim = c(0, 0.32), ylim = c(-0.18,0.3), expand = F) + # ensure aspect ratio
+  labs(x = paste("PC1"), 
+       y = paste("PC2")) +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+  #guides(shape = guide_legend(order = 2, override.aes=list(size = 2)),
+  #       alpha = guide_legend(order = 3, override.aes=list(size = 2)), 
+  #       fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2)))
+)
+
+collage <- ggarrange(p, 
+          ggarrange(zoom.terr, zoom.river, zoom.est, ncol = 3, labels = c("b","c","d"), align = "hv"),
+          nrow = 2, labels = c("a"), heights = c(0.6, 0.4))
 
 # save
 ggsave(paste0("./Figures/Final/PCoA_log_DNA_SampleType.tiff"), p,
        width = 12, height = 10, unit = "cm")
 ggsave(paste0("./Figures/Final/PCoA_log_DNA_SampleType.png"),  p,
        width = 12, height = 10, unit = "cm")
+
+ggsave(paste0("./Figures/Final/PCoA_log_DNA_collage.tiff"), collage,
+       width = 25, height = 15, unit = "cm")
+ggsave(paste0("./Figures/Final/PCoA_log_DNA_collage.png"),  collage,
+       width = 25, height = 15, unit = "cm")
 
 
 # PERMANOVA is sensitive towards unbalanced sampling designs
@@ -325,7 +418,7 @@ set.seed(3)
 random <- ord.df[groups %in% too.many, .(Sample = sample(Sample, size = 3, replace = F)), by = .(groups)]$Sample
 
 # redo PCoA
-pb.bray <- vegdist(pb.mat[rownames(pb.mat) %in% random,], method = "bray")
+pb.bray <- vegdist(pb.mat, method = "bray") # [rownames(pb.mat) %in% random,]
 is.euclid(pb.bray) # FALSE
 pb.bray <- sqrt(pb.bray) # make Euclidean
 
@@ -351,11 +444,14 @@ adonis(pb.mat ~ sample.type.year * Season, data = ord.df,
 #  Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 # calculate multivaraite dispersions
-mod <- betadisper(pb.bray, group = ord.df[Sample %in% random,]$groups, bias.adjust = T)
+mod <- betadisper(pb.bray, group = ord.df$sample.type.year, bias.adjust = T) # ord.df[Sample %in% random,]$groups
 mod <- betadisper(pb.mori, group = ord.df$groups, bias.adjust = T)
 
 ## Perform test
 anova(mod) # significant..., homogeneity of variance not fullfilled
+
+TukeyHSD(mod)
+
 
 ## Permutation test for F
 pmod <- permutest(mod, permutations = 999, pairwise = T)
@@ -377,10 +473,10 @@ p
 # Only RNA #
 ############
 # subset only DNA samples
-rna <- subset_samples(pb, DnaType == "cDNA")
+rna <- subset_samples(pb, DnaType == "RNA")
 
 # extract ASV matrix
-pb.mat <- t(otu_mat(rna))
+pb.mat <- otu_mat(rna)
 pb.mat <- log2(pb.mat + 1)
 # PCoA with Bray-Curtis
 #pb.mat <- decostand(pb.mat, "hellinger")
@@ -442,7 +538,7 @@ boxplot(mod)
 # Both DNA and RNA #
 ####################
 # extract species table with species in columns
-pb.mat <- t(otu_mat(pb))
+pb.mat <- otu_mat(pb)
 
 # PCoA with Bray-Curtis
 pb.bray <- vegdist(pb.mat, method = "bray")
@@ -452,6 +548,8 @@ pb.bray <- sqrt(pb.bray) # make Euclidean
 is.euclid(pb.bray)
 # make PCoA
 pb.bray.pcoa <- ape::pcoa(pb.bray)
+
+#coor.dist <- as.matrix(dist(pb.bray.pcoa$vectors)) # same as original pb.bray matrix
 
 # plot with custom function
 all.pcoa <- plot_bray(pb.bray.pcoa, .id = "All", colours = colvec, output = T)
@@ -555,6 +653,11 @@ dist.dr <- dist.dnarna(all.pcoa[["df"]], save.name = "3D", dimensions = 3, outpu
 ggsave(paste0("./Figures/Final/DNARNA_distdissim.tiff"), p,
        width = 17, height = 10, unit = "cm")
 ggsave(paste0("./Figures/Final/DNARNA_distdissim.png"),  p,
+       width = 17, height = 10, unit = "cm")
+
+ggsave(paste0("./Figures/Final/DNARNA_dist.23.tiff"), p,
+       width = 17, height = 10, unit = "cm")
+ggsave(paste0("./Figures/Final/DNARNA_dist.23.png"),  p,
        width = 17, height = 10, unit = "cm")
 
 #(fin <- ggarrange(pcoa.plot, p,
