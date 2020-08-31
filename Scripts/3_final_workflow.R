@@ -232,10 +232,16 @@ dna <- subset_samples(pb, DnaType == "DNA")
 pb.mat <- otu_mat(dna)
 #pb.mat <- log2(pb.mat + 1)
 # PCoA with Bray-Curtis
+set.seed(3)
+t <- sample(1:nrow(pb.mat),10)
+submat <- pb.mat[t,]
+
+submat <- submat[,colSums(submat) > 0]
 
 meta <- data.frame(Sample = as.character(row.names(sample_df(dna))),
                     sample_df(dna) %>% dplyr::select(sample.type.year, Season, Year, DnaType), 
                     stringsAsFactors = F)
+meta <- meta[t,]
 
 # melt to calculate mean variance relationship
 melt.mat <- melt.data.table(
@@ -264,6 +270,7 @@ ggplot(plot.df, aes(x = log1p(mean), y = log(variance))) +
 
 # make mvabund object of community matrix
 dna.sp <- mvabund(pb.mat)
+dna.sp <- mvabund(submat)
 
 mod <- manyglm(dna.sp ~ meta$sample.type.year * meta$Season, family = "negative.binomial")
 # warning but is integer
@@ -275,8 +282,9 @@ plot(mod)
 dev.off()
 
 # test for habitat type and season effect
-anova <- anova(mod)
-
+anova.mod <- anova(mod)
+saveRDS(anova.mod, "./Objects/manyglm.dna.negbinom.anova.rds")
+print("DONE")
 pb.mat <- decostand(pb.mat, "hellinger")
 pb.mori <- vegdist(pb.mat, method = "horn")
 is.euclid(pb.mori) # FALSE
