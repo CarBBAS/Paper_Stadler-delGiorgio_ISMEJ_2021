@@ -1,37 +1,19 @@
 
 
 dna <- subset_samples(pb, DnaType == 'DNA')
-rna <- subset_samples(pb, DnaType == 'cDNA')
+rna <- subset_samples(pb, DnaType == 'RNA')
 
 
-dna.mat <- t(otu_mat(dna))
-rna.mat <- t(otu_mat(rna))
+dna.mat <- otu_mat(dna)
+rna.mat <- otu_mat(rna)
 
 dna.df <- setDT(as.data.frame(dna.mat), keep.rownames = 'Sample')
 rna.df <- setDT(as.data.frame(rna.mat), keep.rownames = 'Sample')
 
 # Get meta data to rename DNA and RNA data
 meta <- data.frame(Sample = as.character(row.names(sample_df(pb))),
-                   sample_df(pb) %>% dplyr::select(DnaType, sample.type.year, Season), 
+                   sample_df(pb) %>% dplyr::select(DR.names), 
                    stringsAsFactors = F)
-
-# merge some sample types
-meta$sample.type.year <- factor(meta$sample.type.year, levels = c("Soil","Sediment",
-                                                                      "Soilwater","Hyporheicwater", 
-                                                                      "Wellwater","Stream", "Tributary",
-                                                                      "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
-                                                                      "Upriver", "Downriver","RO3", "RO2", "RO1","Deep",
-                                                                      "Marine"),
-                                  labels = c("Soil","Sediment",
-                                             "Soilwater","Soilwater", 
-                                             "Groundwater","Stream", "Tributary",
-                                             "Riverine \nLakes", "Headwater \nPonds", "Lake", "Lake",
-                                             "Upriver","Downriver",
-                                             "Reservoirs","Reservoirs", "Reservoirs","Reservoirs",
-                                             "Estuary"))
-
-meta$Season <- factor(meta$Season, levels = c("spring", "summer", "autumn"), 
-                            labels = c("Spring", "Summer","Autumn"))
 
 dna.df <- merge(dna.df, meta, by =  "Sample")
 rna.df <- merge(rna.df, meta, by = "Sample")
@@ -59,28 +41,16 @@ uni.name <- llply(list(dna.df, rna.df), function(x){
 })
 
 # keep only samples that are in both datasets
-uni.name[[1]] <- uni.name[[1]][uni.name[[1]]$ID %in% uni.name[[2]]$ID,]
-uni.name[[2]] <- uni.name[[2]][uni.name[[2]]$ID %in% uni.name[[1]]$ID,]
+d <- dna.df[dna.df$DR.names %in% rna.df$DR.names,]
+r <- rna.df[rna.df$DR.names %in% d$DR.names,]
 
-# summarise duplicates
-sum <- llply(uni.name, function(x){
-  mel.df <- melt.data.table(
-    x,
-    id.vars = c("ID"),
-    measure.vars = patterns("^ASV_"),
-    variable.name = "ASV",
-    value.name = "reads"
-  )
-  
-  mel.df <- mel.df[, .(reads = mean(reads, na.rm = T)), by = .(ASV, ID)]
-  out <- dcast(mel.df, ID ~ ASV, value.var = "reads")
-  return(out)
-}, .parallel = T)
-
-pcoa.ls <- llply(sum, function(x){
+pcoa.ls <- llply(list(d,r), function(x){
+  x <- as.data.frame(x)
+  rownames(x) <- x$DR.names
+  x$DR.names <- NULL
   pb.mat <- as.matrix(x[,-1])
-  rownames(pb.mat) <- x$ID
-  #pb.mat <- log2(pb.mat + 1)
+  
+  pb.mat <- log2(pb.mat + 1)
   bray <- vegdist(pb.mat, method = "bray")
   bray <- sqrt(bray) # make euclidean
   

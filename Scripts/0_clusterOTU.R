@@ -115,5 +115,6 @@ fin.df$cluster <- NULL; fin.df$OTU <- NULL; fin.df$tax <- NULL
 seqtab <- as.matrix(t(fin.df))
 
 
+
 saveRDS(tax, "./Objects/otu_taxtab_99.rds")
 saveRDS(seqtab, "./Objects/otu_seqtab_99.rds")
