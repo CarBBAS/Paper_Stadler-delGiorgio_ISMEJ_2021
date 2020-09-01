@@ -232,84 +232,6 @@ dna <- subset_samples(pb, DnaType == "DNA")
 pb.mat <- otu_mat(dna)
 pb.mat <- log2(pb.mat + 1)
 # PCoA with Bray-Curtis
-set.seed(3)
-t <- sample(1:nrow(pb.mat),10)
-submat <- pb.mat[t,]
-
-submat <- submat[,colSums(submat) > 0]
-
-meta <- data.frame(Sample = as.character(row.names(sample_df(dna))),
-                    sample_df(dna) %>% dplyr::select(sample.type.year, Season, Year, DnaType), 
-                    stringsAsFactors = F)
-meta <- meta[t,]
-
-# melt to calculate mean variance relationship
-melt.mat <- melt.data.table(
-  setDT(as.data.frame(pb.mat), keep.rownames = "Sample"),
-  id.vars = "Sample",
-  measure.vars = patterns("^OTU_"),
-  variable.name = "OTU",
-  value.name = "reads"
-)
-
-plot.df <- melt.mat[, .(mean = mean(reads, na.rm = T),
-             variance = var(reads, na.rm = T)), by = .(OTU)]
-
-ggplot(plot.df, aes(x = log1p(mean), y = log(variance))) +
-  geom_point()
-
-# ASVs with high means also have high variances
-
-#ord.asv <- plot.df$ASV[order(plot.df$mean, decreasing = T)]
-#melt.mat$ASV <- factor(melt.mat$ASV, levels = ord.asv)
-#melt.mat <- melt.mat[meta, c("sample.type.year", "Season") := list(i.sample.type.year,
-#                                                               i.Season), on = .(Sample)]
-#ggplot(melt.mat, aes(x = ASV, y = log2(reads + 1), colour = sample.type.year)) +
-#  geom_point()
-
-
-# make mvabund object of community matrix
-dna.sp <- mvabund(pb.mat)
-dna.sp <- mvabund(submat)
-
-mod <- manyglm(dna.sp ~ meta$sample.type.year * meta$Season, family = "negative.binomial")
-# warning but is integer
-saveRDS(mod, "./Objects/manyglm.dna.negbinom.log.rds")
-
-# check residuals, it's not optimal, but compared to other families, there is less of a pattern
-png(filename="./Figures/General/manyglm_dna_residuals_binom_log.png")
-plot(mod)
-dev.off()
-
-# test for habitat type and season effect
-<<<<<<< HEAD
-anova.mod <- anova(mod)
-saveRDS(anova.mod, "./Objects/manyglm.dna.negbinom.anova.rds")
-print("DONE")
-pb.mat <- decostand(pb.mat, "hellinger")
-pb.mori <- vegdist(pb.mat, method = "horn")
-is.euclid(pb.mori) # FALSE
-pb.mori <- sqrt(pb.mori) # make Euclidean
-is.euclid(pb.mori) # TRUE
-=======
-anova <- anova(mod)
-
-## Run bayesian ordination
-# test control options, for quick building. Not final
-mcmc.control. <- list(n.burnin = 10, 
-                      n.iteration = 400, 
-                      n.thin = 30, 
-                      seed = 3)
-
->>>>>>> aafb2ec98cbf3ab52bed36795c9348d9ff653935
-
-fit.lvmbinom <- boral(y = pb.mat, 
-                      family = "negative.binomial", 
-                      num.lv = 2, 
-                      mcmc.control = mcmc.control.,
-                      row.eff = "fixed")
-
-####################################################################
 pb.bray <- vegdist(pb.mat, method = "bray")
 is.euclid(pb.bray) # FALSE
 pb.bray <- sqrt(pb.bray) # make Euclidean
@@ -404,30 +326,45 @@ ggsave(paste0("./Figures/Final/PCoA_log_DNA_collage.png"),  collage,
 
 
 # PERMANOVA is sensitive towards unbalanced sampling designs
-# First option: Remove samples from groups that have many more samples
+# Remove samples from groups that have many more samples
 ord.df <- dna.pcoa[["df"]]
 ord.df$groups <- paste(ord.df$sample.type.year, ord.df$Season, sep = "_")
 
 setDT(ord.df)
-
 numbers <- ord.df[, .(n = .N), by = .(groups)]
-
 too.many <- numbers$groups[numbers$n >= 3]
 # we will drop all habitat type ~ season combination that have less than three samples
 set.seed(3)
-random <- ord.df[groups %in% too.many, .(Sample = sample(Sample, size = 3, replace = F)), by = .(groups)]$Sample
+permu.df <- data.frame()
+for(i in 1:100){
+  random <- ord.df[groups %in% too.many, .(Sample = sample(Sample, size = 3, replace = F)), by = .(groups)]$Sample
+  
+  # redo PCoA
+  pb.bray <- vegdist(pb.mat, method = "bray") # [rownames(pb.mat) %in% random,]
+  is.euclid(pb.bray) # FALSE
+  pb.bray <- sqrt(pb.bray) # make Euclidean
+  
+  # Test for significant difference between factors
+  perm.mod <- adonis(pb.mat[rownames(pb.mat) %in% random,] ~ sample.type.year * Season, data = ord.df[Sample %in% random,], 
+         sqrt.dist = T, method = "bray")
+  
+  # calculate multivariate dispersions
+  mod <- betadisper(pb.bray, group = ord.df$groups) # ord.df[Sample %in% random,]$groups
+  
+  ## Perform test
+  betadisp.aov <- anova(mod) # significant..., homogeneity of variance not fullfilled
+  
+  permu.df[i, "PERM.hab"] <- perm.mod$aov.tab$`Pr(>F)`[1]
+  permu.df[i, "PERM.sea"] <- perm.mod$aov.tab$`Pr(>F)`[2]
+  permu.df[i, "PERM.int"] <- perm.mod$aov.tab$`Pr(>F)`[3]
+  permu.df[i, "betadisp.P"] <- betadisp.aov$`Pr(>F)`[1]
+}
 
-# redo PCoA
-pb.bray <- vegdist(pb.mat, method = "bray") # [rownames(pb.mat) %in% random,]
-is.euclid(pb.bray) # FALSE
-pb.bray <- sqrt(pb.bray) # make Euclidean
 
-# Test for significant difference between factors
-adonis(pb.mat[rownames(pb.mat) %in% random,] ~ sample.type.year * Season, data = ord.df[Sample %in% random,], 
-       sqrt.dist = T, method = "bray")
+
 
 adonis(pb.mat ~ sample.type.year * Season, data = ord.df, 
-       sqrt.dist = T, method = "horn")
+       sqrt.dist = T, method = "bray")
 
 #Permutation: free
 #Number of permutations: 999
@@ -444,8 +381,7 @@ adonis(pb.mat ~ sample.type.year * Season, data = ord.df,
 #  Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 # calculate multivaraite dispersions
-mod <- betadisper(pb.bray, group = ord.df$sample.type.year, bias.adjust = T) # ord.df[Sample %in% random,]$groups
-mod <- betadisper(pb.mori, group = ord.df$groups, bias.adjust = T)
+mod <- betadisper(pb.bray, group = ord.df$groups) # ord.df[Sample %in% random,]$groups
 
 ## Perform test
 anova(mod) # significant..., homogeneity of variance not fullfilled
@@ -621,8 +557,23 @@ dissim.dr <- dissim.dnarna(pb, save.name = "All", output = T)
 # use custom function to correct a few wrong sample names and match DNA-RNA counterpart samples
 # calculating distance between points in two-dimensional space for both Bray-Curtis and Jaccard
 # Use three distances, as variances explained by second and third axes are almost identical
-dist.dr <- dist.dnarna(all.pcoa[["df"]], save.name = "3D", dimensions = 3, output = T)
+dist.dr <- dist.dnarna(all.pcoa[["df"]], save.name = "3D", output = T)
 #dist.dr <- dist.dnarna(dnarna.bray[["df"]], save.name = "All_2D", dimensions = 2)
+
+test <- merge(dissim.dr$original.df, dist.dr$indiv.df, by.x = "ID", by.y = "DR.names")
+#dist.dr$df[Axis == "Axis.2",]
+ggplot(test, aes(x = dist, y = distance.1D, fill = sample.type.year.x)) +
+  theme_bw() +
+  geom_point(shape = 21) +
+  scale_fill_manual(values = colvec) +
+  labs(x = "Pair-wise Bray-Curtis dissimilarity", y = "Pair-wise distance in ordination")
+
+ggplot(test, aes(x = dist, y = distance.1D, fill = Season.x)) +
+  theme_bw() +
+  geom_point(shape = 21) +
+  labs(x = "Pair-wise Bray-Curtis dissimilarity", y = "Pair-wise distance in ordination")
+
+cor.test(test$dist, test$distance.1D)
 
 # dissimilarity and distance show different patterns....
 # what is behind this difference?
@@ -1738,5 +1689,80 @@ lin.ls <- dlply(reg.df, .(Index), function(z){
 (p <- annotate_figure(p, 
                       bottom = text_grob("Distance in ordination space",
                                          just = "centre")))
-ggsave("./Figures/Final/Richness.RNA_distance_nonlin_reg.png", p,
-       width = 22, height = 11, unit = "cm")
+ggsave
+
+##
+set.seed(3)
+t <- sample(1:nrow(pb.mat),10)
+submat <- pb.mat[t,]
+
+submat <- submat[,colSums(submat) > 0]
+
+meta <- data.frame(Sample = as.character(row.names(sample_df(dna))),
+                   sample_df(dna) %>% dplyr::select(sample.type.year, Season, Year, DnaType), 
+                   stringsAsFactors = F)
+meta <- meta[t,]
+
+# melt to calculate mean variance relationship
+melt.mat <- melt.data.table(
+  setDT(as.data.frame(pb.mat), keep.rownames = "Sample"),
+  id.vars = "Sample",
+  measure.vars = patterns("^OTU_"),
+  variable.name = "OTU",
+  value.name = "reads"
+)
+
+plot.df <- melt.mat[, .(mean = mean(reads, na.rm = T),
+                        variance = var(reads, na.rm = T)), by = .(OTU)]
+
+ggplot(plot.df, aes(x = log1p(mean), y = log(variance))) +
+  geom_point()
+
+# ASVs with high means also have high variances
+
+#ord.asv <- plot.df$ASV[order(plot.df$mean, decreasing = T)]
+#melt.mat$ASV <- factor(melt.mat$ASV, levels = ord.asv)
+#melt.mat <- melt.mat[meta, c("sample.type.year", "Season") := list(i.sample.type.year,
+#                                                               i.Season), on = .(Sample)]
+#ggplot(melt.mat, aes(x = ASV, y = log2(reads + 1), colour = sample.type.year)) +
+#  geom_point()
+
+
+# make mvabund object of community matrix
+dna.sp <- mvabund(pb.mat)
+dna.sp <- mvabund(submat)
+
+mod <- manyglm(dna.sp ~ meta$sample.type.year * meta$Season, family = "negative.binomial")
+# warning but is integer
+saveRDS(mod, "./Objects/manyglm.dna.negbinom.log.rds")
+
+# check residuals, it's not optimal, but compared to other families, there is less of a pattern
+png(filename="./Figures/General/manyglm_dna_residuals_binom_log.png")
+plot(mod)
+dev.off()
+
+# test for habitat type and season effect
+anova.mod <- anova(mod)
+saveRDS(anova.mod, "./Objects/manyglm.dna.negbinom.anova.rds")
+print("DONE")
+pb.mat <- decostand(pb.mat, "hellinger")
+pb.mori <- vegdist(pb.mat, method = "horn")
+is.euclid(pb.mori) # FALSE
+pb.mori <- sqrt(pb.mori) # make Euclidean
+is.euclid(pb.mori) # TRUE
+anova <- anova(mod)
+
+## Run bayesian ordination
+# test control options, for quick building. Not final
+mcmc.control. <- list(n.burnin = 10, 
+                      n.iteration = 400, 
+                      n.thin = 30, 
+                      seed = 3)
+
+fit.lvmbinom <- boral(y = pb.mat, 
+                      family = "negative.binomial", 
+                      num.lv = 2, 
+                      mcmc.control = mcmc.control.,
+                      row.eff = "fixed")
+
+####################################################################

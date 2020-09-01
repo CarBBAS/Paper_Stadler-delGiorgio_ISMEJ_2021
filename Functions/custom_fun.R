@@ -735,26 +735,14 @@ dist.dnarna.metrics <- function(data, save.name = NULL, output = F, dimensions =
 
 
 ## Function to calculate and plot DNA-RNA distance within PCoA space
-dist.dnarna <- function(data, save.name = NULL, output = F, dimensions = 2){
+dist.dnarna <- function(data, save.name = NULL, output = F){
   if (is.null(save.name) == T) {
     stop("'save.name' needs to be specified.")
-  }
-  if(dimensions <= 1 | dimensions > 3){
-    stop("'dimensions' needs to be 2 or 3 to calculate distance in ordination space.")
   }
   
   # export table to look at point positions in GIS
   #write.table(pb.scores, "./Output/BrayCurtis_scores_withmeta.csv", sep = ",", dec = ".", row.names = F)
   
-  if(dimensions == 2){
-    # calculate mean coordinates for duplicates
-    sum <- data %>% 
-      filter(!Year == 2015) %>% 
-      dplyr::group_by(ID, DnaType) %>%
-      dplyr::summarise(x = mean(Axis.1), y = mean(Axis.2),
-                       n = n()) %>%
-      ungroup()
-    
     setDT(data)
     # melt datatable
     temp <- melt(data, id.vars = c("DR.names","DnaType"), measure.vars = patterns("^Axis."),
@@ -924,7 +912,7 @@ dist.dnarna <- function(data, save.name = NULL, output = F, dimensions = 2){
   (p <- annotate_figure(p, bottom = text_grob("Habitat Type")))
   
   if(output == T){
-    return(list(df = dist.dr, indiv.df = indiv.df, raw.df = data, 
+    return(list(df = dist.dr, indiv.df = indiv.df, dist.2d = dist.2d, raw.df = data, 
                 plot.main = main.b, plot.side = side.b))  
   }
 }
@@ -1075,10 +1063,10 @@ dissim.dnarna <- function(physeq, save.name = NULL, output = F){
          p, width = 18, height = 13, unit = "cm")
   
   
-  wide.format <- dcast(dist.dr, ID + sample.type.year + Season ~ Metric, value.var = c("dist"))
+  #wide.format <- dcast(dist.dr, ID + sample.type.year + Season ~ , value.var = c("dist"))
   
   if(output == T){
-    out <- list(original.df = dist.dr, wide = wide.format,
+    out <- list(original.df = dist.dr, #wide = wide.format,
                 sum.df = plot.df, plot.main = main.b, plot.side = side.b)
     
     return(out)  
