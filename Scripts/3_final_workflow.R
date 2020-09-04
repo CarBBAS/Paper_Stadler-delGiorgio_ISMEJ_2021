@@ -37,10 +37,9 @@ getDoParWorkers() # 12 (private PC: 2)
 numCores <- detectCores()
 cl <- makeCluster(numCores, type = "FORK") # using forking
 
-#-----------#
-# 2015-2017 #
-#-----------#
-#################################################################################################################
+# Set seed for session and reproducibility of permutations
+set.seed(3)
+
 #################################################################################################################
 #-----------#
 # Read data #
@@ -57,6 +56,7 @@ asv.tab <- as.matrix(read.csv(
   row.names = 1,
   stringsAsFactors = F
 ))
+#asv.tab <- asv.tab[, 1:1000]
 
 # row orders need to match between tax.tab and asv.tab
 asv.tab <- asv.tab[order(row.names(asv.tab)),]
@@ -73,6 +73,7 @@ tax.tab <-
   ))
 # orders need to match between tax.tab and asv.tab
 tax.tab <- tax.tab[order(row.names(tax.tab)),]
+#tax.tab <- tax.tab[,1:1000]
 
 # Meta data
 met.df <-
@@ -112,6 +113,9 @@ met.df$DnaType <- factor(met.df$DnaType, levels = c("DNA","cDNA"),
 pb <- phyloseq(otu_table(asv.tab, taxa_are_rows = F),
                sample_data(met.df),
                tax_table(tax.tab))
+
+#pb <- prune_taxa(!taxa_sums(pb) == 0, pb)
+pb <- prune_samples(!sample_sums(pb) == 0, pb)
 
 #####################################################################################################
 # For rarefied table
@@ -238,7 +242,7 @@ pb.bray <- sqrt(pb.bray) # make Euclidean
 is.euclid(pb.bray) # TRUE
 
 # make PCoA
-pb.bray.pcoa <- ape::pcoa(pb.bray)
+pb.bray.pcoa <- ape::pcoa(pb.bray) # 372 registers
 # plot with custom function
 dna.pcoa <- plot_bray(pb.bray.pcoa, .id = "DNA", colours = colvec, output = T)
 
@@ -309,6 +313,18 @@ p <- dna.pcoa$plot + guides(alpha = "none")
   #       fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2)))
 )
 
+# annotate collage boxes within main plot
+p <- p + 
+  annotate(geom = "rect", xmin = -0.42, ymin = - 0.15, 
+           xmax = -0.21, ymax = 0.1, fill = NA, colour = "grey50", linetype = "dashed", alpha = 0.8) +
+  annotate(geom = "rect", xmin = 0, xmax = 0.32,
+           ymin = - 0.13, ymax = 0.3, fill = NA, colour = "grey50", linetype = "dashed", alpha = 0.8) +
+  annotate(geom = "rect", xmin = -0.04, xmax = 0.28,
+           ymin = - 0.12, ymax = 0.22, fill = NA, colour = "grey50", linetype = "dashed", alpha = 0.8) +
+  annotate(geom = "text", x = -0.405, y = 0.085, label = "b", alpha = 0.8, colour = "grey50") +
+  annotate(geom = "text", x = 0.015, y = 0.285, label = "c", alpha = 0.8, colour = "grey50") +
+  annotate(geom = "text", x = -0.025, y = 0.2, label = "d", alpha = 0.8, colour = "grey50")
+
 collage <- ggarrange(p, 
           ggarrange(zoom.terr, zoom.river, zoom.est, ncol = 3, labels = c("b","c","d"), align = "hv"),
           nrow = 2, labels = c("a"), heights = c(0.6, 0.4))
@@ -325,98 +341,51 @@ ggsave(paste0("./Figures/Final/PCoA_log_DNA_collage.png"),  collage,
        width = 25, height = 15, unit = "cm")
 
 
-# PERMANOVA is sensitive towards unbalanced sampling designs
-# Remove samples from groups that have many more samples
+# Run PERMANOVA
+# sensitive towards unbalanced sampling designs = bias.adjust
 ord.df <- dna.pcoa[["df"]]
 ord.df$groups <- paste(ord.df$sample.type.year, ord.df$Season, sep = "_")
 
 setDT(ord.df)
-numbers <- ord.df[, .(n = .N), by = .(groups)]
-too.many <- numbers$groups[numbers$n >= 3]
-# we will drop all habitat type ~ season combination that have less than three samples
-set.seed(3)
-permu.df <- data.frame()
-for(i in 1:100){
-  random <- ord.df[groups %in% too.many, .(Sample = sample(Sample, size = 3, replace = F)), by = .(groups)]$Sample
-  
-  # redo PCoA
-  pb.bray <- vegdist(pb.mat, method = "bray") # [rownames(pb.mat) %in% random,]
-  is.euclid(pb.bray) # FALSE
-  pb.bray <- sqrt(pb.bray) # make Euclidean
-  
-  # Test for significant difference between factors
-  perm.mod <- adonis(pb.mat[rownames(pb.mat) %in% random,] ~ sample.type.year * Season, data = ord.df[Sample %in% random,], 
-         sqrt.dist = T, method = "bray")
-  
-  # calculate multivariate dispersions
-  mod <- betadisper(pb.bray, group = ord.df$groups) # ord.df[Sample %in% random,]$groups
-  
-  ## Perform test
-  betadisp.aov <- anova(mod) # significant..., homogeneity of variance not fullfilled
-  
-  permu.df[i, "PERM.hab"] <- perm.mod$aov.tab$`Pr(>F)`[1]
-  permu.df[i, "PERM.sea"] <- perm.mod$aov.tab$`Pr(>F)`[2]
-  permu.df[i, "PERM.int"] <- perm.mod$aov.tab$`Pr(>F)`[3]
-  permu.df[i, "betadisp.P"] <- betadisp.aov$`Pr(>F)`[1]
-}
+# Test for significant difference between factors
+perm.mod <- adonis(pb.mat ~ sample.type.year + Season, 
+                   permutations = 9999, data = ord.df, sqrt.dist = T, method = "bray",
+                   parallel = cl)
+# habitat = F[12] = 17.09, R^2 = 0.35107, p = 1e-04
+# season = F[2] = 11.08, R^2 = 0.03793, p = 1e-04
+# iterations = 9999
 
-
-
-
-adonis(pb.mat ~ sample.type.year * Season, data = ord.df, 
-       sqrt.dist = T, method = "bray")
-
-#Permutation: free
-#Number of permutations: 999
-
-#Terms added sequentially (first to last)
-
-#Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-#sample.type.year        12   10.8058 0.90048  4.1826 0.39986  0.001 ***
-#  Season                   2    1.3304 0.66518  3.0896 0.04923  0.001 ***
-#  sample.type.year:Season 12    3.2618 0.27182  1.2625 0.12070  0.008 ** 
-#  Residuals               54   11.6259 0.21529         0.43021           
-#Total                   80   27.0238                 1.00000           
-#---
-#  Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-# calculate multivaraite dispersions
-mod <- betadisper(pb.bray, group = ord.df$groups) # ord.df[Sample %in% random,]$groups
+# calculate multivariate dispersions
+mod <- betadisper(pb.bray, 
+                  group = as.character(ord.df$sample.type.year),
+                  bias.adjust = T) # do not set sqrt.dist = T, as pb.bray is already sqrt transformed
+mod2 <- betadisper(pb.bray, 
+                  group = as.character(ord.df$Season),
+                  bias.adjust = T) # do not set sqrt.dist = T, as pb.bray is already sqrt transformed
+mod3 <- betadisper(pb.bray, 
+                   group = ord.df$groups,
+                   bias.adjust = T) # do not set sqrt.dist = T, as pb.bray is already sqrt transformed
 
 ## Perform test
-anova(mod) # significant..., homogeneity of variance not fullfilled
+perm1 <- anova(mod, permutations = 9999, pairwise = T, parallel = cl) 
+perm2 <- anova(mod2, permutations = 9999, pairwise = T, parallel = cl) 
+perm3 <- anova(mod3, permutations = 9999, pairwise = T, parallel = cl) 
+# runs into errors with permutest, anova.cca is same function but without errors...
 
-TukeyHSD(mod)
-
-
-## Permutation test for F
-pmod <- permutest(mod, permutations = 999, pairwise = T)
-
-TukeyHSD(mod)
-plot(mod, label.cex = 0.5)
-boxplot(mod)
-
-# Plot for supplements
-# make PCoA
-pb.bray.pcoa <- ape::pcoa(pb.bray)
-dna.pcoa <- plot_bray(pb.bray.pcoa, .id = "DNA", colours = colvec, output = T)
-
-p <- dna.pcoa$plot + guides(alpha = "none")
-p
-
+# habitat alone = F[12] = 32.17, p = 1e-04
+# season alone = F[2] = 42.79, p = 1e-04
+# combined = F[27] = 17.77, p = < 2.2e-16
 
 ############
 # Only RNA #
 ############
-# subset only DNA samples
+# subset only RNA samples
 rna <- subset_samples(pb, DnaType == "RNA")
 
 # extract ASV matrix
 pb.mat <- otu_mat(rna)
 pb.mat <- log2(pb.mat + 1)
 # PCoA with Bray-Curtis
-#pb.mat <- decostand(pb.mat, "hellinger")
-
 pb.bray <- vegdist(pb.mat, method = "bray")
 is.euclid(pb.bray) # FALSE
 pb.bray <- sqrt(pb.bray) # make Euclidean
@@ -435,39 +404,6 @@ ggsave(paste0("./Figures/Final/PCoA_log_RNA_SampleType.tiff"), p,
 ggsave(paste0("./Figures/Final/PCoA_log_RNA_SampleType.png"),  p,
        width = 12, height = 10, unit = "cm")
 
-# Test for significant difference between factors
-ord.df <- rna.pcoa[["df"]]
-ord.df$groups <- paste(ord.df$sample.type.year, ord.df$Season, sep = "_")
-adonis(pb.mat ~ sample.type.year * Season, data = ord.df, 
-       sqrt.dist = T, method = "bray")
-
-#Permutation: free
-#Number of permutations: 999
-
-#Terms added sequentially (first to last)
-
-#                  Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-#sample.type.year  10    17.787 1.77874  8.2872 0.28759  0.001 ***
-#  Season             2     3.496 1.74812  8.1446 0.05653  0.001 ***
-# sample.type.year:Season  13     4.919 0.37841  1.8683 0.07954  0.001 ***
-#  Residuals               176    35.647 0.20254         0.57635           
-#Total                   201    61.850                 1.00000           
-#---
-#  Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-# calculate multivaraite dispersions
-mod <- betadisper(pb.bray, group = ord.df$groups)
-
-## Perfmom test
-anova(mod) #highly significant
-
-## Permutation test for F
-pmod <- permutest(mod, permutations = 999, pairwise = T)
-
-TukeyHSD(mod)
-plot(mod, label.cex = 0.5)
-boxplot(mod)
-
 ####################
 #---------------------------------------------------------------------------------------------------#
 ####################
@@ -475,15 +411,13 @@ boxplot(mod)
 ####################
 # extract species table with species in columns
 pb.mat <- otu_mat(pb)
-
 # PCoA with Bray-Curtis
 pb.bray <- vegdist(pb.mat, method = "bray")
 is.euclid(pb.bray) # FALSE
-
 pb.bray <- sqrt(pb.bray) # make Euclidean
 is.euclid(pb.bray)
 # make PCoA
-pb.bray.pcoa <- ape::pcoa(pb.bray)
+pb.bray.pcoa <- ape::pcoa(pb.bray) # 572 registers
 
 #coor.dist <- as.matrix(dist(pb.bray.pcoa$vectors)) # same as original pb.bray matrix
 
@@ -501,24 +435,51 @@ ggsave(paste0("./Figures/Final/PCoA_all_SampleType.tiff"), p,
        width = 20, height = 11, unit = "cm")
 ggsave(paste0("./Figures/Final/PCoA_all_SampleType.png"),  p,
        width = 20, height = 11, unit = "cm")
-
-# statistically test if factors are different
-# extract ordination coordinates and factors
+# Run PERMANOVA
+# sensitive towards unbalanced sampling designs = bias.adjust
 ord.df <- all.pcoa[["df"]]
-# run PERMANOVA
-adonis(pb.mat ~ sample.type.year + Season + DnaType, data = ord.df, 
-                      sqrt.dist = T, method = "bray", parallel = cl)
-#Permutation: free
-#Number of permutations: 999
-#Terms added sequentially (first to last)
-#                    Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-#  sample.type.year  16    64.493  4.0308  17.201 0.30217  0.001 ***
-#  Season             2     7.440  3.7199  15.874 0.03486  0.001 ***
-#  DnaType            1     6.288  6.2883  26.834 0.02946  0.001 ***
-#  Residuals        577   135.213  0.2343         0.63351           
-#Total            596   213.434                 1.00000
+ord.df$groups <- paste(ord.df$sample.type.year, ord.df$Season, ord.df$DnaType, sep = "_")
+
+setDT(ord.df)
+# Test for significant difference between factors
+perm.mod <- adonis(pb.mat ~ sample.type.year + Season + DnaType, 
+                   permutations = 9999, data = ord.df, sqrt.dist = T, method = "bray",
+                   parallel = cl)
+# habitat = F[12] = 20.65, R^2 = 0.28824, p = 1e-04
+# season = F[2] = 14.862, R^2 = 0.03458, p = 1e-04
+# nucleic acid type = F[1] = 26.072, R^2 = 0.03033, p = 1e-04
+# iterations = 9999
+
+# calculate multivariate dispersions
+mod <- betadisper(pb.bray, 
+                  group = ord.df$sample.type.year,
+                  bias.adjust = T) # do not set sqrt.dist = T, as pb.bray is already sqrt transformed
+mod2 <- betadisper(pb.bray, 
+                   group = ord.df$Season,
+                   bias.adjust = T) # do not set sqrt.dist = T, as pb.bray is already sqrt transformed
+mod3 <- betadisper(pb.bray, 
+                   group = ord.df$DnaType,
+                   bias.adjust = T) # do not set sqrt.dist = T, as pb.bray is already sqrt transformed
+mod4 <- betadisper(pb.bray, 
+                   group = ord.df$groups,
+                   bias.adjust = T) # do not set sqrt.dist = T, as pb.bray is already sqrt transformed
+
+## Perform test
+perm1 <- anova(mod, permutations = 9999, pairwise = T, parallel = cl) 
+perm2 <- anova(mod2, permutations = 9999, pairwise = T, parallel = cl) 
+perm3 <- anova(mod3, permutations = 9999, pairwise = T, parallel = cl) 
+perm4 <- anova(mod4, permutations = 9999, pairwise = T, parallel = cl) 
+# runs into errors with permutest and parallel, anova.cca is same function but without errors...
+
+# habitat alone = F[12] = 31.577, p = 1e-04
+# season alone = F[2] = 44.262, p = 1e-04
+# nucleic acid type alone = F[1] = 1.6476, p = 0.1998
+# combined = F[48] = 10.96, p = < 2.2e-16
 
 
+####################
+#- 3D interactive -#
+####################
 # Save 3D plot for all PCoA, third axis separates seasons
 plot.df <- all.pcoa[["df"]]
 p <- plot_ly(type = "scatter", mode = "markers")
@@ -545,11 +506,40 @@ htmlwidgets::saveWidget(as_widget(p), "PCoA_DNARNA_Season_3D.html")
 #-------------------------------------------------------#
 # Extract pair-wise dissimilarity among DNA-RNA samples #
 #-------------------------------------------------------#
-# UPDATE: Instead of using distance between DNA and RNA wihin PCoA space, we use dissimilarity
-# This approach is favoured as PCoA reduces sample complexity into two dimensions and misses variation
-# Pair-wise dissimilarity is a more direct approach to grasp how different DNA and RNA of the same sample are
+# convert distance matrix into long format
+dissim.df <- melt.dist(pb.bray)
 
-dissim.dr <- dissim.dnarna(pb, save.name = "All", output = T)
+# Get meta data to rename DNA and RNA data
+meta <- data.frame(Sample = as.character(row.names(sample_df(pb))),
+                   sample_df(pb) %>% dplyr::select(DR.names, DnaType, Year, Season, sample.type.year), 
+                   stringsAsFactors = F)
+
+# add meta data for both sample x and sample y
+dissim.df <- merge(dissim.df, meta, by.x =  "Sample.x", by.y = "Sample")
+dissim.df <- merge(dissim.df, meta %>% select(DnaType, Sample, Year, DR.names), by.x =  "Sample.y", by.y = "Sample")
+
+# omit all samples of 2015 (no RNA was taken, and sample name strategy changed -> creates duplicates)
+dissim.df <- dissim.df[dissim.df$Year.x != 2015,]
+dissim.df <- dissim.df[dissim.df$Year.y != 2015,]
+
+# keep all rows where Sample.x and Sample.y are the same
+dissim.df <- dissim.df[dissim.df$DR.names.x == dissim.df$DR.names.y,]
+dissim.df <- dissim.df[!(dissim.df$DnaType.x == dissim.df$DnaType.y),] # omit all distances between same DnaType
+
+dissim.dr <- dissim.df %>% select(ID = DR.names.x, Year = Year.x, Season, sample.type.year, dist)
+setDT(dissim.dr)
+
+# add new column to split plot into main and side panel
+dissim.dr[, panels := "main"]
+dissim.dr[sample.type.year == "Tributary" |
+          sample.type.year == "Lake" |
+          sample.type.year == "HeadwaterLakes" |
+          sample.type.year == "Sediment", panels := "side"]
+
+# calculate confidence interval and means of sample type and season combinations
+sum.dissim <- dissim.dr[, .(mean =  mean(dist, na.rm = T),
+                       conf.int = conf.int(dist),
+                       stdev = sd(dist, na.rm = T)), by = .(sample.type.year, Season, panels)]
 
 #-------------------------------------------------------------#
 # Calculate distance between DNA and RNA points in PCoA space #
@@ -557,24 +547,85 @@ dissim.dr <- dissim.dnarna(pb, save.name = "All", output = T)
 # use custom function to correct a few wrong sample names and match DNA-RNA counterpart samples
 # calculating distance between points in two-dimensional space for both Bray-Curtis and Jaccard
 # Use three distances, as variances explained by second and third axes are almost identical
-dist.dr <- dist.dnarna(all.pcoa[["df"]], save.name = "3D", output = T)
-#dist.dr <- dist.dnarna(dnarna.bray[["df"]], save.name = "All_2D", dimensions = 2)
 
-test <- merge(dissim.dr$original.df, dist.dr$indiv.df, by.x = "ID", by.y = "DR.names")
-#dist.dr$df[Axis == "Axis.2",]
-ggplot(test, aes(x = dist, y = distance.1D, fill = sample.type.year.x)) +
+pb.scores <- data.frame(Sample = as.character(row.names(pb.bray.pcoa$vectors)),
+                        pb.bray.pcoa$vectors, stringsAsFactors = F)  # get first three axes
+# merge with a selection of meta data
+meta <- data.frame(Sample = as.character(row.names(sample_df(pb))),
+                   sample_df(pb) %>% dplyr::select(sample.type.year, Season, Year, 
+                                                   DnaType, distance.from.mouth, DR.names), 
+                   stringsAsFactors = F)
+data <- merge(pb.scores, meta, by = "Sample")
+data$Sample <- as.character(data$Sample)
+
+setDT(data)
+# melt datatable
+temp <- melt(data, id.vars = c("DR.names","DnaType"), measure.vars = patterns("^Axis."),
+             variable.name = "Axis", value.name = "Coordinates")
+temp <- dcast(temp, DR.names + Axis ~ DnaType, value.var = c("Coordinates"))
+# remove NAs
+temp <- na.omit(temp)
+
+# Calculate distance of temp axes
+temp[, pnt.dist := (abs(DNA - RNA))^2] # calculate point distance for each axis and square root
+temp <- temp[, .(sum.dist = sum(pnt.dist)), by = .(DR.names)] # sum temp axes
+temp <- temp[, dist := sqrt(sum.dist)]
+
+# Calculate distance for a selection of axes
+temp.1d <- melt(data, id.vars = c("DR.names","DnaType"), measure.vars = patterns("^Axis."),
+             variable.name = "Axis", value.name = "Coordinates")
+
+temp.1d <- dcast(temp.1d[Axis == "Axis.3" | Axis == "Axis.2" | Axis == "Axis.1",], 
+                 DR.names + Axis ~ DnaType, value.var = "Coordinates")
+temp.1d <- temp.1d[, .(dist = abs(DNA - RNA)), by = .(DR.names, Axis)]
+
+#temp.2d[, distance.12 := sqrt(abs((DNA_Axis.1 - RNA_Axis.1))^2 + abs((DNA_Axis.2 - RNA_Axis.2))^2)]
+#temp.2d[, distance.13 := sqrt(abs((DNA_Axis.1 - RNA_Axis.1))^2 + abs((DNA_Axis.3 - RNA_Axis.3))^2)]
+
+# combine back with categories
+dist.dr <- temp[data, c("sample.type.year",
+                        "Year", "Season") := list(i.sample.type.year,
+                                                  i.Year, i.Season), on = .(DR.names)]
+dist.1d <- temp.1d[data, c("sample.type.year",
+                           "Year", "Season") := list(i.sample.type.year,
+                                                     i.Year, i.Season), on = .(DR.names)]
+
+# calculate confidence interval and means of sample type and season combinations
+sum.dist <- dist.dr[, .(mean =  mean(dist, na.rm = T),
+                       conf.int = conf.int(dist),
+                       stdev = sd(dist, na.rm = T)),
+                   by = .(sample.type.year, Season)]
+
+sum.dist1d <- dist.1d[, .(mean =  mean(dist, na.rm = T),
+                       conf.int = conf.int(dist),
+                       stdev = sd(dist, na.rm = T)),
+                   by = .(sample.type.year, Season)]
+
+# See if distance and dissimilarity are correlated
+# All axes
+all.ax <- merge(dissim.dr, dist.dr, by.x = "ID", by.y = "DR.names")
+
+(p <- ggplot(all.ax, aes(x = dist.x, y = dist.y, fill = sample.type.year.x)) +
   theme_bw() +
   geom_point(shape = 21) +
   scale_fill_manual(values = colvec) +
-  labs(x = "Pair-wise Bray-Curtis dissimilarity", y = "Pair-wise distance in ordination")
+  labs(x = "Pair-wise Bray-Curtis dissimilarity", y = "Pair-wise distance in ordination across all axes"))
 
-ggplot(test, aes(x = dist, y = distance.1D, fill = Season.x)) +
+ggsave("./Figures/General/allaxesdist_dissim_cor.png", p)
+
+# Only axis of interest
+sec.ax <- merge(dissim.dr, dist.1d[Axis == "Axis.2",], by.x = "ID", by.y = "DR.names")
+sec.ax <- merge(sec.ax, dist.dr, by.x = "ID", by.y = "DR.names")
+sec.ax[, rel.dist := dist - dist.y]
+
+(p <- ggplot(sec.ax, aes(x = dist.x, y = dist.y, fill = sample.type.year.x)) +
   theme_bw() +
   geom_point(shape = 21) +
-  labs(x = "Pair-wise Bray-Curtis dissimilarity", y = "Pair-wise distance in ordination")
+  scale_fill_manual(values = colvec) +
+  labs(x = "Pair-wise Bray-Curtis dissimilarity", y = "Pair-wise distance in ordination (PC2)")
+)
 
-cor.test(test$dist, test$distance.1D)
-
+ggsave("./Figures/General/allaxesdist_dissim_cor.png", p)
 # dissimilarity and distance show different patterns....
 # what is behind this difference?
 
@@ -633,37 +684,140 @@ ggsave(paste0("./Figures/Final/DNARNA_PCoA_distdissim.png"),  fin,
 # Otherwise, there are no abundant ASVs as we cover too different ecosystem types
 
 # Try to come up with a new classification
-# 1. Calclate the mean abundance of each ASV for a sample type (e.g. reservoir, lake, stream, soil etc)
+# 1. Calculate the mean abundance of each ASV for a sample type (e.g. reservoir, lake, stream, soil etc)
 # 2. Define abundance groups based on rank abundance curves:
 #-- * For each sample type, we create a rank abundance curve
 #-- * Log-transform and take the derivative of the curve
 #-- * Use second derivative of log-curve to define where the curve starts to bend.
 
 # calculate the mean abundance of each ASV for all sample types
+
+rel.df <- select_newest("./Objects", "201520162017_css_otu99_")
+rel.df <- readRDS(
+  paste0("./Objects/", rel.df))
+
 setDT(rel.df)
 # calculate means by sample type
 means <- rel.df[, .(mean.css = mean(css.reads, na.rm = T),
-                    sd.css = sd(css.reads, na.rm = T)), by = .(sample.type.year, DnaType, ASV)]
+                    sd.css = sd(css.reads, na.rm = T)), by = .(sample.type.year, DnaType, OTU)]
 # order the abundances to make ranks
 means <- means[mean.css != 0,] # remove all 0 observations
 means <- means[order(mean.css, decreasing = T)]
 means[, rank.abun := 1:.N, by = .(DnaType, sample.type.year)]
-means[, log.mean := log(mean.css), by = .(DnaType, sample.type.year)]
+means[, log.mean := log1p(mean.css), by = .(DnaType, sample.type.year)]
+
+#--------------------------------------------------------------------------------------------#
+#--------------------------------------------------------------------------------------------#
+# Get derivatives for an example and plot for supplementary material
+x <- means[sample.type.year == "Soilwater" & DnaType == "DNA"]
+
+spl <- smooth.spline(x$rank.abun, x$log.mean, spar = 0.7)
+pred <- predict(spl)
+first <- predict(spl, deriv = 1) # first derivative
+sec <- predict(spl, deriv = 2) # second derivative
+
+options(scipen = 999) # avoid scientific annotations
+raw <- ggplot() +
+  theme_pubr() +
+  annotate(xmax = x$rank.abun[localMinima(sec$y)[1]],
+           xmin = x$rank.abun[localMaxima(sec$y)[1]],
+           ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "tomato") +
+  annotate(xmax = x$rank.abun[localMaxima(sec$y)[2]],
+           xmin = x$rank.abun[localMaxima(sec$y)[1]],
+           ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "forestgreen") +
+  annotate(xmax = max(x$rank.abun),
+           xmin = x$rank.abun[localMaxima(sec$y)[2]],
+           ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "aquamarine") +
+  geom_line(aes(x = x$rank.abun, y = x$mean.css)) +
+  geom_point(aes(x = x$rank.abun[localMaxima(sec$y)[1:2]],
+                 y = x$mean.css[localMaxima(sec$y)[1:2]]), colour = "tomato") +
+  geom_point(aes(x = x$rank.abun[localMinima(sec$y)[1]],
+                 y = x$mean.css[localMinima(sec$y)[1]]), colour = "royalblue") +
+  labs(x = "", y = "CSS transformed mean read number") +
+  theme(axis.title = element_text(size = 9))
+
+logged <- ggplot() +
+  theme_pubr() +
+  annotate(xmax = pred$x[localMinima(sec$y)[1]],
+           xmin = pred$x[localMaxima(sec$y)[1]],
+           ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "tomato") +
+  annotate(xmax = pred$x[localMaxima(sec$y)[2]],
+           xmin = pred$x[localMaxima(sec$y)[1]],
+           ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "forestgreen") +
+  annotate(xmax = max(pred$x),
+           xmin = pred$x[localMaxima(sec$y)[2]],
+           ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "aquamarine") +
+  geom_line(aes(x = pred$x, y = pred$y)) +
+  geom_point(aes(x = pred$x[localMaxima(sec$y)[1:2]],
+                 y = pred$y[localMaxima(sec$y)[1:2]]), colour = "tomato") +
+  geom_point(aes(x = pred$x[localMinima(sec$y)[1]],
+                 y = pred$y[localMinima(sec$y)[1]]), colour = "royalblue") +
+  labs(x = "", y = "CSS transformed mean read number (log)") +
+  theme(axis.title = element_text(size = 9))
+
+deriv <- ggplot() +
+  theme_pubr() +
+  geom_line(aes(x = sec$x, y = sec$y * 1000)) +
+  geom_point(aes(x = sec$x[localMaxima(sec$y)[1:2]],
+                 y = sec$y[localMaxima(sec$y)[1:2]]* 1000), colour = "tomato") +
+  geom_point(aes(x = sec$x[localMinima(sec$y)[1]],
+                 y = sec$y[localMinima(sec$y)[1]]* 1000), colour = "royalblue") +
+  labs(x = "", y = expression(paste("Acceleration x10"^3, " (2"^"nd", " derivative)"))) +
+  theme(axis.title = element_text(size = 9))
+
+p <- ggarrange(raw, logged, deriv, ncol = 3, labels = "auto")
+# add x axis title to be in the middle of two panels
+(p <- annotate_figure(p, bottom = text_grob("ASV Rank")))
+ggsave("./Figures/Final/abundance_class_ex_otu99.png", p,
+       width = 22, height = 9, unit = "cm")
+
+rm(x, p, raw, logged, pred, sec, first, spl)
+
+#--------------------------------------------------------------------------------------------#
+#--------------------------------------------------------------------------------------------#
+#####################
+# Apply to the data #
+#####################
+
+classif.thres <- ddply(means, .(DnaType, sample.type.year), function(x){
+  spl <- smooth.spline(x$rank.abun, x$log.mean, spar = 0.7)
+  #pred <- predict(spl)
+  #first <- predict(spl, deriv = 1) # first derivative
+  sec <- predict(spl, deriv = 2) # second derivative
+  setDT(x)
+  x[rank.abun <= x$rank.abun[localMaxima(sec$y)[1]], ab.group := "Abundant", by = .(OTU)]
+  x[rank.abun > x$rank.abun[localMaxima(sec$y)[1]] &
+      rank.abun <= x$rank.abun[localMaxima(sec$y)[2]], ab.group := "Medium", by = .(OTU)]
+  x[rank.abun > x$rank.abun[localMaxima(sec$y)[2]], ab.group := "Rare", by = .(OTU)]
+  
+  out <- x[, .(max = max(mean.css),
+               min = min(mean.css)), by = .(ab.group)]
+  return(out)
+}, .parallel = T)
+
+setDT(classif.thres)
+classif.thres[, .(mean.max = mean(max),
+                  sd.max = sd(max),
+                  mean.min = mean(min),
+                  sd.min = sd(min)), by = .(DnaType, ab.group)]
+#saveRDS(classif.thres, "./Objects/abundance.classification.threshold.rds")
+
+####################################################################################################
 
 # After consulting the means and deviations of the maximum and minimum thresholds across samples
 # (see previous script) we settle with:
-# Abundant >= 100 css reads
-# Medium < 100 & >= 20 css reads
-# Rare < 20 css reads
+# Abundant >= 47 css reads
+# Medium < 47 & >= 5 css reads
+# Rare < 5 css reads
 
-means[mean.css >= 100, ab.group := 1] # Abundant
-means[mean.css < 100 & mean.css >= 20, ab.group := 2] # Medium
-means[mean.css < 20, ab.group := 3] # Rare
+means[mean.css >= 47, ab.group := 1] # Abundant
+means[mean.css < 47 & mean.css >= 5, ab.group := 2] # Medium
+means[mean.css < 5 & mean.css > 0, ab.group := 3] # Rare
 
-# code to resusicate absent rows
-temp <- dcast(means, DnaType + ASV ~ sample.type.year, value.var = c("ab.group")) # simple wide first
+# code to resuscitate absent rows
+temp <- dcast(means, DnaType + OTU ~ sample.type.year, value.var = c("ab.group")) # simple wide first
 temp[is.na(temp)] <- 0 # much faster to overwrite NAs this way
-ag.class <- melt(temp, id.vars = c("DnaType", "ASV"),
+ag.class <- melt(temp, id.vars = c("DnaType", "OTU"),
                  variable.name = "sample.type.year", value.name = "ab.group") # make long again
 
 # Add ecosystem domain identifier
@@ -682,50 +836,68 @@ ag.class[sample.type.year == "Marine", ecosys.domain := "Marine"]
 abun.list <- dlply(ag.class, .(DnaType), function(x){
   setDT(x)
   # 1. Universally abundant
-  univ.abun <- as.character(x[ab.group == 1, abundant.counts := .N, by = .(ASV)][abundant.counts == length(levels(factor(sample.type.year))),]$ASV)
+  univ.abun <- unique(as.character(x[ab.group == 1, abundant.counts := .N, by = .(OTU)][abundant.counts == length(levels(factor(sample.type.year))),]$OTU))
   # 2. Universally medium
-  univ.med <- as.character(x[ab.group == 2, abundant.counts := .N, by = .(ASV)][abundant.counts == length(levels(factor(sample.type.year))),]$ASV)
-  # 3. Universally rare
-  univ.rare <- as.character(unique(x[ab.group == 3 | ab.group == 0, 
-                                     rare.counts :=  .N, 
-                                     by = .(ASV)][rare.counts == length(levels(factor(x$sample.type.year))),]$ASV))
+  univ.med <- unique(as.character(x[ab.group == 2, abundant.counts := .N, by = .(OTU)][abundant.counts == length(levels(factor(sample.type.year))),]$OTU))
+  # 3. Universally rare (all present)
+  #univ.rare <- as.character(x[ab.group == 3, rare.counts := .N, by = .(OTU)][rare.counts == length(levels(factor(sample.type.year))),]$OTU)
+  # none
+  
+  # 3. Universally rare (not all present)
+  univ.rare <- unique(as.character(x[ab.group == 3 | ab.group == 0, rare.counts := .N, by = .(OTU)][rare.counts == length(levels(factor(sample.type.year))),]$OTU))
+  
   # 4. Cosmopolitan
-  x[, domain.count := .N, by = .(ASV, ecosys.domain)]
-  abun.dom <- unique(as.character(x[ab.group == 1, abundant.counts.by.dom := .N, by = .(ecosys.domain, ASV)][abundant.counts.by.dom == domain.count,]$ASV))
-  rare <- as.character(unique(x[ab.group == 3 | ab.group == 0,]$ASV))
-  cosmo <- as.character(unique(x[ASV %in% abun.dom & !(ASV %in% rare),]$ASV))
+  x[, domain.count := .N, by = .(OTU, ecosys.domain)]
+  abun.dom <- unique(as.character(x[ab.group == 1, abundant.counts.by.dom := .N, by = .(ecosys.domain, OTU)][abundant.counts.by.dom == domain.count,]$OTU))
+  rare <- as.character(unique(x[ab.group == 3 | ab.group == 0,]$OTU))
+  cosmo <- as.character(unique(x[OTU %in% abun.dom & !(OTU %in% rare),]$OTU))
   
   # 5. Abundant in all of one ecosystem domain, but never abundant in other domains == Specialist
   abun.dom <- x[ab.group == 1 | ab.group == 2,
-                abun.counts.by.dom := .N, by = .(ecosys.domain, ASV)][abun.counts.by.dom == domain.count, abun.domain := ecosys.domain, by = .(ASV)]
-  spec.asvs <- as.character(unique(abun.dom[!is.na(abun.domain),]$ASV))
-  abun.dom[ASV %in% spec.asvs & is.na(abun.domain), abun.domain := "No" ]
-  abun.dom <- as.character(unique(abun.dom[ASV %in% spec.asvs & 
+                abun.counts.by.dom := .N, by = .(ecosys.domain, OTU)][abun.counts.by.dom == domain.count, abun.domain := ecosys.domain, by = .(OTU)]
+  spec.asvs <- as.character(unique(abun.dom[!is.na(abun.domain),]$OTU))
+  abun.dom[OTU %in% spec.asvs & is.na(abun.domain), abun.domain := "No" ]
+  abun.dom <- as.character(unique(abun.dom[OTU %in% spec.asvs & 
                                              abun.domain != ecosys.domain &
                                              (ab.group == 1 | ab.group == 2),
-                                           abun.counts := .N, by = .(ASV, ecosys.domain)][ASV %in% spec.asvs & abun.domain != ecosys.domain, .(sum.abun.counts = sum(abun.counts, na.rm = T)), by = .(ASV)][sum.abun.counts == 0,]$ASV))
+                                           abun.counts := .N, by = .(OTU, ecosys.domain)][OTU %in% spec.asvs & abun.domain != ecosys.domain, .(sum.abun.counts = sum(abun.counts, na.rm = T)), by = .(OTU)][sum.abun.counts == 0,]$OTU))
   
   # 6. Shifters
   rest <- c(univ.abun, univ.med, univ.rare, cosmo, abun.dom)
-  remain <- x[ASV %in% unique(x$ASV)[!(unique(x$ASV) %in% rest)]]
+  remain <- x[OTU %in% unique(x$OTU)[!(unique(x$OTU) %in% rest)]]
   
   remain[,
-         abundant.counts := nrow(.SD[ab.group == 2 | ab.group == 3]), by = .(ASV)]
-  remain[, rare.counts := nrow(.SD[ab.group == 1 | ab.group == 0]), by = .(ASV)]
+         abundant.counts := nrow(.SD[ab.group == 2 | ab.group == 3]), by = .(OTU)]
+  remain[, rare.counts := nrow(.SD[ab.group == 1]), by = .(OTU)]
+  remain[, absent.counts := nrow(.SD[ab.group == 0]), by = .(OTU)]
   
+  # present in all samples
   # Mostly abundant, sometimes rare
-  abundant.shifter <- as.character(unique(remain[abundant.counts >= rare.counts,]$ASV))
+  present.abundant.shifter <- as.character(unique(remain[abundant.counts >= rare.counts & absent.counts == 0,]$OTU)) # 2534
   # Mostly rare, sometimes abundant
-  rare.shifter <- as.character(unique(remain[abundant.counts < rare.counts,]$ASV))
+  present.rare.shifter <- as.character(unique(remain[absent.counts == 0 &
+                                               rare.counts > abundant.counts,]$OTU))
   
-  #length(univ.abun) + length(univ.med) + length(univ.rare) + length(cosmo) + length(rare.dom) + length(abundant.shifter) + length(rare.shifter) == length(unique(x$ASV))
+  # Rare 
+  abundant.shifter <- as.character(unique(remain[!(OTU %in% c(present.abundant.shifter, present.rare.shifter)) &
+                                                             abundant.counts >= (rare.counts + absent.counts),]$OTU)) # 1175
+  # Mostly rare, sometimes abundant
+  rare.shifter <- as.character(unique(remain[!(OTU %in% c(present.abundant.shifter, present.rare.shifter)) &
+                                                       (rare.counts + absent.counts) > abundant.counts,]$OTU))
+  
+  #sanity check
+  #length(univ.abun) + length(univ.med) + length(univ.rare) + length(cosmo) + length(abun.dom) + length(abundant.shifter) + length(rare.shifter) +  length(present.abundant.shifter) + length(present.rare.shifter) == length(unique(x$OTU))
+  
   list(universal.abundant = univ.abun,
        universal.medium = univ.med,
        universal.rare = univ.rare,
+       present.as = present.abundant.shifter,
+       present.rs = present.rare.shifter,
        cosmopolitan = cosmo,
        specialist = abun.dom,
        abundant.shifter = abundant.shifter,
-       rare.shifter = rare.shifter)
+       rare.shifter = rare.shifter
+       )
 }, .parallel = T)
 
 # Only extract abundance classification based on DNA
@@ -738,239 +910,28 @@ grp.names <- names(ls.asvs)
 # extract raw DNA - RNA relationship
 rel.df <- rel.df[Year != 2015,]
 
-# correct a few wrong sample names for matching DNA and RNA
-# correct a few wrong sample names for matching DNA and RNA
-rel.df[Sample == "RO2R52R", Sample := "RO2.52R"]
-rel.df[Sample == "SWR34R", Sample := "SW34R"]
-rel.df[Sample == "RO2.36pD", Sample :="RO2.36D"]
-rel.df[Sample == "RO2.36pR", Sample :="RO2.36R"]
-rel.df[Sample == "RO2111.60mD", Sample := "RO2111.90mD"]
-rel.df[Sample == "RO2.30DPR", Sample := "RO2.30R"] # two DNA
-rel.df[Sample == "RO301.HypoR", Sample := "RO31.HypoR"]
-rel.df[Sample == "RO301R", Sample := "RO31R"] 
-rel.df[Sample == "RO304R", Sample := "RO34R" ]
-rel.df[Sample == "RO307R", Sample := "RO37R"] 
-rel.df[Sample == "L230R", Sample := "L330R"] # L230 does not exist
-
-# remove Ds and Rs to match counterpart samples
-rel.df[DnaType == "DNA", ID := str_replace(rel.df$Sample[rel.df$DnaType == "DNA"], "D$", "")]
-rel.df[DnaType == "cDNA", ID := str_replace(rel.df$Sample[rel.df$DnaType == "cDNA"], "R$", "")]
-
-# calculate mean coordinates for duplicates
-sum <- rel.df[, .(mean.css = mean(css.reads),
-                  n = .N), by = .(sample.type.year, DnaType, ASV)]
-
 # create new ID column with sample type and DNA Type
-sum[, ID := paste(sample.type.year, DnaType, sep = "_")]
-
-tax.order <- llply(ls.asvs, function(x){
-  # extract abundance group specific ASVs
-  df <- sum[ASV %in% x,]
-  com.mat <- dcast(df, ID ~ ASV, value.var = "mean.css")
-  setDF(com.mat)
-  rownames(com.mat) <- com.mat$ID; com.mat$ID <- NULL # remove ID col
-  # make PCoA to get ASV order in heatmap
-  pb.bray <- vegdist(com.mat, method = "bray")
-  pb.bray <- sqrt(pb.bray) # make Euclidean
-  bray.pcoa <- ape::pcoa(pb.bray)
-  # extract scores of first three axes
-  sitesDF <- data.frame(bray.pcoa$vectors[,1:3])
-  speciesDF <- data.frame(wascores(sitesDF, w = com.mat), stringsAsFactors = F)
-  speciesDF <- na.omit(speciesDF)
-  taxa.order <- row.names(speciesDF)[order(RadialTheta(speciesDF))]
-  return(taxa.order)
-}, .parallel = T)
-
-sum$ID <- factor(sum$ID, levels = c("Soil_DNA", "Soil_cDNA",
-                                    "Sediment_DNA", "Sediment_cDNA",
-                                    "Soilwater_DNA","Soilwater_cDNA",
-                                    "Hyporheicwater_DNA", "Hyporheicwater_cDNA",
-                                    "Stream_DNA", "Stream_cDNA",
-                                    "Tributary_DNA", "Tributary_cDNA",
-                                    "HeadwaterLakes_DNA", "HeadwaterLakes_cDNA",
-                                    "Lake_DNA", "Lake_cDNA",
-                                    "Upriver_DNA", "Upriver_cDNA",
-                                    "RO3_DNA", "RO3_cDNA",
-                                    "RO2_DNA", "RO2_cDNA",
-                                    "RO1_DNA", "RO1_cDNA",
-                                    "Deep_DNA", "Deep_cDNA",
-                                    "Downriver_DNA", "Downriver_cDNA",
-                                    "Marine_DNA", "Marine_cDNA"),
-                 labels = c("Soil DNA", "Soil RNA",
-                            "Sediment DNA", "Sediment RNA",
-                            "Soilwater DNA","Soilwater RNA",
-                            "Hyporheicwater DNA", "Hyporheicwater RNA",
-                            "Stream DNA", "Stream RNA",
-                            "Tributary DNA", "Tributary RNA",
-                            "Headwater Lakes DNA", "Headwater Lakes RNA",
-                            "Lake DNA", "Lake RNA",
-                            "Upriver DNA", "Upriver RNA",
-                            "RO3 DNA", "RO3 RNA",
-                            "RO2 DNA", "RO2 RNA",
-                            "RO1 DNA", "RO1 RNA",
-                            "Hypolimnion DNA", "Hypolimnion RNA",
-                            "Downriver DNA", "Downriver RNA",
-                            "Estuary DNA", "Estuary RNA"))
-
-x.labs<-c("D", "R","D", "R",
-          "D", "R","D", "R",
-          "D", "R","D", "R",
-          "D", "R","D", "R",
-          "D", "R","D", "R",
-          "D", "R","D", "R",
-          "D", "R","D", "R",
-          "D", "R")
-
-heat.plots <- llply(tax.order, function(x){
-  #if(length(x) > 5000){
-  #  sub.x <- sample(x, 5000)
-  #  df <- sum[sum$ASV %in% sub.x,]
-  #} else {
-  #  
-  #}
-  df <- sum[sum$ASV %in% x,]
-  df$ASV <- factor(df$ASV, levels = x)
-  
-  # get max value of all
-  max.lim <- round(max(log2(sum$mean.css+1)),0)
-  
-  #low <- "#000033"; high <- "#66CCFF"
-  p <- ggplot(df, aes(x = ID, y = ASV, fill = log2(mean.css + 1))) +
-    theme_bw() +
-    geom_raster() +
-    labs(x = "Habitat Type", y = "ASVs") +
-    scale_fill_viridis_c(option = "magma", name = "Mean\nReads",
-                         limits = c(min(log2(df$mean.css + 1)),
-                                    max.lim),
-                         breaks = c(min(log2(df$mean.css + 1)),
-                                    max.lim/ 2,
-                                    max.lim),
-                         labels = c(as.character(min(log2(df$mean.css + 1))),
-                                    as.character(max.lim / 2),
-                                    as.character(max.lim))) +
-    scale_x_discrete(labels = x.labs) +
-    coord_cartesian(ylim = c(1,
-                             length(levels(df$ASV))), clip = "off") +
-    theme(axis.text.y = element_blank(), 
-          axis.ticks.y = element_blank(), axis.title.x = element_blank(),
-          legend.position = "right", plot.title = element_text(size = 12)) +
-    guides(fill = guide_colourbar(barwidth = unit(10, "pt"),
-                                  barheight = unit(50, "pt")))
-    #scale_fill_gradient(low = low, high = high)
-  return(p)
-}, .parallel = T)
-
-(univ.rare <- heat.plots$universal.rare + 
-  theme(axis.text.x = element_blank(),
-        axis.ticks.x = element_blank()) +
-  labs(title = "Universally rare"))
-
-(spec <- heat.plots$specialist + 
-  theme(
-  axis.text.x = element_blank(),
-  axis.ticks.x = element_blank(),
-  axis.title.y = element_blank()
-) + labs(title = "Specialist"))
-
-(rare.shif <- heat.plots$rare.shifter +
-    theme(plot.margin=unit(c(2,2,18,2), "mm")) +
-  labs(title = "Rare shifter") +
-    annotate("segment", x = 0.75, xend = 2.25, y = -30, yen = -30) +
-    annotate("text", x = 1.6, y = - 40, label = "Soil", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 2.75, xend = 4.25, y = -30, yen = -30) +
-    annotate("text", x = 3.6, y = - 40, label = "Sediment", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 4.75, xend = 6.25, y = -30, yen = -30) +
-    annotate("text", x = 5.6, y = - 40, label = "Soilwater", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 6.75, xend = 8.25, y = -30, yen = -30) +
-    annotate("text", x = 7.6, y = - 40, label = "Hyporheicwater", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 8.75, xend = 10.25, y = -30, yen = -30) +
-    annotate("text", x = 9.6, y = - 40, label = "Stream", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 10.75, xend = 12.25, y = -30, yen = -30) +
-    annotate("text", x = 11.6, y = - 40, label = "Tributary", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 12.75, xend = 14.25, y = -30, yen = -30) +
-    annotate("text", x = 13.6, y = - 40, label = "Headwater Lakes", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 14.75, xend = 16.25, y = -30, yen = -30) +
-    annotate("text", x = 15.6, y = -40, label = "Lake", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 16.75, xend = 18.25, y = -30, yen = -30) +
-    annotate("text", x = 17.6, y = -40, label = "Upriver", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 18.75, xend = 20.25, y = -30, yen = -30) +
-    annotate("text", x = 19.6, y = -40, label = "RO3", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 20.75, xend = 22.25, y = -30, yen = -30) +
-    annotate("text", x = 21.6, y = -40, label = "RO2", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 22.75, xend = 24.25, y = -30, yen = -30) +
-    annotate("text", x = 23.6, y = -40, label = "RO1", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 24.75, xend = 26.25, y = -30, yen = -30) +
-    annotate("text", x = 25.6, y = -40, label = "Hypolimnion", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 26.75, xend = 28.25, y = -30, yen = -30) +
-    annotate("text", x = 27.6, y = -40, label = "Downriver", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 28.75, xend = 30.25, y = -30, yen = -30) +
-    annotate("text", x = 29.6, y = -40, label = "Estuary", angle = 45, vjust = 0.25, hjust = 1, size = 2.5))
-
-
-(ab.shif <- heat.plots$abundant.shifter + 
-  theme(axis.title.y = element_blank(),
-        plot.margin=unit(c(2,2,18,2), "mm")) + 
-  labs(title = "Abundant shifter") +
-    annotate("segment", x = 0.75, xend = 2.25, y = -70, yen = -70) +
-    annotate("text", x = 1.6, y = - 90, label = "Soil", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 2.75, xend = 4.25, y = -70, yen = -70) +
-    annotate("text", x = 3.6, y = - 90, label = "Sediment", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 4.75, xend = 6.25, y = -70, yen = -70) +
-    annotate("text", x = 5.6, y = - 90, label = "Soilwater", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 6.75, xend = 8.25, y = -70, yen = -70) +
-    annotate("text", x = 7.6, y = - 90, label = "Hyporheicwater", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 8.75, xend = 10.25, y = -70, yen = -70) +
-    annotate("text", x = 9.6, y = - 90, label = "Stream", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 10.75, xend = 12.25, y = -70, yen = -70) +
-    annotate("text", x = 11.6, y = - 90, label = "Tributary", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 12.75, xend = 14.25, y = -70, yen = -70) +
-    annotate("text", x = 13.6, y = - 90, label = "Headwater Lakes", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 14.75, xend = 16.25, y = -70, yen = -70) +
-    annotate("text", x = 15.6, y = - 90, label = "Lake", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 16.75, xend = 18.25, y = -70, yen = -70) +
-    annotate("text", x = 17.6, y = - 90, label = "Upriver", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 18.75, xend = 20.25, y = -70, yen = -70) +
-    annotate("text", x = 19.6, y = - 90, label = "RO3", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 20.75, xend = 22.25, y = -70, yen = -70) +
-    annotate("text", x = 21.6, y = - 90, label = "RO2", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 22.75, xend = 24.25, y = -70, yen = -70) +
-    annotate("text", x = 23.6, y = - 90, label = "RO1", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 24.75, xend = 26.25, y = -70, yen = -70) +
-    annotate("text", x = 25.6, y = - 90, label = "Hypolimnion", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 26.75, xend = 28.25, y = -70, yen = -70) +
-    annotate("text", x = 27.6, y = - 90, label = "Downriver", angle = 45, vjust = 0.25, hjust = 1, size = 2.5) +
-    annotate("segment", x = 28.75, xend = 30.25, y = -70, yen = -70) +
-    annotate("text", x = 29.6, y = - 90, label = "Estuary", angle = 45, vjust = 0.25, hjust = 1, size = 2.5))
-
-p <- ggarrange(univ.rare, spec, rare.shif, ab.shif,
-          ncol = 2, nrow = 2, align = "v", common.legend = T, heights = c(0.45, 0.55),
-          labels = "auto", legend = "right")
-p
+rel.df[, ID := paste(sample.type.year, DnaType, sep = "_")]
 
 # what's the N ?
-lapply(tax.order, length)
-# universal.rare 22503
-# specialist 91
-# abundant.shifter 525
-# rare.shifter 230
-
-# save
-ggsave(paste0("./Figures/Final/Abundance_profiles_heat.tiff"), p,
-       width = 25, height = 15, unit = "cm")
-ggsave(paste0("./Figures/Final/Abundance_profiles_heat.png"),  p,
-       width = 25, height = 15, unit = "cm")
-
+lapply(ls.asvs, length)
+# universal.rare 17459
+# present abundant shifter 36
+# present rare shifter 7
+# specialist 144
+# abundant.shifter 1175
+# rare.shifter 1364
 
 #---------------------------------------------------------------------------------------------------#
 
 #- Figure 4 -#
 
-# Q2: What is causing the dissimilarity patterns between DNA and RNA?
+# Q2: Where in the rank abundance curve does community reshuffling occur?
 
 # fit species onto PCoA ordination
 pb.species <-
   data.frame(
-    ASV = as.character(colnames(pb.mat)),
+    OTU = as.character(colnames(pb.mat)),
     wascores(pb.bray.pcoa$vectors[, 1:3],
              w = pb.mat),
     stringsAsFactors = F
@@ -980,104 +941,32 @@ pb.species <- na.omit(pb.species)
 setDT(pb.species)
 # add abundance group names into species dataframe
 for(i in 1:length(grp.names)){
-  pb.species[ASV %in% ls.asvs[[grp.names[i]]], ab.names :=  grp.names[i]]
-  pb.species[ASV %in% ls.asvs[[grp.names[i]]], ab.names :=  grp.names[i]]
+  pb.species[OTU %in% ls.asvs[[grp.names[i]]], ab.names :=  grp.names[i]]
+  pb.species[OTU %in% ls.asvs[[grp.names[i]]], ab.names :=  grp.names[i]]
 }
 
-
-# main plot
-(p <- ggplot() +
-    theme_cust() +
-    geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
-    geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
-    geom_point(data = all.pcoa$df,
-               aes(x = Axis.1, y = Axis.2, 
-                   shape = Season, alpha = DnaType),
-               size = 2.5, fill = "grey40") +
-    scale_shape_manual(values = c(21,23,25)) +
-    scale_alpha_manual(values = c(1,0.5), name = "Nucleic Acid \nType") +
-    geom_point(data = pb.species[ab.names == "universal.rare",], 
-               aes(x = Axis.1, y = Axis.2, fill = ab.names), shape = 21) +
-    geom_point(data = pb.species[ab.names != "universal.rare",], 
-               aes(x = Axis.1, y = Axis.2, fill = ab.names), shape = 21) +
-    #scale_fill_manual(values = colvec, name = "Habitat Type") +
-    coord_fixed(1) + # ensure aspect ratio
-    labs(x = paste("PC1 [", unique(all.pcoa$df$x),"%]"), 
-         y = paste("PC2 [", unique(all.pcoa$df$y),"%]")) +
-    theme(panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank()) +
-    guides(shape = guide_legend(order = 2, override.aes=list(size = 2)),
-           alpha = guide_legend(order = 3, override.aes=list(size = 2)), 
-           fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2)))
-)
-
-ggsave("./Figures/General/PCoA_all_ab.groups_withunivrare_pc12.png", p,
-       height = 10, width = 15, units = "cm")
-
-# Correlate species to axes?
-
+# Correlate species to axes
 cor.mat <- cor(all.pcoa$df[,2:4], pb.mat, method = "pearson")
 cor.mat <- setDT(as.data.frame(cor.mat), keep.rownames = "Axes")
 cor.df <- melt.data.table(
   cor.mat,
   id.vars = "Axes",
-  measure.vars = patterns("^ASV_"),
-  variable.name = "ASV",
+  measure.vars = patterns("OTU_"),
+  variable.name = "OTU",
   value.name = "pear.cor"
 )
 
-
-cor.heat <- llply(tax.order, function(x){
-  df <- cor.df[cor.df$ASV %in% x,]
-  df$ASV <- factor(df$ASV, levels = x)
-  
-  # get max value of all
-  max.lim <- round(max(cor.df$pear.cor),0)
-  
-  p <- ggplot(df, aes(x = Axes, y = ASV, fill = pear.cor)) +
-    theme_bw() +
-    geom_raster() +
-    labs(x = "PCoA Axes", y = "ASVs") +
-    scale_fill_gradient2(low = "steelblue", mid = "white", high = "red",
-                         name = "Pearson's r") +
-    scale_x_discrete(labels = c("PC1", "PC2", "PC3")) +
-    theme(axis.text.y = element_blank(), 
-          axis.ticks.y = element_blank(), axis.title.x = element_blank(),
-          legend.position = "right", plot.title = element_text(size = 12)) +
-    guides(fill = guide_colourbar(barwidth = unit(10, "pt"),
-                                  barheight = unit(50, "pt")))
-  
-  return(p)
-}, .parallel = T)
-
-p <- ggarrange(cor.heat$universal.rare +labs(title="Universally rare"), 
-               cor.heat$specialist +labs(title="Specialist"),
-               cor.heat$rare.shifter +labs(title="Rare shifter"), 
-               cor.heat$abundant.shifter+labs(title="Abundant shifter"),
-               ncol = 2, nrow = 2, align = "v", common.legend = T,
-               labels = "auto", legend = "right")
-p
-
-ggsave("./Figures/General/heatplot_ab.groups_PC_pearcor.png", p,
-       height = 12, width = 12)
-# PC1: negative = soil, positive = water
-# PC2: negative = RNA, positive = DNA
-# PC3: negative = summer/autumn, positive = spring
-
-###########################################################################
-
-
 # does not work on private computer
-sim <- with(sample_df(pb), vegan::simper(t(otu_mat(pb)), DnaType, permutations = 100, parallel = cl))
+sim <- with(sample_df(pb), vegan::simper(t(otu_mat(pb)), DnaType, permutations = 1, parallel = cl))
 
-#### try simper #######
+sim <- big.simper(otu_mat(pb), sample_df(pb)$DnaType, permutations = 100, parallel = 2)
 
-cor.df <- dcast(cor.df, ASV ~ Axes, value.var = "pear.cor")
+cor.df <- dcast(cor.df, OTU ~ Axes, value.var = "pear.cor")
 colnames(cor.df)[2:4] <- c("cor.pc1","cor.pc2","cor.pc3")
 
 cor.df <- cor.df[pb.species, c("cordi.pc1","cordi.pc2","cordi.pc3",
                      "ab.groups") := list(i.Axis.1, i.Axis.2, i.Axis.3,
-                                          i.ab.names), on = .(ASV)]
+                                          i.ab.names), on = .(OTU)]
 
 
 ggplot(cor.df, aes(x = cor.pc1, y = cor.pc2, fill = ab.groups)) +
@@ -1085,20 +974,24 @@ ggplot(cor.df, aes(x = cor.pc1, y = cor.pc2, fill = ab.groups)) +
   geom_hline(yintercept =  0, colour = "grey80", size = 0.6) +
   geom_vline(xintercept = 0, colour = "grey80", size = 0.6) +
   geom_point(data = subset(cor.df, ab.groups == "universal.rare"), shape = 21, alpha = 0.5) +
-  geom_point(data = subset(cor.df, ab.groups == "abundant.shifter"), shape = 21) +
-  geom_point(data = subset(cor.df, ab.groups == "rare.shifter"), shape = 21) +
-  geom_point(data = subset(cor.df, ab.groups == "specialist"), shape = 21) +
+  geom_point(data = subset(cor.df, ab.groups != "universal.rare"), shape = 21) +
+  #geom_point(data = subset(cor.df, ab.groups == "abundant.shifter"), shape = 21) +
+  #geom_point(data = subset(cor.df, ab.groups == "rare.shifter"), shape = 21) +
+  #geom_point(data = subset(cor.df, ab.groups == "specialist"), shape = 21) +
   scale_fill_viridis_d() +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
 
+####################################################################
+# compare slopes
+
 annotations <- data.frame(
   xpos = c(-Inf,-Inf,Inf,Inf),
   ypos =  c(-Inf, Inf,-Inf,Inf),
-  annotateText = c("Terrestrial",""
+  annotateText = c("","Terrestrial"
                    ,"","Water"),
-  hjustvar = c(-0.1,0,1,1.2) ,
-  vjustvar = c(-0.2,1,0,1.2))
+  hjustvar = c(0,-0.08,1,1.2) ,
+  vjustvar = c(0,1.2,0,1.2))
 
 #hjust: lower values right, larger values left
 #vjust lower values up, higher values down
@@ -1111,24 +1004,30 @@ annotations <- data.frame(
   geom_hline(yintercept =  0, colour = "grey80", size = 0.6) +
   geom_vline(xintercept = 0, colour = "grey80", size = 0.6) +
   geom_point(data = subset(cor.df, ab.groups == "universal.rare"), 
-             aes(x = cordi.pc1, y = cor.pc1, colour = ab.groups), shape = 21, alpha = 0.5, colour = "grey80") +
-  geom_point(data = subset(cor.df, ab.groups == "abundant.shifter"),
-             aes(x = cordi.pc1, y = cor.pc1, colour = ab.groups), shape = 21, alpha = 0.8) +
-  geom_point(data = subset(cor.df, ab.groups == "rare.shifter"),
-             aes(x = cordi.pc1, y = cor.pc1, colour = ab.groups), shape = 21, alpha = 0.8) +
-  geom_point(data = subset(cor.df, ab.groups == "specialist"),
-             aes(x = cordi.pc1, y = cor.pc1, colour = ab.groups), shape = 21, alpha = 0.8) +
-    geom_smooth(data = cor.df, 
-                aes(x = cordi.pc1, y = cor.pc1, group = ab.groups,
-                     colour = ab.groups, fill = ab.groups), size = 1.5,
-                method = 'gam', formula = y ~ s(x, bs = "cs")) +
+             aes(x = cordi.pc1, y = abs(cor.pc1), colour = ab.groups),
+             shape = 21, alpha = 0.5, colour = "grey80") +
+  geom_point(data = subset(cor.df, ab.groups != "universal.rare"),
+             aes(x = cordi.pc1, y = abs(cor.pc1), colour = ab.groups), shape = 21, alpha = 0.7) +
+  #geom_smooth(data = cor.df[ab.groups != "present.rs",], 
+  #              aes(x = cordi.pc1, y = abs(cor.pc1), group = ab.groups,
+  #                   colour = ab.groups), size = 1.5,
+  #              method = 'gam', formula = y ~ s(x, bs = "cs"), se = F) +
+    geom_smooth(data = cor.df[cordi.pc1 > 0,], 
+                aes(x = cordi.pc1, y = abs(cor.pc1), group = ab.groups,
+                    colour = ab.groups), size = 1.5,
+                method = 'lm', formula = y ~ x, se = F) +
+    geom_smooth(data = cor.df[cordi.pc1 < 0,], 
+                aes(x = cordi.pc1, y = abs(cor.pc1), group = ab.groups,
+                    colour = ab.groups), size = 1.5,
+                method = 'lm', formula = y ~ x, se = F) +
   geom_text(data=annotations,aes(x=xpos,y=ypos,
                                  hjust=hjustvar,vjust=vjustvar,
                                  label=annotateText)) +
-  scale_fill_viridis_d() +
+  scale_y_continuous(limits = c(0, 1)) +
+  scale_fill_viridis_d(option = "viridis") +
+    scale_colour_viridis_d(option = "viridis") +
   labs(x = "Species coordinates [PC1]", 
-       y = expression(paste("Pearsons's ", italic("r")," of ASVs with PC1"))) +
-  scale_colour_viridis_d() +
+       y = expression(paste(" | Pearsons's ", italic("r")," | of OTUs with PC1"))) +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
 )
@@ -1137,74 +1036,90 @@ annotations <- data.frame(
 annotations <- data.frame(
   xpos = c(-Inf,-Inf,Inf,Inf),
   ypos =  c(-Inf, Inf,-Inf,Inf),
-  annotateText = c("RNA",""
+  annotateText = c("","RNA"
                    ,"","DNA"),
-  hjustvar = c(-0.1,0,1,1.2) ,
-  vjustvar = c(-0.2,1,0,1.2))
+  hjustvar = c(0,-0.08,1,1.2) ,
+  vjustvar = c(0,1.2,0,1.2))
 
 (p2 <- ggplot() +
     theme_bw() +
     geom_hline(yintercept =  0, colour = "grey80", size = 0.6) +
     geom_vline(xintercept = 0, colour = "grey80", size = 0.6) +
     geom_point(data = subset(cor.df, ab.groups == "universal.rare"), 
-               aes(x = cordi.pc2, y = cor.pc2, colour = ab.groups), shape = 21, alpha = 0.5, colour = "grey80") +
-    geom_point(data = subset(cor.df, ab.groups == "abundant.shifter"),
-               aes(x = cordi.pc2, y = cor.pc2, colour = ab.groups), shape = 21, alpha = 0.8) +
-    geom_point(data = subset(cor.df, ab.groups == "rare.shifter"),
-               aes(x = cordi.pc2, y = cor.pc2, colour = ab.groups), shape = 21, alpha = 0.8) +
-    geom_point(data = subset(cor.df, ab.groups == "specialist"),
-               aes(x = cordi.pc2, y = cor.pc2, colour = ab.groups), shape = 21, alpha = 0.8) +
-    geom_smooth(data = cor.df, 
-                aes(x = cordi.pc2, y = cor.pc2, group = ab.groups,
-                    colour = ab.groups, fill = ab.groups), size = 1.5,
-                method = 'gam', formula = y ~ s(x, bs = "cs")) +
+               aes(x = cordi.pc2, y = abs(cor.pc2), colour = ab.groups),
+               shape = 21, alpha = 0.5, colour = "grey80") +
+    geom_point(data = subset(cor.df, ab.groups != "universal.rare"),
+               aes(x = cordi.pc2, y = abs(cor.pc2), colour = ab.groups), shape = 21, alpha = 0.7) +
+    #geom_smooth(data = cor.df[ab.groups != "present.rs",], 
+    #              aes(x = cordi.pc2, y = abs(cor.pc2), group = ab.groups,
+    #                   colour = ab.groups), size = 1.5,
+    #              method = 'gam', formula = y ~ s(x, bs = "cs"), se = F) +
+    geom_smooth(data = cor.df[cordi.pc2 > 0,], 
+                aes(x = cordi.pc2, y = abs(cor.pc2), group = ab.groups,
+                    colour = ab.groups), size = 1.5,
+                method = 'lm', formula = y ~ x, se = F) +
+    geom_smooth(data = cor.df[cordi.pc2 < 0,], 
+                aes(x = cordi.pc2, y = abs(cor.pc2), group = ab.groups,
+                    colour = ab.groups), size = 1.5,
+                method = 'lm', formula = y ~ x, se = F) +
     geom_text(data=annotations,aes(x=xpos,y=ypos,
                                    hjust=hjustvar,vjust=vjustvar,
                                    label=annotateText)) +
-    scale_fill_viridis_d() +
-  labs(x = "Species coordinates [PC2]", 
-       y = expression(paste("Pearsons's ", italic("r")," of ASVs with PC2"))) +
-  scale_colour_viridis_d() +
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
-  )
-
+    scale_y_continuous(limits = c(0, 1)) +
+    scale_fill_viridis_d(option = "viridis") +
+    scale_colour_viridis_d(option = "viridis") +
+    labs(x = "Species coordinates [PC2]", 
+         y = expression(paste(" | Pearsons's ", italic("r")," | of OTUs with PC2"))) +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank())
+)
 
 annotations <- data.frame(
   xpos = c(-Inf,-Inf,Inf,Inf),
   ypos =  c(-Inf, Inf,-Inf,Inf),
-  annotateText = c("Summer-Autumn",""
+  annotateText = c("","Summer-Autumn"
                    ,"","Spring"),
-  hjustvar = c(-0.05,0,1,1.2) ,
-  vjustvar = c(-0.2,1,0,1.2))
+  hjustvar = c(0,-0.08,1,1.2) ,
+  vjustvar = c(0,1.2,0,1.2))
 
 (p3 <- ggplot() +
     theme_bw() +
     geom_hline(yintercept =  0, colour = "grey80", size = 0.6) +
     geom_vline(xintercept = 0, colour = "grey80", size = 0.6) +
     geom_point(data = subset(cor.df, ab.groups == "universal.rare"), 
-               aes(x = cordi.pc3, y = cor.pc3, colour = ab.groups), shape = 21, alpha = 0.5, colour = "grey80") +
-    geom_point(data = subset(cor.df, ab.groups == "abundant.shifter"),
-               aes(x = cordi.pc3, y = cor.pc3, colour = ab.groups), shape = 21, alpha = 0.8) +
-    geom_point(data = subset(cor.df, ab.groups == "rare.shifter"),
-               aes(x = cordi.pc3, y = cor.pc3, colour = ab.groups), shape = 21, alpha = 0.8) +
-    geom_point(data = subset(cor.df, ab.groups == "specialist"),
-               aes(x = cordi.pc3, y = cor.pc3, colour = ab.groups), shape = 21, alpha = 0.8) +
-    geom_smooth(data = cor.df, 
-                aes(x = cordi.pc3, y = cor.pc3, group = ab.groups,
-                    colour = ab.groups, fill = ab.groups), size = 1.5,
-                method = 'gam', formula = y ~ s(x, bs = "cs")) +
+               aes(x = cordi.pc3, y = abs(cor.pc3), colour = ab.groups),
+               shape = 21, alpha = 0.5, colour = "grey80") +
+    geom_point(data = subset(cor.df, ab.groups != "universal.rare"),
+               aes(x = cordi.pc3, y = abs(cor.pc3), colour = ab.groups), shape = 21, alpha = 0.7) +
+    #geom_smooth(data = cor.df[ab.groups != "present.rs",], 
+    #              aes(x = cordi.pc3, y = abs(cor.pc3), group = ab.groups,
+    #                   colour = ab.groups), size = 1.5,
+    #              method = 'gam', formula = y ~ s(x, bs = "cs"), se = F) +
+    geom_smooth(data = cor.df[cordi.pc3 > 0,], 
+                aes(x = cordi.pc3, y = abs(cor.pc3), group = ab.groups,
+                    colour = ab.groups), size = 1.5,
+                method = 'lm', formula = y ~ x, se = F) +
+    geom_smooth(data = cor.df[cordi.pc3 < 0,], 
+                aes(x = cordi.pc3, y = abs(cor.pc3), group = ab.groups,
+                    colour = ab.groups), size = 1.5,
+                method = 'lm', formula = y ~ x, se = F) +
     geom_text(data=annotations,aes(x=xpos,y=ypos,
                                    hjust=hjustvar,vjust=vjustvar,
                                    label=annotateText)) +
-    scale_fill_viridis_d() +
+    scale_y_continuous(limits = c(0, 1)) +
+    scale_fill_viridis_d(option = "viridis") +
+    scale_colour_viridis_d(option = "viridis") +
     labs(x = "Species coordinates [PC3]", 
-         y = expression(paste("Pearsons's ", italic("r")," of ASVs with PC3"))) +
-    scale_colour_viridis_d() +
+         y = expression(paste(" | Pearsons's ", italic("r")," | of OTUs with PC3"))) +
     theme(panel.grid.major = element_blank(),
           panel.grid.minor = element_blank())
 )
 
+# combine
+ggarrange(p1, p2, p3, ncol = 3, common.legend = T)
+
+
+#############################################################################
 
 annotations <- data.frame(
   xpos = c(-Inf,-Inf,Inf,Inf),
@@ -1766,3 +1681,50 @@ fit.lvmbinom <- boral(y = pb.mat,
                       row.eff = "fixed")
 
 ####################################################################
+
+####################
+# Only terrestrial #
+####################
+ter <- subset_samples(pb, sample.type.year == "Soil" |
+                        sample.type.year == "Sediment" |
+                        sample.type.year == "Soilwater" |
+                        sample.type.year == "Groundwater")
+
+# remove ASVs that do not appear in this dataset
+ter <- prune_taxa(taxa_sums(ter) != 0, ter)
+
+pb.mat <- otu_mat(ter)
+pb.mat <- log2(pb.mat + 1)
+# PCoA with Bray-Curtis
+pb.bray <- vegdist(pb.mat, method = "bray")
+is.euclid(pb.bray) # TRUE
+pb.bray <- sqrt(pb.bray) # make Euclidean
+is.euclid(pb.bray) # TRUE
+
+# make PCoA
+pb.bray.pcoa <- ape::pcoa(pb.bray)
+# plot with custom function
+dna.pcoa <- plot_bray(pb.bray.pcoa, .id = "DNA", colours = colvec, output = T)
+
+ggsave("./Figures/General/terr_PCoA.png", dna.pcoa$plot)
+
+dissim.dr <- dissim.dnarna(ter, save.name = "All", output = T)
+
+dist.dr <- dist.dnarna(dna.pcoa[["df"]], save.name = "terr", output = T)
+#dist.dr <- dist.dnarna(dnarna.bray[["df"]], save.name = "All_2D", dimensions = 2)
+
+test <- merge(dissim.dr$original.df, dist.dr$indiv.df, by.x = "ID", by.y = "DR.names")
+#dist.dr$df[Axis == "Axis.2",]
+ggplot(test, aes(x = dist, y = distance.1D, fill = sample.type.year.x)) +
+  theme_bw() +
+  geom_point(shape = 21) +
+  scale_fill_manual(values = colvec) +
+  labs(x = "Pair-wise Bray-Curtis dissimilarity", y = "Pair-wise distance in ordination")
+
+p <- ggplot(test, aes(x = dist, y = distance.1D, fill = Season.x)) +
+  theme_bw() +
+  geom_point(shape = 21) +
+  labs(x = "Pair-wise Bray-Curtis dissimilarity", y = "Pair-wise distance in ordination")
+
+ggsave("./Figures/General/terr_distdissimcor.png", p)
+cor.test(test$dist, test$distance.1D)

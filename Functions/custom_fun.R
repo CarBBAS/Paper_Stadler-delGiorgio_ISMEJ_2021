@@ -735,10 +735,20 @@ dist.dnarna.metrics <- function(data, save.name = NULL, output = F, dimensions =
 
 
 ## Function to calculate and plot DNA-RNA distance within PCoA space
-dist.dnarna <- function(data, save.name = NULL, output = F){
+dist.dnarna <- function(bray, save.name = NULL, output = F){
   if (is.null(save.name) == T) {
     stop("'save.name' needs to be specified.")
   }
+  
+  pb.scores <- data.frame(Sample = as.character(row.names(bray$vectors)),
+                          bray$vectors, stringsAsFactors = F)  # get first three axes
+  # merge with a selection of meta data
+  meta <- data.frame(Sample = as.character(row.names(sample_df(pb))),
+                     sample_df(pb) %>% dplyr::select(sample.type.year, Season, Year, 
+                                                     DnaType, distance.from.mouth, DR.names), 
+                     stringsAsFactors = F)
+  data <- merge(pb.scores, meta, by = "Sample")
+  data$Sample <- as.character(data$Sample)
   
   # export table to look at point positions in GIS
   #write.table(pb.scores, "./Output/BrayCurtis_scores_withmeta.csv", sep = ",", dec = ".", row.names = F)
@@ -750,27 +760,33 @@ dist.dnarna <- function(data, save.name = NULL, output = F){
     temp <- dcast(temp, DR.names + Axis ~ DnaType, value.var = c("Coordinates"))
     # remove NAs
     temp <- na.omit(temp)
-    # Calculate distance
-    temp[, distance.1D := abs(DNA - RNA)]
     
-    temp.2d <- dcast(temp, DR.names ~ Axis, value.var = c("DNA","RNA"))
-    temp.2d[, distance.12 := sqrt(abs((DNA_Axis.1 - RNA_Axis.1))^2 + abs((DNA_Axis.2 - RNA_Axis.2))^2)]
-    temp.2d[, distance.13 := sqrt(abs((DNA_Axis.1 - RNA_Axis.1))^2 + abs((DNA_Axis.3 - RNA_Axis.3))^2)]
+    # Calculate distance of all axes
+    temp[, pnt.dist := (abs(DNA - RNA))^2] # calculate point distance for each axis and square root
+    temp <- temp[, .(sum.dist = sum(pnt.dist)), by = .(DR.names)] # sum all axes
+    temp <- temp[, dist := sqrt(sum.dist)]
+    
+    # Calculate distance
+    #temp[, distance.1D := abs(DNA - RNA)]
+    
+    #temp.2d <- dcast(temp, DR.names ~ Axis, value.var = c("DNA","RNA"))
+    #temp.2d[, distance.12 := sqrt(abs((DNA_Axis.1 - RNA_Axis.1))^2 + abs((DNA_Axis.2 - RNA_Axis.2))^2)]
+    #temp.2d[, distance.13 := sqrt(abs((DNA_Axis.1 - RNA_Axis.1))^2 + abs((DNA_Axis.3 - RNA_Axis.3))^2)]
     
   # combine back with categories
   dist.dr <- temp[data, c("sample.type.year",
                           "Year", "Season") := list(i.sample.type.year,
                                                      i.Year, i.Season), on = .(DR.names)]
-  dist.2d <- temp.2d[data, c("sample.type.year",
-                             "Year", "Season") := list(i.sample.type.year,
-                                                       i.Year, i.Season), on = .(DR.names)]
+  #dist.2d <- temp.2d[data, c("sample.type.year",
+  #                           "Year", "Season") := list(i.sample.type.year,
+  #                                                     i.Year, i.Season), on = .(DR.names)]
   indiv.df <- dist.dr
   
   # calculate confidence interval and means of sample type and season combinations
-  dist.dr <- dist.dr[, .(mean =  mean(distance.1D, na.rm = T),
-                         conf.int = conf.int(distance.1D),
-                         stdev = sd(distance.1D, na.rm = T)),
-                     by = .(Axis, sample.type.year, Season)]
+  dist.dr <- dist.dr[, .(mean =  mean(dist, na.rm = T),
+                         conf.int = conf.int(dist),
+                         stdev = sd(dist, na.rm = T)),
+                     by = .(sample.type.year, Season)]
   
   # add new column to split plot into main and side panel
   dist.dr[, panels := "main"]
@@ -786,7 +802,7 @@ dist.dnarna <- function(data, save.name = NULL, output = F){
   # plot main plot
   (
     main.b <-
-      ggplot(dist.dr[panels == "main" & Axis == "Axis.2", ], aes(
+      ggplot(dist.dr[panels == "main", ], aes( #& Axis == "Axis.2"
         x = sample.type.year, y = mean, fill = Season
       )) +
       theme_cust(base_theme = "pubr") +
@@ -798,8 +814,8 @@ dist.dnarna <- function(data, save.name = NULL, output = F){
       scale_colour_manual(values = c("#009E73", "#FFAA1D", "#D55E00")) +
       labs(x = "Habitat type", 
            y = paste0("Distance in \nordination space (PC2)")) +
-      lims(y = c(min(dist.dr[Axis == "Axis.2",]$mean - dist.dr[Axis == "Axis.2",]$stdev, na.rm = T),
-                 max(dist.dr[Axis == "Axis.2",]$mean + dist.dr[Axis == "Axis.2",]$stdev, na.rm = T))) +
+      #lims(y = c(min(dist.dr[Axis == "Axis.2",]$mean - dist.dr[Axis == "Axis.2",]$stdev, na.rm = T),
+      #           max(dist.dr[Axis == "Axis.2",]$mean + dist.dr[Axis == "Axis.2",]$stdev, na.rm = T))) +
       theme(
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.text = element_text(size = 8),
@@ -811,7 +827,7 @@ dist.dnarna <- function(data, save.name = NULL, output = F){
   # side panel
   (
     side.b <-
-      ggplot(dist.dr[panels == "side" & Axis == "Axis.2", ], aes(
+      ggplot(dist.dr[panels == "side" , ], aes( # & Axis == "Axis.2"
         x = sample.type.year, y = mean, fill = Season
       )) +
       theme_cust(base_theme = "pubr") +
@@ -823,8 +839,8 @@ dist.dnarna <- function(data, save.name = NULL, output = F){
       scale_colour_manual(values = c("#009E73", "#FFAA1D", "#D55E00")) +
       labs(x = "Habitat type", 
            y = paste0("Distance in ordination space (PC2)")) +
-      lims(y = c(min(dist.dr[Axis == "Axis.2",]$mean - dist.dr[Axis == "Axis.2",]$stdev, na.rm = T),
-                 max(dist.dr[Axis == "Axis.2",]$mean + dist.dr[Axis == "Axis.2",]$stdev, na.rm = T))) +
+      #lims(y = c(min(dist.dr[Axis == "Axis.2",]$mean - dist.dr[Axis == "Axis.2",]$stdev, na.rm = T),
+      #           max(dist.dr[Axis == "Axis.2",]$mean + dist.dr[Axis == "Axis.2",]$stdev, na.rm = T))) +
       theme(
         axis.title.x = element_blank(),
         axis.text.x = element_text(angle = 45, hjust = 1),
@@ -836,57 +852,57 @@ dist.dnarna <- function(data, save.name = NULL, output = F){
       )
   )
   
-  (
-    main.s <-
-      ggplot(dist.dr[panels == "main" & Axis == "Axis.3", ], aes(
-        x = sample.type.year, y = mean, fill = Season
-      )) +
-      theme_cust(base_theme = "pubr") +
-      geom_errorbar(aes(ymin = mean - stdev, ymax = mean + stdev, colour = Season),
-                    position = position_dodge(0.7), width = 0) +
-      geom_jitter(aes(fill = Season), shape = 21, 
-                  position = position_dodge(0.7), size = 2.5) +
-      scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
-      scale_colour_manual(values = c("#009E73", "#FFAA1D", "#D55E00")) +
-      labs(x = "Habitat type", 
-           y = paste0("Distance in \nordination space (PC3)")) +
-      lims(y = c(min(dist.dr[Axis == "Axis.3",]$mean - dist.dr[Axis == "Axis.3",]$stdev, na.rm = T),
-                 max(dist.dr[Axis == "Axis.3",]$mean + dist.dr[Axis == "Axis.3",]$stdev, na.rm = T))) +
-      theme(
-        axis.text.x = element_text(angle = 45, hjust = 1),
-        axis.text = element_text(size = 8),
-        axis.title.x = element_blank(),
-        axis.title = element_text(size = 10)
-      )
-  )
+  #(
+  #  main.s <-
+  #    ggplot(dist.dr[panels == "main", ], aes(
+  #      x = sample.type.year, y = mean, fill = Season
+  #    )) +
+  #    theme_cust(base_theme = "pubr") +
+  #    geom_errorbar(aes(ymin = mean - stdev, ymax = mean + stdev, colour = Season),
+  #                  position = position_dodge(0.7), width = 0) +
+  #    geom_jitter(aes(fill = Season), shape = 21, 
+  #                position = position_dodge(0.7), size = 2.5) +
+  #    scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
+  #    scale_colour_manual(values = c("#009E73", "#FFAA1D", "#D55E00")) +
+  #    labs(x = "Habitat type", 
+  #         y = paste0("Distance in \nordination space (PC3)")) +
+  #    lims(y = c(min(dist.dr[Axis == "Axis.3",]$mean - dist.dr[Axis == "Axis.3",]$stdev, na.rm = T),
+  #               max(dist.dr[Axis == "Axis.3",]$mean + dist.dr[Axis == "Axis.3",]$stdev, na.rm = T))) +
+  #    theme(
+  #      axis.text.x = element_text(angle = 45, hjust = 1),
+  #      axis.text = element_text(size = 8),
+  #      axis.title.x = element_blank(),
+  #      axis.title = element_text(size = 10)
+  #    )
+  #)
   
   # side panel
-  (
-    side.s <-
-      ggplot(dist.dr[panels == "side" & Axis == "Axis.3", ], aes(
-        x = sample.type.year, y = mean, fill = Season
-      )) +
-      theme_cust(base_theme = "pubr") +
-      geom_errorbar(aes(ymin = mean - stdev, ymax = mean + stdev, colour = Season),
-                    position = position_dodge(0.7), width = 0) +
-      geom_jitter(aes(fill = Season), shape = 21, 
-                  position = position_dodge(0.7), size = 2.5) +
-      scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
-      scale_colour_manual(values = c("#009E73", "#FFAA1D", "#D55E00")) +
-      labs(x = "Habitat type", 
-           y = paste0("Distance in ordination space (PC3)")) +
-      lims(y = c(min(dist.dr[Axis == "Axis.3",]$mean - dist.dr[Axis == "Axis.3",]$stdev, na.rm = T),
-                 max(dist.dr[Axis == "Axis.3",]$mean + dist.dr[Axis == "Axis.3",]$stdev, na.rm = T))) +
-      theme(
-        axis.title.x = element_blank(),
-        axis.text.x = element_text(angle = 45, hjust = 1),
-        axis.text = element_text(size = 8),
-        axis.title.y = element_blank(),
-        axis.text.y = element_blank(),
-        axis.line.y = element_blank(),
-        axis.ticks.y = element_blank()
-      )
-  )
+  #(
+  #  side.s <-
+  #    ggplot(dist.dr[panels == "side" & Axis == "Axis.3", ], aes(
+  #      x = sample.type.year, y = mean, fill = Season
+  #    )) +
+  #    theme_cust(base_theme = "pubr") +
+  #    geom_errorbar(aes(ymin = mean - stdev, ymax = mean + stdev, colour = Season),
+  #                  position = position_dodge(0.7), width = 0) +
+  #    geom_jitter(aes(fill = Season), shape = 21, 
+  #                position = position_dodge(0.7), size = 2.5) +
+  #    scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
+  #    scale_colour_manual(values = c("#009E73", "#FFAA1D", "#D55E00")) +
+  #    labs(x = "Habitat type", 
+  #         y = paste0("Distance in ordination space (PC3)")) +
+  #    lims(y = c(min(dist.dr[Axis == "Axis.3",]$mean - dist.dr[Axis == "Axis.3",]$stdev, na.rm = T),
+  #               max(dist.dr[Axis == "Axis.3",]$mean + dist.dr[Axis == "Axis.3",]$stdev, na.rm = T))) +
+  #    theme(
+  #      axis.title.x = element_blank(),
+  #      axis.text.x = element_text(angle = 45, hjust = 1),
+  #      axis.text = element_text(size = 8),
+  #      axis.title.y = element_blank(),
+  #      axis.text.y = element_blank(),
+  #      axis.line.y = element_blank(),
+  #      axis.ticks.y = element_blank()
+  #    )
+  #)
   
   # combine both plots
   (p <- ggarrange(
@@ -898,21 +914,22 @@ dist.dnarna <- function(data, save.name = NULL, output = F){
               legend = "top",
               align = "h",
               font.label = list(size = 10)),
-    ggarrange(main.s, 
-              side.s,
-              widths = c(3,1),
-              ncol = 2, nrow = 1, 
-              common.legend = T,
-              legend = "none",
-              align = "h",
-              font.label = list(size = 10)), nrow = 2, align = "hv", common.legend = T)
+    #ggarrange(main.s, 
+    #          side.s,
+    #          widths = c(3,1),
+    #          ncol = 2, nrow = 1, 
+    #          common.legend = T,
+    #          legend = "none",
+    #          align = "h",
+    #          font.label = list(size = 10)), 
+    nrow = 2, align = "hv", common.legend = T)
   )
     
   # add x axis title to be in the middle of two panels
   (p <- annotate_figure(p, bottom = text_grob("Habitat Type")))
   
   if(output == T){
-    return(list(df = dist.dr, indiv.df = indiv.df, dist.2d = dist.2d, raw.df = data, 
+    return(list(df = dist.dr, indiv.df = indiv.df, raw.df = data, #dist.2d = dist.2d,
                 plot.main = main.b, plot.side = side.b))  
   }
 }
