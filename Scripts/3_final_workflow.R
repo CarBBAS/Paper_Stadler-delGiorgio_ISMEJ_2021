@@ -117,45 +117,7 @@ pb <- phyloseq(otu_table(asv.tab, taxa_are_rows = F),
 #pb <- prune_taxa(!taxa_sums(pb) == 0, pb)
 pb <- prune_samples(!sample_sums(pb) == 0, pb)
 
-#####################################################################################################
-# For rarefied table
-
-# full tidy data set
-#rel.df <- select_newest("./Objects", "201520162017_css")
-#rel.df <- readRDS(
-#  paste0("./Objects/", rel.df))
-
-## RAREFIED DATASET ##
-# read in rarefied datasets
-min_lib <- c(15000, 25000, 50000)
-perm.rar <- select_newest("./Output",
-                          "perm.rar_lib", by = min_lib)
-
-perm.rar <- c(perm.rar, select_newest("./Output", "201520162017_CSS_asvtab"))
-
-rar <- read.csv(paste0("./Output/", perm.rar[2]), sep = ";", stringsAsFactors = F)
-
-data.table::setDT(rar)
-# make mean column to count
-rar <- setDF(dcast(rar, Sample ~ ASV, value.var = "iter.mean"))
-rownames(rar) <- rar$Sample
-rar$Sample <- NULL
-rar < t(as.matrix(rar))
-rar <- rar[order(row.names(rar)),]
-
-tax.tab <- tax.tab[row.names(tax.tab) %in% colnames(rar),]
-tax.tab <- tax.tab[order(match(row.names(tax.tab), colnames(rar))),]
-met.df <- met.df[row.names(met.df) %in% row.names(rar),]
-met.df <- met.df[order(match(row.names(met.df), row.names(rar))),]
-
-pb <- phyloseq(otu_table(t(rar), taxa_are_rows = T),
-               sample_data(met.df),
-               tax_table(tax.tab))
-# remove taxa without observation
-pb <- prune_taxa(!taxa_sums(pb) == 0, pb)
-
-#####################################################################################################
-
+############################################################################
 
 # create colour vector for later plotting
 # ensure consistent colours for all sample types
@@ -205,7 +167,7 @@ names(colvec) <- as.character(sample.factors)
 # Q: Is the microbial assemblage different between habitat types and seasons?
 
 #--------------------------#
-#- Mulativariate analysis -#
+#- Multivariate analysis -#
 #--------------------------#
 # We are dealing with large environmental gradients, thus we expect a high proportion of zeros
 # Therefore, we need to select an asymmetrical similarity distance coefficient
@@ -232,6 +194,10 @@ names(colvec) <- as.character(sample.factors)
 # subset only DNA samples
 dna <- subset_samples(pb, DnaType == "DNA")
 
+# remove ASVs that do not appear in this dataset
+dna <- prune_taxa(taxa_sums(dna) != 0, dna)
+dna <- prune_samples(sample_sums(dna) != 0, dna)
+
 # extract ASV matrix
 pb.mat <- otu_mat(dna)
 pb.mat <- log2(pb.mat + 1)
@@ -241,10 +207,13 @@ is.euclid(pb.bray) # FALSE
 pb.bray <- sqrt(pb.bray) # make Euclidean
 is.euclid(pb.bray) # TRUE
 
+ncol(pb.mat)
+nrow(pb.mat)
+
 # make PCoA
 pb.bray.pcoa <- ape::pcoa(pb.bray) # 372 registers
 # plot with custom function
-dna.pcoa <- plot_bray(pb.bray.pcoa, .id = "DNA", colours = colvec, output = T)
+dna.pcoa <- plot_pcoa(pb.bray.pcoa, physeq = dna, colours = colvec, output = T)
 
 p <- dna.pcoa$plot + guides(alpha = "none")
 
@@ -300,6 +269,13 @@ p <- dna.pcoa$plot + guides(alpha = "none")
   new_scale_fill() +
   geom_point(data = dna.pcoa$df[dna.pcoa$df$sample.type.year == "Downriver" | dna.pcoa$df$sample.type.year == "Upriver",], 
              aes(x = Axis.1, y = Axis.2, fill = abs(distance.from.mouth), shape = sample.type.year), size = 3) +
+  stat_ellipse(data = subset(dna.pcoa$df, (sample.type.year == "Upriver" | sample.type.year == "Downriver")  &
+                               Season == "Spring"),
+                 aes(x = Axis.1, y = Axis.2, group = Year), linetype = "dashed", colour = "grey50") +
+  #stat_ellipse(data = subset(dna.pcoa$df, (sample.type.year == "Upriver" | sample.type.year == "Downriver")),
+  #               aes(x = Axis.1, y = Axis.2, group = paste(Year,Season), linetype = as.character(Year))) +
+  annotate(geom = "text", x = c(0.28,0.28), y = c(0.255,0.12), label = c("2015", "2016"), 
+           size = 3, colour = "grey50") +
   scale_fill_continuous(type = "viridis", name = "Distance from \nmouth (km)", direction = -1) +
   #scale_fill_viridis_b(name = "Distance from mouth", direction = -1) +
   scale_shape_manual(values = c(21,23), name = "Habitat Type") +
@@ -321,9 +297,8 @@ p <- p +
            ymin = - 0.13, ymax = 0.3, fill = NA, colour = "grey50", linetype = "dashed", alpha = 0.8) +
   annotate(geom = "rect", xmin = -0.04, xmax = 0.28,
            ymin = - 0.12, ymax = 0.22, fill = NA, colour = "grey50", linetype = "dashed", alpha = 0.8) +
-  annotate(geom = "text", x = -0.405, y = 0.085, label = "b", alpha = 0.8, colour = "grey50") +
-  annotate(geom = "text", x = 0.015, y = 0.285, label = "c", alpha = 0.8, colour = "grey50") +
-  annotate(geom = "text", x = -0.025, y = 0.2, label = "d", alpha = 0.8, colour = "grey50")
+  annotate(geom = "text", x = c(-0.405,0.015,-0.025), 
+           y = c(0.085,0.285,0.2), label = c("b","c","d"), alpha = 0.8, colour = "grey50")
 
 collage <- ggarrange(p, 
           ggarrange(zoom.terr, zoom.river, zoom.est, ncol = 3, labels = c("b","c","d"), align = "hv"),
@@ -368,44 +343,21 @@ mod3 <- betadisper(pb.bray,
 
 ## Perform test
 perm1 <- anova(mod, permutations = 9999, pairwise = T, parallel = cl) 
-perm2 <- anova(mod2, permutations = 9999, pairwise = T, parallel = cl) 
+perm2 <- anova(mod2, permutations = 9999, pairwise = T, parallel = cl)
 perm3 <- anova(mod3, permutations = 9999, pairwise = T, parallel = cl) 
-# runs into errors with permutest, anova.cca is same function but without errors...
+# runs into errors with permutest, anova.cca is same function but runs without errors...
 
 # habitat alone = F[12] = 32.17, p = 1e-04
 # season alone = F[2] = 42.79, p = 1e-04
 # combined = F[27] = 17.77, p = < 2.2e-16
 
-############
-# Only RNA #
-############
-# subset only RNA samples
-rna <- subset_samples(pb, DnaType == "RNA")
+TukeyHSD(mod2)
 
-# extract ASV matrix
-pb.mat <- otu_mat(rna)
-pb.mat <- log2(pb.mat + 1)
-# PCoA with Bray-Curtis
-pb.bray <- vegdist(pb.mat, method = "bray")
-is.euclid(pb.bray) # FALSE
-pb.bray <- sqrt(pb.bray) # make Euclidean
-is.euclid(pb.bray) # TRUE
-
-# make PCoA
-pb.bray.pcoa <- ape::pcoa(pb.bray)
-# plot with custom function
-rna.pcoa <- plot_bray(pb.bray.pcoa, .id = "DNA", colours = colvec, output = T)
-
-p <- rna.pcoa$plot + guides(alpha = "none")
-
-# save
-ggsave(paste0("./Figures/Final/PCoA_log_RNA_SampleType.tiff"), p,
-       width = 12, height = 10, unit = "cm")
-ggsave(paste0("./Figures/Final/PCoA_log_RNA_SampleType.png"),  p,
-       width = 12, height = 10, unit = "cm")
-
-####################
 #---------------------------------------------------------------------------------------------------#
+
+#- Figure 2 -#
+# Q2: Are the DNA and RNA assemblages different?
+
 ####################
 # Both DNA and RNA #
 ####################
@@ -417,13 +369,20 @@ is.euclid(pb.bray) # FALSE
 pb.bray <- sqrt(pb.bray) # make Euclidean
 is.euclid(pb.bray)
 # make PCoA
-pb.bray.pcoa <- ape::pcoa(pb.bray) # 572 registers
+pb.bray.pcoa <- ape::pcoa(pb.bray) 
 
+ncol(pb.mat) # 
+nrow(pb.mat) # 572 registers
+
+ncol(pb.bray.pcoa$vectors) # 571 axes
+
+# Sanity check
+# back calculate BC dissimilarity matrix from PCoA
 #coor.dist <- as.matrix(dist(pb.bray.pcoa$vectors)) # same as original pb.bray matrix
 
 # plot with custom function
-all.pcoa <- plot_bray(pb.bray.pcoa, .id = "All", colours = colvec, output = T)
-pcoa.23 <-  plot_bray(pb.bray.pcoa, .id = "All", colours = colvec, output = T, axes = "2+3")
+all.pcoa <- plot_pcoa(pb.bray.pcoa, physeq = pb, axes = c(1:3), colours = colvec, output = T)
+pcoa.23 <- plot_pcoa(pb.bray.pcoa, physeq = pb, plot.axes = c(3,2), colours = colvec, output = T)
 
 pcoa.plot <- all.pcoa$plot + theme(legend.position = "left")
 
@@ -499,15 +458,39 @@ htmlwidgets::saveWidget(as_widget(p), "PCoA_DNARNA_Season_3D.html")
 
 #---------------------------------------------------------------------------------------------------#
 
-#- Figure 2 -#
+#- Figure 3 -#
 
-# Q2: How different are the the DNA and RNA assemblages of the same sample?
+# Q3: How different are the the DNA and RNA assemblages of the same sample?
+
+# Calculate incidence based dissimilarity
+# PCoA with Sorensen, incidence based equivalent of Bray Curtis
+pb.soren <- vegdist(pb.mat, method = "bray", binary = T)
+is.euclid(pb.soren) # FALSE
+pb.soren <- sqrt(pb.soren) # make Euclidean
+is.euclid(pb.soren)
+# make PCoA
+pb.soren.pcoa <- ape::pcoa(pb.soren) 
+
+soren.12 <- plot_pcoa(pb.soren.pcoa, physeq = pb, axes = c(1:2), colour = colvec, output = T)
+soren.32 <- plot_pcoa(pb.soren.pcoa, physeq = pb, plot.axes = c(3,2), colour = colvec, output = T)
+# less strong, but axis 3 separates nucleic acid types
+
+# plot Sorensen plots for supplementary
+p <- ggarrange(soren.12$plot, soren.32$plot, ncol = 2, common.legend = T, legend = "right",
+               align = "hv", labels = "auto")
+
+# save
+ggsave(paste0("./Figures/Final/PCoA_all_Sorensen.tiff"), p,
+       width = 20, height = 11, unit = "cm")
+ggsave(paste0("./Figures/Final/PCoA_all_Sorensen.png"),  p,
+       width = 20, height = 11, unit = "cm")
 
 #-------------------------------------------------------#
 # Extract pair-wise dissimilarity among DNA-RNA samples #
 #-------------------------------------------------------#
 # convert distance matrix into long format
-dissim.df <- melt.dist(pb.bray)
+dissim.df <- rbind(melt.dist(pb.bray) %>% mutate(Metric = "Bray"),
+                   melt.dist(pb.soren) %>% mutate(Metric = "Sorensen"))
 
 # Get meta data to rename DNA and RNA data
 meta <- data.frame(Sample = as.character(row.names(sample_df(pb))),
@@ -526,7 +509,7 @@ dissim.df <- dissim.df[dissim.df$Year.y != 2015,]
 dissim.df <- dissim.df[dissim.df$DR.names.x == dissim.df$DR.names.y,]
 dissim.df <- dissim.df[!(dissim.df$DnaType.x == dissim.df$DnaType.y),] # omit all distances between same DnaType
 
-dissim.dr <- dissim.df %>% select(ID = DR.names.x, Year = Year.x, Season, sample.type.year, dist)
+dissim.dr <- dissim.df %>% select(Metric, ID = DR.names.x, Year = Year.x, Season, sample.type.year, dist)
 setDT(dissim.dr)
 
 # add new column to split plot into main and side panel
@@ -539,17 +522,48 @@ dissim.dr[sample.type.year == "Tributary" |
 # calculate confidence interval and means of sample type and season combinations
 sum.dissim <- dissim.dr[, .(mean =  mean(dist, na.rm = T),
                        conf.int = conf.int(dist),
-                       stdev = sd(dist, na.rm = T)), by = .(sample.type.year, Season, panels)]
+                       stdev = sd(dist, na.rm = T)), by = .(Metric,sample.type.year, Season, panels)]
+
+cast.dis <- dcast(dissim.dr, ID + sample.type.year + Season ~ Metric, value.var = "dist")
+
+
+(pw.sorbray <- ggplot(cast.dis, aes(x =  Bray, y = Sorensen)) +
+  theme_bw() +
+  geom_point(aes(fill = sample.type.year, shape = Season), size = 3) +
+  scale_fill_manual(values =  colvec[names(colvec) %in% as.character(levels(cast.dis$sample.type.year))],
+                    name = "Habitat Type") +
+  scale_shape_manual(values = c(21, 23, 25)) +
+  labs(x = expression(paste("Pairwise ", italic(D)["BC"]^"DNA:RNA")), 
+       y = expression(paste("Pairwise ", italic(D)["S"]^"DNA:RNA"))) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  annotate(geom = "text", x = 0.55, y = 0.57, label = "1:1", angle = 45) +
+  theme(legend.key.size = unit(1.5, "lines"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  guides(fill = guide_legend(override.aes=list(shape=21), order = 1))
+)
+
+ggplot(cast.dis, aes(y = Sorensen, x =  Bray)) +
+  theme_bw() +
+  geom_point(aes(fill = Season), size = 3, shape = 21) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  labs(x = expression(paste(italic(D)["BC"])), y = expression(paste(italic(D)["S"]))) +
+  annotate(geom = "text", x = 0.55, y = 0.57, label = "1:1", angle = 45) +
+  theme(legend.key.size = unit(1.5, "lines"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  guides(fill = guide_legend(override.aes=list(shape=21), order = 1))
 
 #-------------------------------------------------------------#
 # Calculate distance between DNA and RNA points in PCoA space #
 #-------------------------------------------------------------#
 # use custom function to correct a few wrong sample names and match DNA-RNA counterpart samples
-# calculating distance between points in two-dimensional space for both Bray-Curtis and Jaccard
-# Use three distances, as variances explained by second and third axes are almost identical
+# calculating distance between points in two-dimensional space for both Bray-Curtis and Sorensen
 
-pb.scores <- data.frame(Sample = as.character(row.names(pb.bray.pcoa$vectors)),
-                        pb.bray.pcoa$vectors, stringsAsFactors = F)  # get first three axes
+pb.scores <- rbind(data.frame(Sample = as.character(row.names(pb.bray.pcoa$vectors)), Metric = "Bray",
+                        pb.bray.pcoa$vectors, stringsAsFactors = F),
+                   data.frame(Sample = as.character(row.names(pb.soren.pcoa$vectors)), Metric = "Sorensen",
+                              pb.soren.pcoa$vectors, stringsAsFactors = F))# get first three axes
 # merge with a selection of meta data
 meta <- data.frame(Sample = as.character(row.names(sample_df(pb))),
                    sample_df(pb) %>% dplyr::select(sample.type.year, Season, Year, 
@@ -560,27 +574,34 @@ data$Sample <- as.character(data$Sample)
 
 setDT(data)
 # melt datatable
-temp <- melt(data, id.vars = c("DR.names","DnaType"), measure.vars = patterns("^Axis."),
+temp <- melt(data, id.vars = c("DR.names","DnaType", "Metric"), measure.vars = patterns("^Axis."),
              variable.name = "Axis", value.name = "Coordinates")
-temp <- dcast(temp, DR.names + Axis ~ DnaType, value.var = c("Coordinates"))
+temp <- dcast(temp, DR.names + Axis + Metric ~ DnaType, value.var = c("Coordinates"))
 # remove NAs
 temp <- na.omit(temp)
 
-# Calculate distance of temp axes
+# Calculate distance of all axes
 temp[, pnt.dist := (abs(DNA - RNA))^2] # calculate point distance for each axis and square root
-temp <- temp[, .(sum.dist = sum(pnt.dist)), by = .(DR.names)] # sum temp axes
+temp <- temp[, .(sum.dist = sum(pnt.dist)), by = .(Metric, DR.names)] # sum temp axes
 temp <- temp[, dist := sqrt(sum.dist)]
 
-# Calculate distance for a selection of axes
-temp.1d <- melt(data, id.vars = c("DR.names","DnaType"), measure.vars = patterns("^Axis."),
+# Calculate 1D distance for a selection of axes
+temp.1d <- melt(data, id.vars = c("DR.names","DnaType","Metric"), measure.vars = patterns("^Axis."),
              variable.name = "Axis", value.name = "Coordinates")
 
 temp.1d <- dcast(temp.1d[Axis == "Axis.3" | Axis == "Axis.2" | Axis == "Axis.1",], 
-                 DR.names + Axis ~ DnaType, value.var = "Coordinates")
-temp.1d <- temp.1d[, .(dist = abs(DNA - RNA)), by = .(DR.names, Axis)]
+                 DR.names + Axis + Metric ~ DnaType, value.var = "Coordinates")
+temp.1d <- temp.1d[, .(dist = abs(DNA - RNA)), by = .(Metric,DR.names, Axis)]
 
-#temp.2d[, distance.12 := sqrt(abs((DNA_Axis.1 - RNA_Axis.1))^2 + abs((DNA_Axis.2 - RNA_Axis.2))^2)]
+# Calculate distance within 3D
+temp.3d <- melt(data, id.vars = c("DR.names","DnaType","Metric"), measure.vars = patterns("^Axis."),
+                           variable.name = "Axis", value.name = "Coordinates")
+temp.3d <- dcast(temp.3d[Axis == "Axis.3" | Axis == "Axis.2" | Axis == "Axis.1",], 
+                 DR.names + Metric ~ DnaType + Axis, value.var = "Coordinates")
+
+temp.3d[, dist.3d := sqrt(abs((DNA_Axis.1 - RNA_Axis.1))^2 + abs((DNA_Axis.2 - RNA_Axis.2))^2 + abs((DNA_Axis.3 - RNA_Axis.3))^2)]
 #temp.2d[, distance.13 := sqrt(abs((DNA_Axis.1 - RNA_Axis.1))^2 + abs((DNA_Axis.3 - RNA_Axis.3))^2)]
+
 
 # combine back with categories
 dist.dr <- temp[data, c("sample.type.year",
@@ -590,94 +611,123 @@ dist.1d <- temp.1d[data, c("sample.type.year",
                            "Year", "Season") := list(i.sample.type.year,
                                                      i.Year, i.Season), on = .(DR.names)]
 
+dist.3d <- temp.3d[data, c("sample.type.year",
+                           "Year", "Season") := list(i.sample.type.year,
+                                                     i.Year, i.Season), on = .(DR.names)]
+
+# Make Bray to Sorensen ratio (only 3D)
+diff.df <- dcast(dist.3d, DR.names + sample.type.year + Season ~ Metric, value.var = "dist.3d")
+diff.df <- diff.df[, bcs.ratio := Sorensen / Bray]
+sum.diff <- diff.df[, .(mean =  mean(bcs.ratio, na.rm = T),
+                       conf.int = conf.int(bcs.ratio),
+                       stdev = sd(bcs.ratio, na.rm = T)),
+                   by = .(sample.type.year, Season)]
+
 # calculate confidence interval and means of sample type and season combinations
 sum.dist <- dist.dr[, .(mean =  mean(dist, na.rm = T),
                        conf.int = conf.int(dist),
                        stdev = sd(dist, na.rm = T)),
-                   by = .(sample.type.year, Season)]
+                   by = .(Metric, sample.type.year, Season)]
 
 sum.dist1d <- dist.1d[, .(mean =  mean(dist, na.rm = T),
                        conf.int = conf.int(dist),
                        stdev = sd(dist, na.rm = T)),
-                   by = .(sample.type.year, Season)]
+                   by = .(Metric, Axis, sample.type.year, Season)]
 
-# See if distance and dissimilarity are correlated
-# All axes
-all.ax <- merge(dissim.dr, dist.dr, by.x = "ID", by.y = "DR.names")
+sum.dist3d <- dist.3d[, .(mean =  mean(dist.3d, na.rm = T),
+                          conf.int = conf.int(dist.3d),
+                          stdev = sd(dist.3d, na.rm = T)),
+                      by = .(Metric, sample.type.year, Season)]
+
+# add new column to split plot into main and side panel
+sum.ls <- lapply(list(sum.dist, sum.dist1d, sum.dist3d, sum.diff), function(x){
+  x[, panels := "main"]
+  x[sample.type.year == "Tributary" |
+               sample.type.year == "Lake" |
+               sample.type.year == "Riverine \nLakes" |
+               sample.type.year == "Sediment", panels := "side"]
+})
+
+
+# Proof that distance is extracting part of the individual pairwise dissimilarity
+# If distance is calculated over all PCoA dimension, we back-calculate the pairwise dissimilarity
+all.ax <- merge(dissim.dr[dissim.dr$Metric == "Bray",], 
+                dist.dr[dist.dr$Metric == "Bray",], 
+                by.x = "ID", by.y = "DR.names")
+
+#all.ax <- merge(dissim.dr[dissim.dr$Metric == "Sorensen",], 
+#                dist.dr[dist.dr$Metric == "Sorensen",], 
+#                by.x = "ID", by.y = "DR.names") # works for both metrics
 
 (p <- ggplot(all.ax, aes(x = dist.x, y = dist.y, fill = sample.type.year.x)) +
   theme_bw() +
   geom_point(shape = 21) +
-  scale_fill_manual(values = colvec) +
-  labs(x = "Pair-wise Bray-Curtis dissimilarity", y = "Pair-wise distance in ordination across all axes"))
+  scale_fill_manual(values = colvec, name = "Habitat Type") +
+  labs(x = expression(paste("Pairwise ", italic("D")["BC"])),
+       y = expression(paste(italic("m")["BC"]^"n")))
+)
 
 ggsave("./Figures/General/allaxesdist_dissim_cor.png", p)
 
 # Only axis of interest
-sec.ax <- merge(dissim.dr, dist.1d[Axis == "Axis.2",], by.x = "ID", by.y = "DR.names")
-sec.ax <- merge(sec.ax, dist.dr, by.x = "ID", by.y = "DR.names")
-sec.ax[, rel.dist := dist - dist.y]
+#sec.ax <- merge(dissim.dr, dist.1d[Axis == "Axis.2",], by.x = "ID", by.y = "DR.names")
+#sec.ax <- merge(sec.ax, dist.dr, by.x = "ID", by.y = "DR.names")
+#sec.ax[, rel.dist := dist - dist.y]
 
-(p <- ggplot(sec.ax, aes(x = dist.x, y = dist.y, fill = sample.type.year.x)) +
-  theme_bw() +
-  geom_point(shape = 21) +
-  scale_fill_manual(values = colvec) +
-  labs(x = "Pair-wise Bray-Curtis dissimilarity", y = "Pair-wise distance in ordination (PC2)")
+#(p <- ggplot(sec.ax, aes(x = dist.x, y = dist.y, fill = sample.type.year.x)) +
+#  theme_bw() +
+#  geom_point(shape = 21) +
+#  scale_fill_manual(values = colvec) +
+#  labs(x = "Pair-wise Bray-Curtis dissimilarity", y = "Pair-wise distance in ordination (PC2)")
+#)
+
+#ggsave("./Figures/General/allaxesdist_dissim_cor.png", p)
+# dissimilarity and distance show different patterns....
+
+# Scatter plots
+plot.df <- sum.ls[[4]][!is.nan(sum.ls[[4]]$mean),]
+d <- scatter_panels(plot.df, labs = c("Habitat Type", 
+                                      expression(paste(italic("m")["S"], " : ", italic("m")["BC"]))))
+
+(dm.plot <- ggarrange(d$main + geom_hline(yintercept = 1, linetype = "dashed", colour = "grey50") +
+                        theme(axis.title.y = element_text(margin = margin(r = 10))),
+                    d$side + geom_hline(yintercept = 1, linetype = "dashed", colour = "grey50"),
+                    widths = c(3,1),
+                    ncol = 2, nrow = 1, 
+                    #common.legend = T,
+                    align = "h",
+                    font.label = list(size = 10),
+                    legend = "none")
 )
 
-ggsave("./Figures/General/allaxesdist_dissim_cor.png", p)
-# dissimilarity and distance show different patterns....
-# what is behind this difference?
+# distance among the first three axes exemplifies the variation in the communities that can be explained
+# by habitat type, season and nucleic acid type
 
-(p <-ggarrange(ggarrange(dist.dr$plot.main  + theme(axis.text.x = element_blank()), 
-            dist.dr$plot.side  + theme(axis.text.x = element_blank()),
-            widths = c(3,1),
-            ncol = 2, nrow = 1, 
-            common.legend = T,
-            legend = "none",
-            align = "h",
-            font.label = list(size = 10)),
-  ggarrange(dissim.dr$plot.main, 
-            dissim.dr$plot.side,
-            widths = c(3,1),
-            ncol = 2, nrow = 1, 
-            common.legend = T,
-            legend = "none",
-            align = "h",
-            font.label = list(size = 10)),
-  nrow = 2, heights = c(0.4, 0.5), labels = c("auto"), common.legend = T, align = "hv",
-  legend.grob = get_legend(dist.dr$plot.main), legend = "right"))
-# labels = c("b","c")
-# add x axis title to be in the middle of two panels
-(p <- annotate_figure(p, bottom = text_grob("Habitat Type")))
+plot.df <- sum.ls[[3]][!is.nan(sum.ls[[3]]$mean),]
+p <- scatter_panels(plot.df[Metric == "Bray",], labs = c("Habitat Type", 
+                                      expression(paste(italic("m")["BC"]))))
+p <- ggarrange(p$main + theme(axis.text.x = element_blank()),
+               p$side + theme(axis.text.x = element_blank()),
+               widths = c(3,1),
+               ncol = 2, nrow = 1, 
+               common.legend = T,
+               align = "h",
+               font.label = list(size = 10))
 
-# save
-ggsave(paste0("./Figures/Final/DNARNA_distdissim.tiff"), p,
-       width = 17, height = 10, unit = "cm")
-ggsave(paste0("./Figures/Final/DNARNA_distdissim.png"),  p,
-       width = 17, height = 10, unit = "cm")
+(scat.plots <- ggarrange(p, dm.plot, nrow = 2, align = "v", heights = c(0.47,0.53), common.legend = T))
 
-ggsave(paste0("./Figures/Final/DNARNA_dist.23.tiff"), p,
-       width = 17, height = 10, unit = "cm")
-ggsave(paste0("./Figures/Final/DNARNA_dist.23.png"),  p,
-       width = 17, height = 10, unit = "cm")
-
-#(fin <- ggarrange(pcoa.plot, p,
-#          ncol = 2, labels = c("a","")))
-
-# save
-ggsave(paste0("./Figures/Final/DNARNA_PCoA_distdissim.tiff"), fin,
-       width = 32, height = 12, unit = "cm")
-ggsave(paste0("./Figures/Final/DNARNA_PCoA_distdissim.png"),  fin,
-       width = 32, height = 12, unit = "cm")
+ggsave("./Figures/Final/distBC_distratio_scatter.png", scat.plots,
+       width = 15, height = 9, units = "cm")
+ggsave("./Figures/Final/distBC_distratio_scatter.tiff", scat.plots,
+       width = 15, height = 9, units = "cm")
+#expression(paste(Delta, " ", italic("m")["S"], " - ", italic("m")["BC"])))
 
 #---------------------------------------------------------------------------------------------------#
 
-#- Figure 3 -#
+#- Figure 4 -#
 
-# Q2: What is causing the dissimilarity patterns between DNA and RNA?
+# Q4: Who is driving the dissimilarity patterns between DNA and RNA?
 
-# Create abundance heatmap by abundance group
 # 1. Define abundance groups
 
 # Conventional grouping does not work with this data set
@@ -706,79 +756,7 @@ means <- means[order(mean.css, decreasing = T)]
 means[, rank.abun := 1:.N, by = .(DnaType, sample.type.year)]
 means[, log.mean := log1p(mean.css), by = .(DnaType, sample.type.year)]
 
-#--------------------------------------------------------------------------------------------#
-#--------------------------------------------------------------------------------------------#
-# Get derivatives for an example and plot for supplementary material
-x <- means[sample.type.year == "Soilwater" & DnaType == "DNA"]
-
-spl <- smooth.spline(x$rank.abun, x$log.mean, spar = 0.7)
-pred <- predict(spl)
-first <- predict(spl, deriv = 1) # first derivative
-sec <- predict(spl, deriv = 2) # second derivative
-
-options(scipen = 999) # avoid scientific annotations
-raw <- ggplot() +
-  theme_pubr() +
-  annotate(xmax = x$rank.abun[localMinima(sec$y)[1]],
-           xmin = x$rank.abun[localMaxima(sec$y)[1]],
-           ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "tomato") +
-  annotate(xmax = x$rank.abun[localMaxima(sec$y)[2]],
-           xmin = x$rank.abun[localMaxima(sec$y)[1]],
-           ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "forestgreen") +
-  annotate(xmax = max(x$rank.abun),
-           xmin = x$rank.abun[localMaxima(sec$y)[2]],
-           ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "aquamarine") +
-  geom_line(aes(x = x$rank.abun, y = x$mean.css)) +
-  geom_point(aes(x = x$rank.abun[localMaxima(sec$y)[1:2]],
-                 y = x$mean.css[localMaxima(sec$y)[1:2]]), colour = "tomato") +
-  geom_point(aes(x = x$rank.abun[localMinima(sec$y)[1]],
-                 y = x$mean.css[localMinima(sec$y)[1]]), colour = "royalblue") +
-  labs(x = "", y = "CSS transformed mean read number") +
-  theme(axis.title = element_text(size = 9))
-
-logged <- ggplot() +
-  theme_pubr() +
-  annotate(xmax = pred$x[localMinima(sec$y)[1]],
-           xmin = pred$x[localMaxima(sec$y)[1]],
-           ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "tomato") +
-  annotate(xmax = pred$x[localMaxima(sec$y)[2]],
-           xmin = pred$x[localMaxima(sec$y)[1]],
-           ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "forestgreen") +
-  annotate(xmax = max(pred$x),
-           xmin = pred$x[localMaxima(sec$y)[2]],
-           ymin = -Inf, ymax = Inf, geom = "rect", alpha = 0.2, fill = "aquamarine") +
-  geom_line(aes(x = pred$x, y = pred$y)) +
-  geom_point(aes(x = pred$x[localMaxima(sec$y)[1:2]],
-                 y = pred$y[localMaxima(sec$y)[1:2]]), colour = "tomato") +
-  geom_point(aes(x = pred$x[localMinima(sec$y)[1]],
-                 y = pred$y[localMinima(sec$y)[1]]), colour = "royalblue") +
-  labs(x = "", y = "CSS transformed mean read number (log)") +
-  theme(axis.title = element_text(size = 9))
-
-deriv <- ggplot() +
-  theme_pubr() +
-  geom_line(aes(x = sec$x, y = sec$y * 1000)) +
-  geom_point(aes(x = sec$x[localMaxima(sec$y)[1:2]],
-                 y = sec$y[localMaxima(sec$y)[1:2]]* 1000), colour = "tomato") +
-  geom_point(aes(x = sec$x[localMinima(sec$y)[1]],
-                 y = sec$y[localMinima(sec$y)[1]]* 1000), colour = "royalblue") +
-  labs(x = "", y = expression(paste("Acceleration x10"^3, " (2"^"nd", " derivative)"))) +
-  theme(axis.title = element_text(size = 9))
-
-p <- ggarrange(raw, logged, deriv, ncol = 3, labels = "auto")
-# add x axis title to be in the middle of two panels
-(p <- annotate_figure(p, bottom = text_grob("ASV Rank")))
-ggsave("./Figures/Final/abundance_class_ex_otu99.png", p,
-       width = 22, height = 9, unit = "cm")
-
-rm(x, p, raw, logged, pred, sec, first, spl)
-
-#--------------------------------------------------------------------------------------------#
-#--------------------------------------------------------------------------------------------#
-#####################
-# Apply to the data #
-#####################
-
+# smooth and get derivative
 classif.thres <- ddply(means, .(DnaType, sample.type.year), function(x){
   spl <- smooth.spline(x$rank.abun, x$log.mean, spar = 0.7)
   #pred <- predict(spl)
@@ -886,7 +864,9 @@ abun.list <- dlply(ag.class, .(DnaType), function(x){
                                                        (rare.counts + absent.counts) > abundant.counts,]$OTU))
   
   #sanity check
-  #length(univ.abun) + length(univ.med) + length(univ.rare) + length(cosmo) + length(abun.dom) + length(abundant.shifter) + length(rare.shifter) +  length(present.abundant.shifter) + length(present.rare.shifter) == length(unique(x$OTU))
+  if(length(univ.abun) + length(univ.med) + length(univ.rare) + length(cosmo) + length(abun.dom) + length(abundant.shifter) + length(rare.shifter) +  length(present.abundant.shifter) + length(present.rare.shifter) != length(unique(x$OTU))){
+    stop("Sum of abundance groups does not equal input")
+  }
   
   list(universal.abundant = univ.abun,
        universal.medium = univ.med,
@@ -924,9 +904,83 @@ lapply(ls.asvs, length)
 
 #---------------------------------------------------------------------------------------------------#
 
-#- Figure 4 -#
+# 2. Where in the rank abundance curve does community reshuffling occur?
+# calculate change in abundance between DNA and RNA between each OTU
 
-# Q2: Where in the rank abundance curve does community reshuffling occur?
+cast.abun <- dcast(rel.df, DR.names + OTU ~ DnaType, value.var = "css.reads")
+cast.abun <- cast.abun[!is.na(DNA) & !is.na(cDNA),]
+cast.abun[, diff.abun := DNA - cDNA]
+
+dist.cast <- dcast(dist.3d, DR.names + sample.type.year + Season ~ Metric, value.var = "dist.3d")
+dist.cast <- dist.cast[!is.na(dist.cast$Bray),]
+dist.cast[, bcs.ratio := Sorensen - Bray]
+
+cast.abun[dist.cast, c("Bray", "Sorensen", "bcs.ratio", "sample.type.year","Season") :=
+            list(i.Bray, i.Sorensen, i.bcs.ratio, i.sample.type.year, i.Season), on = .(DR.names)]
+
+cast.abun[dist.1d[Metric == "Bray" & Axis == "Axis.2",], c("dist.pc2") := list(i.dist), on = .(DR.names)]
+
+cast.abun <- cast.abun[!(diff.abun == 0),] # omit no abundance difference as they do not contribute to differences
+
+# add abundance group names into species dataframe
+for(i in 1:length(grp.names)){
+  cast.abun[OTU %in% ls.asvs[[grp.names[i]]], ab.names :=  grp.names[i]]
+  cast.abun[OTU %in% ls.asvs[[grp.names[i]]], ab.names :=  grp.names[i]]
+}
+
+# omit OTUs only in RNA
+cast.abun <- cast.abun[!is.na(ab.names),]
+
+cast.abun$ab.groups <- factor(cast.abun$ab.names, levels = c('abundant.shifter', 'present.as', 
+                                                        'rare.shifter', 'present.rs', 
+                                                        'specialist', 'universal.rare'),
+                           labels = c('Abundant shifter', 'Universal \nabundant shifter',
+                                      'Rare shifter', 'Universal \nrare shifter',
+                                      'Specialist', 'Universal rare'))
+
+okabe.ito.sel <- c("#D55E00", "#CC79A7",  "#0072B2", "#56B4E9", "#009E73", "#E69F00")
+
+within.p <- ggplot(cast.abun, aes(x = Bray, y = log1p(abs(diff.abun)))) +
+  theme_pubr() +
+  geom_point(colour = "grey80", alpha = 0.8, size = 0.5) +
+  labs(x = expression(paste(italic("m")["BC"])),
+       y = expression(paste("| ", Delta, " OTU CSS reads |"))) +
+  annotate(geom = "rect", xmin = 0, ymin = 0, 
+           xmax = 0.5, ymax = 10, fill = NA, colour = "grey50", linetype = "dashed", alpha = 0.8) +
+  theme(axis.text = element_text(size = 3), axis.title = element_text(size = 5))
+
+(main <- ggplot(cast.abun, aes(x = Bray, y = log1p(abs(diff.abun)))) +
+  theme_bw() +
+  geom_point(colour = "grey80", alpha = 0.2) +
+  geom_smooth(aes(group = ab.groups, colour = ab.groups, fill = ab.groups),
+              method = "gam", formula = y ~ s(x, bs = "cs")) +
+  scale_colour_manual(values = okabe.ito.sel, name = "Abundance\ngroups") +
+  scale_fill_manual(values = okabe.ito.sel, name = "Abundance\ngroups") +
+  labs(x = expression(paste(italic("m")["BC"])),
+       y = expression(paste("| ",Delta, " OTU CSS reads |"))) +
+  coord_cartesian(ylim = c(0,10)) +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank()) +
+    annotation_custom(ggplotGrob(within.p), xmin = 0, xmax = 0.2, ymin = 7, ymax = 10.2) +
+    theme(legend.position = "right"))
+
+ggsave("./Figures/Final/GAM_ab.groups_mBC.png", main,
+       width = 14, height = 9 , units = "cm")
+
+(main <- ggplot(cast.abun, aes(x = dist.pc2, y = log1p(abs(diff.abun)))) +
+    theme_bw() +
+    geom_point(colour = "grey80", alpha = 0.2) +
+    geom_smooth(aes(group = ab.groups, colour = ab.groups, fill = ab.groups),
+                method = "gam", formula = y ~ s(x, bs = "cs")) +
+    scale_colour_manual(values = okabe.ito.sel, name = "Abundance\ngroups") +
+    scale_fill_manual(values = okabe.ito.sel, name = "Abundance\ngroups") +
+    labs(x = expression(paste(italic("m")["BC"]^"PC2")),
+         y = expression(paste("| ",Delta, " OTU CSS reads |"))) +
+    coord_cartesian(ylim = c(0,10)) +
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank()) +
+    annotation_custom(ggplotGrob(within.p), xmin = 0, xmax = 0.2, ymin = 7, ymax = 10.2) +
+    theme(legend.position = "right"))
 
 # fit species onto PCoA ordination
 pb.species <-
@@ -936,6 +990,9 @@ pb.species <-
              w = pb.mat),
     stringsAsFactors = F
   )
+
+strength.species <- eigengrad(pb.bray.pcoa$vectors[, 1:3],
+          w = pb.mat)
 
 pb.species <- na.omit(pb.species)
 setDT(pb.species)
@@ -957,9 +1014,9 @@ cor.df <- melt.data.table(
 )
 
 # does not work on private computer
-sim <- with(sample_df(pb), vegan::simper(t(otu_mat(pb)), DnaType, permutations = 1, parallel = cl))
-
-sim <- big.simper(otu_mat(pb), sample_df(pb)$DnaType, permutations = 100, parallel = 2)
+#sim <- with(sample_df(pb), vegan::simper(t(otu_mat(pb)), DnaType, permutations = 1, parallel = cl))
+#sim <- big.simper(otu_mat(pb), sample_df(pb)$DnaType, permutations = 100, parallel = 2)
+#av.sim <- readRDS("./Objects/simper_orig_avg_mat.rds")
 
 cor.df <- dcast(cor.df, OTU ~ Axes, value.var = "pear.cor")
 colnames(cor.df)[2:4] <- c("cor.pc1","cor.pc2","cor.pc3")
@@ -967,6 +1024,9 @@ colnames(cor.df)[2:4] <- c("cor.pc1","cor.pc2","cor.pc3")
 cor.df <- cor.df[pb.species, c("cordi.pc1","cordi.pc2","cordi.pc3",
                      "ab.groups") := list(i.Axis.1, i.Axis.2, i.Axis.3,
                                           i.ab.names), on = .(OTU)]
+
+# remove OTUs only in RNA
+cor.df <- cor.df[!is.na(cor.df$ab.groups),]
 
 
 ggplot(cor.df, aes(x = cor.pc1, y = cor.pc2, fill = ab.groups)) +
@@ -985,6 +1045,15 @@ ggplot(cor.df, aes(x = cor.pc1, y = cor.pc2, fill = ab.groups)) +
 ####################################################################
 # compare slopes
 
+cor.df$ab.groups <- factor(cor.df$ab.groups, levels = c('abundant.shifter', 'present.as', 
+                                                        'rare.shifter', 'present.rs', 
+                                                        'specialist', 'universal.rare'),
+                           labels = c('Abundant shifter', 'Universal \nabundant shifter',
+                                      'Rare shifter', 'Universal \nrare shifter',
+                                      'Specialist', 'Universal rare'))
+
+okabe.ito.sel <- c("#D55E00", "#CC79A7",  "#0072B2", "#56B4E9", "#009E73", "#E69F00")
+
 annotations <- data.frame(
   xpos = c(-Inf,-Inf,Inf,Inf),
   ypos =  c(-Inf, Inf,-Inf,Inf),
@@ -999,39 +1068,42 @@ annotations <- data.frame(
 #Bottom Left (h0,v0)","Top Left (h0,v1)"
 #,"Bottom Right h1,v0","Top Right h1,v1"
 
-(p1 <- ggplot() +
+(p1 <- ggplot(shape = 19) +
   theme_bw() +
   geom_hline(yintercept =  0, colour = "grey80", size = 0.6) +
   geom_vline(xintercept = 0, colour = "grey80", size = 0.6) +
-  geom_point(data = subset(cor.df, ab.groups == "universal.rare"), 
+  geom_point(data = subset(cor.df, ab.groups == "Universal rare"), 
              aes(x = cordi.pc1, y = abs(cor.pc1), colour = ab.groups),
-             shape = 21, alpha = 0.5, colour = "grey80") +
-  geom_point(data = subset(cor.df, ab.groups != "universal.rare"),
-             aes(x = cordi.pc1, y = abs(cor.pc1), colour = ab.groups), shape = 21, alpha = 0.7) +
+             shape = 21, alpha = 0.2, size = 0.5, colour = "grey80") +
+  geom_point(data = subset(cor.df, ab.groups != "Universal rare"),
+             aes(x = cordi.pc1, y = abs(cor.pc1), colour = ab.groups), shape = 21, alpha = 0.2, size = 0.5) +
   #geom_smooth(data = cor.df[ab.groups != "present.rs",], 
   #              aes(x = cordi.pc1, y = abs(cor.pc1), group = ab.groups,
   #                   colour = ab.groups), size = 1.5,
   #              method = 'gam', formula = y ~ s(x, bs = "cs"), se = F) +
     geom_smooth(data = cor.df[cordi.pc1 > 0,], 
-                aes(x = cordi.pc1, y = abs(cor.pc1), group = ab.groups,
-                    colour = ab.groups), size = 1.5,
+                aes(x = cordi.pc1, y = abs(cor.pc1),
+                    colour = ab.groups), size = 1.2,
                 method = 'lm', formula = y ~ x, se = F) +
     geom_smooth(data = cor.df[cordi.pc1 < 0,], 
-                aes(x = cordi.pc1, y = abs(cor.pc1), group = ab.groups,
-                    colour = ab.groups), size = 1.5,
+                aes(x = cordi.pc1, y = abs(cor.pc1),
+                    colour = ab.groups), size = 1.2,
                 method = 'lm', formula = y ~ x, se = F) +
   geom_text(data=annotations,aes(x=xpos,y=ypos,
                                  hjust=hjustvar,vjust=vjustvar,
-                                 label=annotateText)) +
-  scale_y_continuous(limits = c(0, 1)) +
-  scale_fill_viridis_d(option = "viridis") +
-    scale_colour_viridis_d(option = "viridis") +
+                                 label=annotateText), size = 3) +
+  scale_y_continuous(limits = c(0, 0.75)) +
+    scale_colour_manual(values = okabe.ito.sel,
+                        name = "Abundance \ngroup",
+                        breaks = c('Abundant shifter', 'Universal \nabundant shifter',
+                                   'Rare shifter', 'Universal \nrare shifter',
+                                   'Specialist', 'Universal rare')) +
   labs(x = "Species coordinates [PC1]", 
        y = expression(paste(" | Pearsons's ", italic("r")," | of OTUs with PC1"))) +
   theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
+        panel.grid.minor = element_blank(),
+        legend.title.align=0.5, legend.text.align = 0.5)
 )
-
 
 annotations <- data.frame(
   xpos = c(-Inf,-Inf,Inf,Inf),
@@ -1045,79 +1117,88 @@ annotations <- data.frame(
     theme_bw() +
     geom_hline(yintercept =  0, colour = "grey80", size = 0.6) +
     geom_vline(xintercept = 0, colour = "grey80", size = 0.6) +
-    geom_point(data = subset(cor.df, ab.groups == "universal.rare"), 
+    geom_point(data = subset(cor.df, ab.groups == "Universal rare"), 
                aes(x = cordi.pc2, y = abs(cor.pc2), colour = ab.groups),
-               shape = 21, alpha = 0.5, colour = "grey80") +
-    geom_point(data = subset(cor.df, ab.groups != "universal.rare"),
-               aes(x = cordi.pc2, y = abs(cor.pc2), colour = ab.groups), shape = 21, alpha = 0.7) +
+               shape = 21, alpha = 0.2, size = 0.5, colour = "grey80") +
+    geom_point(data = subset(cor.df, ab.groups != "Universal rare"),
+               aes(x = cordi.pc2, y = abs(cor.pc2), colour = ab.groups), shape = 21, alpha = 0.2, size = 0.5) +
     #geom_smooth(data = cor.df[ab.groups != "present.rs",], 
     #              aes(x = cordi.pc2, y = abs(cor.pc2), group = ab.groups,
     #                   colour = ab.groups), size = 1.5,
     #              method = 'gam', formula = y ~ s(x, bs = "cs"), se = F) +
     geom_smooth(data = cor.df[cordi.pc2 > 0,], 
-                aes(x = cordi.pc2, y = abs(cor.pc2), group = ab.groups,
-                    colour = ab.groups), size = 1.5,
+                aes(x = cordi.pc2, y = abs(cor.pc2),
+                    colour = ab.groups), size = 1.2,
                 method = 'lm', formula = y ~ x, se = F) +
     geom_smooth(data = cor.df[cordi.pc2 < 0,], 
-                aes(x = cordi.pc2, y = abs(cor.pc2), group = ab.groups,
-                    colour = ab.groups), size = 1.5,
+                aes(x = cordi.pc2, y = abs(cor.pc2),
+                    colour = ab.groups), size = 1.2,
                 method = 'lm', formula = y ~ x, se = F) +
     geom_text(data=annotations,aes(x=xpos,y=ypos,
                                    hjust=hjustvar,vjust=vjustvar,
-                                   label=annotateText)) +
-    scale_y_continuous(limits = c(0, 1)) +
-    scale_fill_viridis_d(option = "viridis") +
-    scale_colour_viridis_d(option = "viridis") +
+                                   label=annotateText), size = 3) +
+    scale_y_continuous(limits = c(0, 0.75)) +
+    scale_colour_manual(values = okabe.ito.sel,
+                        name = "Abundance \ngroup",
+                        breaks = c('Abundant shifter', 'Universal \nabundant shifter',
+                                   'Rare shifter', 'Universal \nrare shifter',
+                                   'Specialist', 'Universal rare')) +
     labs(x = "Species coordinates [PC2]", 
          y = expression(paste(" | Pearsons's ", italic("r")," | of OTUs with PC2"))) +
     theme(panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank())
+          panel.grid.minor = element_blank(),
+          legend.title.align=0.5, legend.text.align = 0.5)
 )
 
 annotations <- data.frame(
   xpos = c(-Inf,-Inf,Inf,Inf),
   ypos =  c(-Inf, Inf,-Inf,Inf),
-  annotateText = c("","Summer-Autumn"
+  annotateText = c("","Summer/Autumn"
                    ,"","Spring"),
-  hjustvar = c(0,-0.08,1,1.2) ,
+  hjustvar = c(0,-0.05,1,1.2) ,
   vjustvar = c(0,1.2,0,1.2))
 
 (p3 <- ggplot() +
     theme_bw() +
     geom_hline(yintercept =  0, colour = "grey80", size = 0.6) +
     geom_vline(xintercept = 0, colour = "grey80", size = 0.6) +
-    geom_point(data = subset(cor.df, ab.groups == "universal.rare"), 
+    geom_point(data = subset(cor.df, ab.groups == "Universal rare"), 
                aes(x = cordi.pc3, y = abs(cor.pc3), colour = ab.groups),
-               shape = 21, alpha = 0.5, colour = "grey80") +
-    geom_point(data = subset(cor.df, ab.groups != "universal.rare"),
-               aes(x = cordi.pc3, y = abs(cor.pc3), colour = ab.groups), shape = 21, alpha = 0.7) +
+               shape = 21, alpha = 0.2, size = 0.5, colour = "grey80") +
+    geom_point(data = subset(cor.df, ab.groups != "Universal rare"),
+               aes(x = cordi.pc3, y = abs(cor.pc3), colour = ab.groups), shape = 21, alpha = 0.2, size = 0.5) +
     #geom_smooth(data = cor.df[ab.groups != "present.rs",], 
     #              aes(x = cordi.pc3, y = abs(cor.pc3), group = ab.groups,
     #                   colour = ab.groups), size = 1.5,
     #              method = 'gam', formula = y ~ s(x, bs = "cs"), se = F) +
-    geom_smooth(data = cor.df[cordi.pc3 > 0,], 
-                aes(x = cordi.pc3, y = abs(cor.pc3), group = ab.groups,
-                    colour = ab.groups), size = 1.5,
-                method = 'lm', formula = y ~ x, se = F) +
     geom_smooth(data = cor.df[cordi.pc3 < 0,], 
                 aes(x = cordi.pc3, y = abs(cor.pc3), group = ab.groups,
-                    colour = ab.groups), size = 1.5,
+                    colour = ab.groups), size = 1.2,
+                method = 'lm', formula = y ~ x, se = F) +
+    geom_smooth(data = cor.df[cordi.pc3 > 0,], 
+                aes(x = cordi.pc3, y = abs(cor.pc3),
+                    colour = ab.groups), size = 1.2,
                 method = 'lm', formula = y ~ x, se = F) +
     geom_text(data=annotations,aes(x=xpos,y=ypos,
                                    hjust=hjustvar,vjust=vjustvar,
-                                   label=annotateText)) +
-    scale_y_continuous(limits = c(0, 1)) +
-    scale_fill_viridis_d(option = "viridis") +
-    scale_colour_viridis_d(option = "viridis") +
+                                   label=annotateText), size = 3) +
+    scale_y_continuous(limits = c(0, 0.75)) +
+    scale_colour_manual(values = okabe.ito.sel,
+                        name = "Abundance \ngroup",
+                        breaks = c('Abundant shifter', 'Universal \nabundant shifter',
+                                   'Rare shifter', 'Universal \nrare shifter',
+                                   'Specialist', 'Universal rare')) +
     labs(x = "Species coordinates [PC3]", 
          y = expression(paste(" | Pearsons's ", italic("r")," | of OTUs with PC3"))) +
     theme(panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank())
+          panel.grid.minor = element_blank(),
+          legend.title.align=0.5, legend.text.align = 0.5)
 )
 
 # combine
-ggarrange(p1, p2, p3, ncol = 3, common.legend = T)
+(p.trio <- ggarrange(p1, p2, p3, ncol = 3, common.legend = T))
 
+ggsave("./Figures/Final/ab.groups_cor.png", p.trio, width = 20, height = 9, units = "cm")
 
 #############################################################################
 
@@ -1197,10 +1278,68 @@ ggsave("./Figures/Final/abundance_grps_pear.cors_pcs.png", p.corcor,
 
 
 ##########################################################################
-#-----------------------#
-# Correlate to richness #
-#-----------------------#
+
+#- Figure 5 -#
+
+# Q5: ?
+
 # read in rarefied datasets
+min_lib <- c(15000, 25000, 50000)
+
+perm.rar <- select_newest("./Output",
+                          "perm.rar_lib_otu99_", by = min_lib)
+
+perm.rar <- c(perm.rar, select_newest("./Output", "201520162017_fin_css_otu99_table_")) # "201520162017_CSS_asvtab"
+
+alpha <- llply(as.list(perm.rar), function(x){
+  if(grepl(x, pattern = "fin_css") == T){
+    rar <- read.csv(paste0("./Output/", x), sep = ";", dec = ".", stringsAsFactors = F)
+    rar <- round(rar, 0)
+    data.table::setDT(rar, keep.rownames = "Sample")
+    rar <- setDF(rar)
+  } else {
+    rar <- read.csv(paste0("./Output/", x), sep = ";", stringsAsFactors = F)
+    data.table::setDT(rar)
+    # make mean column to count
+    rar[, iter.mean := round(iter.mean, 0)]
+    rar <- setDF(dcast(rar, Sample ~ OTU, value.var = "iter.mean"))
+  }
+  
+  
+  # shannon-wiener index (H')
+  # quantifies uncertainty associated with predicted identity of a new taxa
+  # given number of taxa and evenness in abundances of individuals within each taxa
+  # assumes the sample for site was collected randomly
+  # more sensitive to rare species, can be positive and negative, typically range from 1.5 to 3.5
+  
+  # simpson's index (λ)
+  # measure of dominance and as such weights towards the abundance of the most common taxa
+  # higher values represent higher diversity, ranges from 0 to 1
+  
+  # pielou's evenness (J)
+  # compares actual diversity value (e.g. Shannon-Wiener) to the maximum possible diversity value
+  # when all species are equally common it is considered as the highest degree of evenness
+  # ranges from 0 and 1
+  # the more variation in abundances between different taxa within the community the lower is J
+  # highly dependent on sample size and highly sensitive to rare taxa
+  
+  # Chao 1 richness esimator
+  alpha <- plyr::ddply(rar, ~ Sample, function(z) {
+    data.frame(Shannon = vegan::diversity(z[,-1], index = "shannon"),
+               Simpson = vegan::diversity(z[,-1], index = "simpson"),
+               Pielou = vegan::diversity(z[,-1], index = "shannon") / log(sum(z[,-1] > 0)),
+               Chao1 = vegan::estimateR(z[,-1],)["S.chao1",])
+  })
+  
+  return(alpha)
+}, .parallel = T)
+
+names(alpha) <- c(paste0("lib", min_lib), "css")
+alpha.df <- bind_rows(alpha, .id = "Data")
+
+write.table(alpha.df, "./Output/alpha_div_otu99_summary.csv", sep = ";", dec = ".", row.names = F)
+
+#####################################################################################################
 
 alpha.df <- read.csv("./Output/alpha_div_summary.csv", sep = ";", dec = ".", stringsAsFactors = F)
 
@@ -1216,6 +1355,33 @@ alpha.df[alpha.df$Sample == "RO301R", "Sample"] <- "RO31R"
 alpha.df[alpha.df$Sample == "RO304R", "Sample"] <- "RO34R" 
 alpha.df[alpha.df$Sample == "RO307R", "Sample"] <- "RO37R" 
 alpha.df[alpha.df$Sample == "L230R", "Sample"] <- "L330R" # L230 does not exist
+
+
+rar <- select_newest("./Output", "201520162017_fin_css_otu99_table_")
+
+rar <- read.csv(paste0("./Output/", rar), sep = ";", stringsAsFactors = F)
+
+data.table::setDT(rar)
+# make mean column to count
+rar <- setDF(dcast(rar, Sample ~ ASV, value.var = "iter.mean"))
+rownames(rar) <- rar$Sample
+rar$Sample <- NULL
+rar < t(as.matrix(rar))
+rar <- rar[order(row.names(rar)),]
+
+tax.tab <- tax.tab[row.names(tax.tab) %in% colnames(rar),]
+tax.tab <- tax.tab[order(match(row.names(tax.tab), colnames(rar))),]
+met.df <- met.df[row.names(met.df) %in% row.names(rar),]
+met.df <- met.df[order(match(row.names(met.df), row.names(rar))),]
+
+pb <- phyloseq(otu_table(t(rar), taxa_are_rows = T),
+               sample_data(met.df),
+               tax_table(tax.tab))
+# remove taxa without observation
+pb <- prune_taxa(!taxa_sums(pb) == 0, pb)
+
+
+
 
 # get data from All PCoA
 pdataframe <- dist.dr$raw.df
@@ -1682,31 +1848,7 @@ fit.lvmbinom <- boral(y = pb.mat,
 
 ####################################################################
 
-####################
-# Only terrestrial #
-####################
-ter <- subset_samples(pb, sample.type.year == "Soil" |
-                        sample.type.year == "Sediment" |
-                        sample.type.year == "Soilwater" |
-                        sample.type.year == "Groundwater")
 
-# remove ASVs that do not appear in this dataset
-ter <- prune_taxa(taxa_sums(ter) != 0, ter)
-
-pb.mat <- otu_mat(ter)
-pb.mat <- log2(pb.mat + 1)
-# PCoA with Bray-Curtis
-pb.bray <- vegdist(pb.mat, method = "bray")
-is.euclid(pb.bray) # TRUE
-pb.bray <- sqrt(pb.bray) # make Euclidean
-is.euclid(pb.bray) # TRUE
-
-# make PCoA
-pb.bray.pcoa <- ape::pcoa(pb.bray)
-# plot with custom function
-dna.pcoa <- plot_bray(pb.bray.pcoa, .id = "DNA", colours = colvec, output = T)
-
-ggsave("./Figures/General/terr_PCoA.png", dna.pcoa$plot)
 
 dissim.dr <- dissim.dnarna(ter, save.name = "All", output = T)
 

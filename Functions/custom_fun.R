@@ -200,156 +200,57 @@ theme_cust <- function(base_theme = "bw", base_size = 11, half_line = base_size/
 ## Make into function to save scripting space
 ## (as we're repeating the same steps for different datasets)
 
-plot_bray <- function(bray, colours = colvec, .id = NULL, axes = "1+2", output = F){
+plot_pcoa <- function(pcoa, physeq, plot.axes = c(1,2), axes = plot.axes,
+                      colours = NULL, output = F){
   # extract scores and variance explained
-  pb.scores <- data.frame(Sample = as.character(row.names(bray$vectors)),
-                          bray$vectors[,1:3], stringsAsFactors = F)  # get first three axes
-  if(!is.null(.id) == T){
-    pb.scores$ID <- .id
-  }
+  pdataframe <- data.frame(Sample = as.character(row.names(pcoa$vectors)),
+                          pcoa$vectors[,axes[1:length(axes)]],
+                          stringsAsFactors = F)  # extract site scores
   
-  pb.var <- data.frame(x = round(100 * bray$values$Eigenvalues[1] / sum(bray$values$Eigenvalues), 2),
-                             y = round(100 * bray$values$Eigenvalues[2] / sum(bray$values$Eigenvalues), 2),
-                             z = round(100 * bray$values$Eigenvalues[3] / sum(bray$values$Eigenvalues), 2),
-                             stringsAsFactors = F)
+  pb.var <- data.frame(Axes = axes,
+                       var = round(100 * pcoa$values$Eigenvalues[axes] / sum(pcoa$values$Eigenvalues), 2),
+                       stringsAsFactors = F)
                  
-  pdataframe <- merge(pb.scores, pb.var)
-  
   # merge with a selection of meta data
-  meta <- data.frame(Sample = as.character(row.names(sample_df(pb))),
-                     sample_df(pb) %>% dplyr::select(sample.type.year, Season, Year, 
+  meta <- data.frame(Sample = as.character(row.names(sample_df(physeq))),
+                     sample_df(physeq) %>% dplyr::select(sample.type.year, Season, Year, 
                                                      DnaType, distance.from.mouth, DR.names), 
                      stringsAsFactors = F)
   pdataframe <- merge(pdataframe, meta, by = "Sample")
   pdataframe$Sample <- as.character(pdataframe$Sample)
   
-  # overwrite factor levels
-  #pdataframe$sample.type.year <- factor(pdataframe$sample.type.year, levels = c("Soil","Sediment",
-  #                                                                              "Soilwater","Hyporheicwater", 
-  #                                                                              "Wellwater","Stream", "Tributary",
-  #                                                                              "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
-  #                                                                              "Upriver","RO3", "RO2", "RO1","Deep",
-  #                                                                              "Downriver",
-  #                                                                              "Marine"),
-  #                                      labels = c("Soil","Sediment",
-  #                                                 "Soilwater","Hyporheicwater", 
-  #                                                 "Groundwater","Stream", "Tributary",
-  #                                                 "Headwater \nLakes", "Upstream \nPonds", "Lake", "Lake",
-  #                                                 "Upriver","RO3","RO2", "RO1","Hypolimnion","Downriver",
-  #                                                 "Estuary"))
-  # extract only colours that are in data frame
+  # extract only factors represented in df for colvec
   colvec <- colvec[names(colvec) %in% as.character(levels(pdataframe$sample.type.year))]
   
-  if(axes == "1+2"){
-    # get legend of plot separately
-    (
-      side.leg2 <-
-        get_legend(
-          ggplot(pdataframe, aes(x = Axis.1, y = Axis.2)) +
-            theme_cust() +
-            geom_point(aes(fill = sample.type.year, shape = Season, alpha = DnaType),
-                       size = 2.5) +
-            scale_fill_manual(values = colvec, name = "Habitat Type") +
-            scale_shape_manual(values = c(21, 23, 25)) +
-            scale_alpha_manual(values = c(1, 0.5), name = "Nucleic Acid \nType") +
-            guides(shape = guide_legend(order = 1, override.aes=list(size = 2)),
-                   alpha = guide_legend(order = 2, override.aes=list(size = 2)), fill = "none")
-        )
-    )
-    
-    (
-      side.leg1 <-
-        get_legend(
-          ggplot(pdataframe, aes(x = Axis.1, y = Axis.2)) +
-            theme_cust() +
-            geom_point(aes(fill = sample.type.year, shape = Season, alpha = DnaType),
-                       size = 2.5) +
-            scale_fill_manual(values = colvec, name = "Habitat Type") +
-            scale_shape_manual(values = c(21,23,25)) +
-            scale_alpha_manual(values = c(1,0.7), name = "Nucleic Acid \nType") +
-            guides(fill = guide_legend(order = 1, override.aes=list(shape=21)),
-                   shape = "none",
-                   alpha = "none")
-        )
-    )
-    
-    # main plot
-    (pcoa.bray <- ggplot(pdataframe, aes(x = Axis.1, y = Axis.2)) +
-        theme_cust() +
-        geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
-        geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
-        geom_point(aes(fill = sample.type.year, shape = Season, alpha = DnaType),
-                   size = 2.5) +
-        scale_fill_manual(values = colvec, name = "Habitat Type") +
-        scale_shape_manual(values = c(21,23,25)) +
-        scale_alpha_manual(values = c(1,0.7), name = "Nucleic Acid \nType") +
-        coord_fixed(1) + # ensure aspect ratio
-        labs(x = paste("PC1 [", unique(pdataframe$x),"%]"), 
-             y = paste("PC2 [", unique(pdataframe$y),"%]")) +
-        theme(panel.grid.major = element_blank(),
-              panel.grid.minor = element_blank()) +
-        guides(shape = guide_legend(order = 2, override.aes=list(size = 2)),
-               alpha = guide_legend(order = 3, override.aes=list(size = 2)), 
-               fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2)))
-    ) 
-  }
+  # get legend of plot separately
   
-  if(axes == "2+3"){
-    # get legend of plot separately
-    (
-      side.leg2 <-
-        get_legend(
-          ggplot(pdataframe, aes(x = Axis.2, y = Axis.3)) +
-            theme_cust() +
-            geom_point(aes(fill = sample.type.year, shape = Season, alpha = DnaType),
-                       size = 2.5) +
-            scale_fill_manual(values = colvec, name = "Habitat Type") +
-            scale_shape_manual(values = c(21, 23, 25)) +
-            scale_alpha_manual(values = c(1, 0.5), name = "Nucleic Acid \nType") +
-            guides(shape = guide_legend(order = 1, override.aes=list(size = 2)),
-                   alpha = guide_legend(order = 2, override.aes=list(size = 2)), fill = "none")
-        )
-    )
-    
-    (
-      side.leg1 <-
-        get_legend(
-          ggplot(pdataframe, aes(x = Axis.2, y = Axis.3)) +
-            theme_cust() +
-            geom_point(aes(fill = sample.type.year, shape = Season, alpha = DnaType),
-                       size = 2.5) +
-            scale_fill_manual(values = colvec, name = "Habitat Type") +
-            scale_shape_manual(values = c(21,23,25)) +
-            scale_alpha_manual(values = c(1,0.7), name = "Nucleic Acid \nType") +
-            guides(fill = guide_legend(order = 1, override.aes=list(shape=21)),
-                   shape = "none",
-                   alpha = "none")
-        )
-    )
-    
     # main plot
-    (pcoa.bray <- ggplot(pdataframe, aes(x = Axis.3, y = Axis.2)) +
+    p <- ggplot(pdataframe, aes_string(x = paste0("Axis.", plot.axes[1]), 
+                                                y = paste0("Axis.", plot.axes[2]))) +
         theme_cust() +
         geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
         geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
         geom_point(aes(fill = sample.type.year, shape = Season, alpha = DnaType),
                    size = 2.5) +
-        scale_fill_manual(values = colvec, name = "Habitat Type") +
+        coord_fixed(1) + # ensure aspect ratio
         scale_shape_manual(values = c(21,23,25)) +
         scale_alpha_manual(values = c(1,0.7), name = "Nucleic Acid \nType") +
-        coord_fixed(1) + # ensure aspect ratio
-        labs(x = paste("PC3 [", unique(pdataframe$z),"%]"), 
-             y = paste("PC2 [", unique(pdataframe$y),"%]")) +
+        labs(x = paste0("PC",  plot.axes[1]," [ ", pb.var[pb.var$Axes == plot.axes[1],"var"]," %]"), 
+             y = paste0("PC",  plot.axes[2]," [ ", pb.var[pb.var$Axes == plot.axes[2],"var"]," %]")) +
         theme(panel.grid.major = element_blank(),
               panel.grid.minor = element_blank()) +
         guides(shape = guide_legend(order = 2, override.aes=list(size = 2)),
                alpha = guide_legend(order = 3, override.aes=list(size = 2)), 
                fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2)))
-    )
-  }
+    
+    if(!is.null(colours)){
+      p <- p + scale_fill_manual(values = colvec, name = "Habitat Type")
+    }
   
   if(output == T){
-    return(list(df = pdataframe, legends = list(side.leg1, side.leg2), plot = pcoa.bray))
+    return(list(df = pdataframe, var = pb.var, plot = p))
+  } else {
+    p
   }
 }
 
@@ -497,6 +398,73 @@ conf.int <- function(x){
   SE <- SD / sqrt(N)
   ci <- qt((0.975/2 + 0.5), N - 1) * SE
   return(ci)
+}
+
+scatter_panels <- function(data, labs = c(x,y)){
+  (
+    main <-
+      ggplot(data[data$panels == "main",], aes(
+        x = sample.type.year, y = mean, fill = Season
+      )) +
+      theme_cust(base_theme = "pubr") +
+      geom_errorbar(aes(ymin = mean - stdev, ymax = mean + stdev, colour = Season),
+                    position = position_dodge(0.7), width = 0) +
+      geom_jitter(aes(fill = Season), shape = 21, 
+                  position = position_dodge(0.7), size = 2.5) +
+      scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
+      scale_colour_manual(values = c("#009E73", "#FFAA1D", "#D55E00")) +
+      labs(x = labs[1], 
+           y = labs[2]) +
+      lims(y = c(min(data$mean - data$stdev, na.rm = T),
+                 max(data$mean + data$stdev, na.rm = T))) +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.text = element_text(size = 8),
+        axis.title.x = element_blank(),
+        axis.title = element_text(size = 10)
+      )
+  )
+  
+  # side panel
+  (
+    side <-
+      ggplot(data[data$panels == "side",], aes(
+        x = sample.type.year, y = mean, fill = Season
+      )) +
+      theme_cust(base_theme = "pubr") +
+      geom_errorbar(aes(ymin = mean - stdev, ymax = mean + stdev, colour = Season),
+                    position = position_dodge(0.7), width = 0) +
+      geom_jitter(aes(fill = Season), shape = 21, 
+                  position = position_dodge(0.7), size = 2.5) +
+      scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
+      scale_colour_manual(values = c("#009E73", "#FFAA1D", "#D55E00")) +
+      labs(x = labs[1], 
+           y = labs[2]) +
+      lims(y = c(min(data$mean - data$stdev, na.rm = T),
+                 max(data$mean + data$stdev, na.rm = T))) +
+      theme(
+        axis.title.x = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.text = element_text(size = 8),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.line.y = element_blank(),
+        axis.ticks.y = element_blank()
+      )
+  )
+  
+  # only dist
+  
+  p <- ggarrange(main, 
+                 side,
+                 widths = c(3,1),
+                 ncol = 2, nrow = 1, 
+                 common.legend = T,
+                 align = "h",
+                 font.label = list(size = 10))
+  
+  out <- list(plot = p, main = main, side = side)
+  return(out)
 }
 
 ## Function to calculate and plot DNA-RNA distance within PCoA space

@@ -11,7 +11,7 @@ library(doMC)
 #-----------#
 # FUNCTIONS #
 #-----------#
-
+source("./Functions/custom_fun.R")
 #-----------------#
 # PARALLEL SET-UP #
 #-----------------#
