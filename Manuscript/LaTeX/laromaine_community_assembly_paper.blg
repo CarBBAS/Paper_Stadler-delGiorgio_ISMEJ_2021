@@ -4,46 +4,47 @@ The top-level auxiliary file: laromaine_community_assembly_paper.aux
 The style file: apalike.bst
 Database file #1: /media/shared/Documents/University/PhD/BibTEX/LR_miccom_paper.bib
 Warning--can't use both author and editor fields in Borcard2011
+Warning--can't use both author and editor fields in Caumette2015
 Warning--empty institution in HQreport2009
-You've used 23 entries,
+You've used 33 entries,
             1935 wiz_defined-function locations,
-            623 strings with 8063 characters,
-and the built_in function-call counts, 9151 in all, are:
-= -- 861
-> -- 511
-< -- 15
-+ -- 180
-- -- 180
-* -- 836
-:= -- 1674
-add.period$ -- 61
-call.type$ -- 23
-change.case$ -- 205
-chr.to.int$ -- 23
-cite$ -- 25
-duplicate$ -- 286
-empty$ -- 536
-format.name$ -- 217
-if$ -- 1697
+            697 strings with 10257 characters,
+and the built_in function-call counts, 13253 in all, are:
+= -- 1274
+> -- 670
+< -- 20
++ -- 232
+- -- 232
+* -- 1215
+:= -- 2380
+add.period$ -- 91
+call.type$ -- 33
+change.case$ -- 280
+chr.to.int$ -- 33
+cite$ -- 36
+duplicate$ -- 426
+empty$ -- 828
+format.name$ -- 287
+if$ -- 2487
 int.to.chr$ -- 1
 int.to.str$ -- 0
-missing$ -- 16
-newline$ -- 110
-num.names$ -- 69
-pop$ -- 160
+missing$ -- 27
+newline$ -- 160
+num.names$ -- 99
+pop$ -- 214
 preamble$ -- 1
-purify$ -- 205
+purify$ -- 281
 quote$ -- 0
-skip$ -- 227
+skip$ -- 331
 stack$ -- 0
-substring$ -- 539
-swap$ -- 15
+substring$ -- 884
+swap$ -- 26
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 134
-warning$ -- 2
-while$ -- 65
+type$ -- 192
+warning$ -- 3
+while$ -- 103
 width$ -- 0
-write$ -- 277
-(There were 2 warnings)
+write$ -- 407
+(There were 3 warnings)

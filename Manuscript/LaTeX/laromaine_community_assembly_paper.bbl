@@ -1,5 +1,16 @@
 \begin{thebibliography}{}
 
+\bibitem[Anderson and Walsh, 2013]{Anderson2013}
+Anderson, M.~J. and Walsh, D.~C. (2013).
+\newblock {Anderson and Walsh (2013) PERMANOVA, ANOSIM, and the Mantel test in
+  the face of heterogeneous dispersions- What null hypothesis are you .pdf}.
+\newblock {\em Ecological Monograph}, 83(4):557--574.
+
+\bibitem[Bell, 2000]{Bell2000}
+Bell, G. (2000).
+\newblock {The Distribution of Abundance in Neutral Communities}.
+\newblock {\em The American Naturalist}, 155(5):606--617.
+
 \bibitem[Borcard et~al., 2011]{Borcard2011}
 Borcard, D., Gillet, F., and Legendre, P. (2011).
 \newblock {\em {Numerical Ecology with R}}.
@@ -15,6 +26,18 @@ Callahan, B.~J., McMurdie, P.~J., and Holmes, S.~P. (2017).
 Campitelli, E. (2020).
 \newblock {ggnewscale: Multiple Fill and Colour Scales in 'ggplot2'}.
 
+\bibitem[Caumette et~al., 2015]{Caumette2015}
+Caumette, P., Bertrand, J.-C., and Normand, P. (2015).
+\newblock {\em {Some Historical Elements of Microbial Ecology}}.
+\newblock Springer Science and Business Media, Dordrecht.
+
+\bibitem[Comte et~al., 2017]{Comte2017}
+Comte, J., Berga, M., Severin, I., Logue, J.~B., and Lindstr{\"{o}}m, E.~S.
+  (2017).
+\newblock {Contribution of different bacterial dispersal sources to lakes:
+  Population and community effects in different seasons}.
+\newblock {\em Environmental Microbiology}, 19(6):2391--2404.
+
 \bibitem[d'audiences publiques~sur l'environnement and {Canadian Environmental
   Assessment Agency}, 2009]{HQreport2009}
 d'audiences publiques~sur l'environnement, B. and {Canadian Environmental
@@ -27,12 +50,22 @@ d'audiences publiques~sur l'environnement, B. and {Canadian Environmental
 Dowle, M. and Srinivasan, A. (2019).
 \newblock {data.table: Extension of `data.frame`}.
 
+\bibitem[Fierer et~al., 2007]{Fierer2007}
+Fierer, N., Bradford, M.~A., and Jackson, R.~B. (2007).
+\newblock {Toward an Ecological Classification of Soil Bacteria}.
+\newblock {\em Ecology}, 88(6):1354--1364.
+
 \bibitem[Hengl et~al., 2014]{Hengl2014}
 Hengl, T., de~Jesus, J., MacMillan, R., Batjes, N., Heuvelink, G., Ribeiro, E.,
   Samuel-Rosa, A., Kempen, B., Leenaars, J., Walsh, M., and Gonzalez, M.
   (2014).
 \newblock {SoilGrids1km—global soil information based on automated mapping}.
 \newblock {\em PLoS ONE}, 9(8):e105992.
+
+\bibitem[Jia et~al., 2018]{Jia2018}
+Jia, X., Dini-Andreote, F., and {Falc{\~{a}}o Salles}, J. (2018).
+\newblock {Community Assembly Processes of the Microbial Rare Biosphere}.
+\newblock {\em Trends in Microbiology}, 26(9):738--747.
 
 \bibitem[Kassambara, 2020]{Kassambara2018}
 Kassambara, A. (2020).
@@ -48,6 +81,12 @@ Lehner, B. and Grill, G. (2013).
 \newblock {Global river hydrography and network routing: baseline data and new
   approaches to study the world's large river systems}.
 \newblock {\em Hydrological Processes}, 27(15):2171--2186.
+
+\bibitem[Magurran and Henderson, 2003]{Magurran2003}
+Magurran, A.~E. and Henderson, P.~A. (2003).
+\newblock {Explaining the excess of rare species in natural species abundance
+  distributions}.
+\newblock {\em Nature}, 422(6933):714--716.
 
 \bibitem[Martin, 2013]{Martin2013}
 Martin, M. (2013).
@@ -66,6 +105,13 @@ Murali, A., Bhargava, A., and Wright, E.~S. (2018).
 \newblock {IDTAXA: A novel approach for accurate taxonomic classification of
   microbiome sequences}.
 \newblock {\em Microbiome}, 6(1):1--14.
+
+\bibitem[Ni{\~{n}}o-Garc{\'{i}}a et~al., 2016]{Nino-Garcia2016}
+Ni{\~{n}}o-Garc{\'{i}}a, J.~P., Ruiz-Gonz{\'{a}}lez, C., and del Giorgio, P.~A.
+  (2016).
+\newblock {Interactions between hydrology and water chemistry shape
+  bacterioplankton biogeography across boreal freshwater networks}.
+\newblock {\em The ISME Journal}, 10:1755--1766.
 
 \bibitem[Oksanen et~al., 2019]{Oksanen2017}
 Oksanen, J., Blanchet, F.~G., Friendly, M., Kindt, R., Legendre, P., McGlinn,
@@ -103,6 +149,12 @@ Pruesse, E., Quast, C., Knittel, K., Fuchs, B.~M., Ludwig, W., Peplies, J., and
 {RStudio Team} (2020).
 \newblock {RStudio: Integrated Development for R}.
 
+\bibitem[V{\v{e}}trovsk{\'{y}} and Baldrian, 2013]{Vetrovsky2013a}
+V{\v{e}}trovsk{\'{y}}, T. and Baldrian, P. (2013).
+\newblock {The Variability of the 16S rRNA Gene in Bacterial Genomes and Its
+  Consequences for Bacterial Community Analyses}.
+\newblock {\em PLoS ONE}, 8(2):1--10.
+
 \bibitem[Wickham, 2011]{Wickham2011}
 Wickham, H. (2011).
 \newblock {The Split-Apply-Combine Strategy for Data Analysis}.
@@ -125,5 +177,10 @@ Wickham, H., Averick, M., Bryan, J., Chang, W., McGowan, L.~D., Fran{\c{c}}ois,
 Wright, E.~S. (2016).
 \newblock {Using DECIPHER v2.0 to Analyze Big Biological Sequence Data in R}.
 \newblock {\em The R Journal}, 8(1):352--359.
+
+\bibitem[Zhou and Ning, 2017]{Zhou2017}
+Zhou, J. and Ning, D. (2017).
+\newblock {Stochastic Community Assembly: Does It Matter in Microbial Ecology?}
+\newblock {\em Microbial and Molecular Biology Reviews}, 81(4):1--32.
 
 \end{thebibliography}
