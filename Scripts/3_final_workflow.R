@@ -714,7 +714,8 @@ p <- ggarrange(p$main + theme(axis.text.x = element_blank()),
                align = "h",
                font.label = list(size = 10))
 
-(scat.plots <- ggarrange(p, dm.plot, nrow = 2, align = "v", heights = c(0.47,0.53), common.legend = T))
+(scat.plots <- ggarrange(p, dm.plot, nrow = 2, align = "v", heights = c(0.47,0.53), 
+                         common.legend = T, labels = "auto"))
 
 ggsave("./Figures/Final/distBC_distratio_scatter.png", scat.plots,
        width = 15, height = 9, units = "cm")
@@ -982,6 +983,7 @@ ggsave("./Figures/Final/GAM_ab.groups_mBC.png", main,
     annotation_custom(ggplotGrob(within.p), xmin = 0, xmax = 0.2, ymin = 7, ymax = 10.2) +
     theme(legend.position = "right"))
 
+#######################################################################################################
 # fit species onto PCoA ordination
 pb.species <-
   data.frame(
@@ -989,10 +991,10 @@ pb.species <-
     wascores(pb.bray.pcoa$vectors[, 1:3],
              w = pb.mat),
     stringsAsFactors = F
-  )
+  ) %>% mutate(Metric = "Bray")
 
-strength.species <- eigengrad(pb.bray.pcoa$vectors[, 1:3],
-          w = pb.mat)
+#strength.species <- eigengrad(pb.bray.pcoa$vectors[, 1:3],
+#          w = pb.mat)
 
 pb.species <- na.omit(pb.species)
 setDT(pb.species)
@@ -1001,6 +1003,48 @@ for(i in 1:length(grp.names)){
   pb.species[OTU %in% ls.asvs[[grp.names[i]]], ab.names :=  grp.names[i]]
   pb.species[OTU %in% ls.asvs[[grp.names[i]]], ab.names :=  grp.names[i]]
 }
+
+sp.melt <- melt(pb.species, id.vars = c("OTU","ab.names"), measure.vars = patterns("^Axis."),
+     variable.name = "Axis", value.name = "Scores")
+
+sp.melt <- sp.melt[!is.na(sp.melt$ab.names),]
+
+sp.melt$ab.groups <- factor(sp.melt$ab.names, levels = c('abundant.shifter', 'present.as', 
+                                                             'rare.shifter', 'present.rs', 
+                                                             'specialist', 'universal.rare'),
+                              labels = c('Abundant shifter', 'Universal \nabundant shifter',
+                                         'Rare shifter', 'Universal \nrare shifter',
+                                         'Specialist', 'Universal rare'))
+
+sp.melt$Axis <- factor(sp.melt$Axis, levels = c("Axis.1", "Axis.2", "Axis.3"),
+                       labels = c("PC1", "PC2", "PC3"))
+
+labels <- data.frame(Axis = rep(c("PC1", "PC2", "PC3"), times = 2),
+                     x = rep(3.5, times = 6), y = c(rep(0.3, times = 3), rep(-0.4, times = 3)),
+                     labels = c("Aquatic", "DNA", "Spring",
+                                "Terrestrial", "RNA", "Summer/Autumn"))
+
+
+# combine with PCoA
+(vio <- ggplot(sp.melt, aes(x = ab.groups, y = Scores)) +
+  theme_bw() +
+  geom_hline(yintercept = 0, colour = "grey20", size = 0.3, linetype = "dotted") +
+  facet_grid(.~Axis, scales = "free") +
+  geom_boxplot(colour = "grey50", outlier.alpha = 0, width = 0.7) +
+  geom_violin(aes(fill = ab.groups), alpha = 0.6) +
+  geom_text(data = labels, aes(x = x, y = y, label = labels), colour = "grey30", size = 3.5) +
+  scale_fill_manual(values = okabe.ito.sel, name = "Abundance groups") +
+  labs(x = "Abundance groups", y = "Species scores") +
+  theme(
+   axis.text.x = element_text(angle = 90, vjust = 0.5),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    strip.background = element_rect(fill = "grey30"),
+   strip.text = element_text(colour = "white")
+  ))
+
+ggsave("./Figures/Final/ab.groups_dist_violin.png", vio,
+       width = 18, height = 10, units = "cm")
 
 # Correlate species to axes
 cor.mat <- cor(all.pcoa$df[,2:4], pb.mat, method = "pearson")
