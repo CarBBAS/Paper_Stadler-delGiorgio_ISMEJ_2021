@@ -5,10 +5,10 @@ comm <- otu_mat(pb)
 
 group <- sample_df(pb)$DnaType
 permutations = 100
-parallel = 2
+parallel = 10
 
-perm<- permutations
-N <- nobs
+average <- readRDS("./Objects/simper_orig_avg_mat.rds")
+
 
 rm(pb)
 
@@ -118,7 +118,7 @@ big.simper <- function (comm, group, permutations = 0, trace = FALSE, parallel =
       #contrp <- matrix(ncol = P, nrow = n.a * n.b)
       if (isParal) {
         if (isMulticore) {
-          perm.contr <- mclapply(as.list(seq_len(nperm)), function(d) pfun(d, 
+          perm.contr <- mclapply(seq_len(nperm), function(d) pfun(d, 
                                                                   comm, comp, i), mc.cores = parallel)
           perm.contr <- do.call(cbind, perm.contr)
         }
