@@ -3,13 +3,9 @@ title: 'Supplementary information: Title of paper'
 author: "Masumi Stadler and Paul A. del Giorgio"
 output:
   pdf_document:
-    toc: true
-    toc_depth: 3
+    toc: yes
+    toc_depth: '3'
 ---
-
-```{r setup}
-knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
-```
 
 ---
 
@@ -19,145 +15,76 @@ xx Pages, xx Figures, xx Tables
 
 \newpage
 
-# Supplementary Methods
-```{r echo = FALSE, messages = FALSE}
+# Supplementary Material
+```{r, echo = FALSE, message = FALSE, results = F}
 library(data.table)
 library(tidyverse)
 library(kableExtra)
 library(vegan)
 library(ape)
 
-source("./Functions/custom_fun.R")
+source("../Functions/custom_fun.R")
 ```
 
 # Supplementary Figures
 
 ### Figure S1: Landscape within the Romaine catchment
-```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "70%"}
-knitr::include_graphics(c("./Manuscript/Figures/LR_photo_collage.png"))
+```{r, echo=FALSE, fig.show='hold',fig.align='center', out.width = "70%"}
+knitr::include_graphics("./Figures/LR_photo_collage.png")
 ``` 
 
 (a) Northern area with shrubs and moss-lichen, (b) Mountainous section close to Reservoir 3, (c) Lower coastal plain with peatland areas, (d) Example of a sampled stream.
 
-### Figure S2: No substantial effect of data transformation methods on alpha-diversity estimations
-
+### Figure S2: Classification of abundance groups
 ```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "80%"}
-knitr::include_graphics(c("./Figures/Final/All_DNARNA_distance_alphadiv_comparison.png"))
-``` 
-
-Comparing the effect of used method on the relation between DNA alpha diversity indices and the distance between DNA and RNA of the same samples within PCoA space. Rows represent different alpha diversity indices: Shannon-Wiener index (H'), Simpson's index ($\lambda$), Pielou's evenness (J) and Chao1 richness estimator. CSS = cumulative sum scaling, all remaining three subsequent columns are rarefied datasets with the applied minimum library size threshold indicated after "Lib". 
-
-### Figure S3: Classification of abundance groups
-```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "80%"}
-knitr::include_graphics(c("./Figures/Final/abundance_class_ex.png"))
+knitr::include_graphics(c("../Figures/Final/abundance_class_ex_otu99.png"))
 ``` 
 
 
 Classification of abundance groups based on derivative approximation of the log transformed rank abundance curve by habitat type, where a) represents the original rank abundance curve and b) the log transformed equivalent to derive points of maximum and minimum acceleration. Blue point represents the first minimum of the second derivative, red points are the first and second maxima of the second derivative. Pink, green and blue ranges visualise abundant, medium and rare classifications, respectively.
 
+### Figure S3: No substantial effect of data transformation methods on alpha-diversity estimations
+
+```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "90%"}
+knitr::include_graphics(c("../Figures/Final/All_DNARNA_distance_alphadiv_comparison.png"))
+``` 
+
+Comparing the effect of used method on the relation between DNA alpha diversity indices and the distance between DNA and RNA of the same samples within PCoA space. Rows represent different alpha diversity indices: Shannon-Wiener index (H'), Simpson's index ($\lambda$), Pielou's evenness (J) and Chao1 richness estimator. CSS = cumulative sum scaling, all remaining three subsequent columns are rarefied datasets with the applied minimum library size threshold indicated after "Lib". 
+
 ### Figure S4: Taxonomic composition of habitat types
 
 ```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "100%"}
-knitr::include_graphics(c("./Figures/Final/Tax_LibSiz_Phyla.png"))
+knitr::include_graphics(c("../Figures/Final/Tax_LibSiz_Phyla_otus.png"))
 ``` 
 
 Given are averages of phyla found across habitat types. Upper panel shows average library sizes across habitat types. Error bars indicate the standard deviation from the mean.
 
-### Figure S5: Band pattern explaining strong horseshoe effect
+### Figure S5: No clear clustering within terrestrial samples
 
-```{r}
-##########################################################################################
-# full tidy data set
-rel.df <- select_newest("./Objects", "201520162017_css")
-rel.df <- readRDS(
-  paste0("./Objects/", rel.df))
-
-setDT(rel.df)
-# re-do PCoA and posteriori fit species data
-dna.df <- rel.df[DnaType == "DNA",]
-com.mat <- dcast(dna.df, Sample ~ ASV, value.var = "css.reads")
-setDF(com.mat)
-rownames(com.mat) <- com.mat$Sample; com.mat$Sample <- NULL # remove ID col
-# make PCoA to get ASV order in heatmap
-pb.bray <- vegdist(com.mat, method = "bray")
-pb.bray <- sqrt(pb.bray) # make Euclidean
-bray.pcoa <- ape::pcoa(pb.bray)
-# extract scores of first three axes
-sitesDF <- data.frame(bray.pcoa$vectors[,1:3])
-speciesDF <- data.frame(wascores(sitesDF, w = com.mat), stringsAsFactors = F)
-speciesDF <- na.omit(speciesDF)
-taxa.order <- row.names(speciesDF)[order(RadialTheta(speciesDF))]
-sample.order <-row.names(sitesDF)[order(RadialTheta(sitesDF))]
-
-df <- dna.df[dna.df$ASV %in% taxa.order,]
-df$ASV <- factor(df$ASV, levels = taxa.order)
-
-# overwrite factor levels
-df$sample.type.year <- factor(df$sample.type.year, levels = c("Soil","Sediment",
-                                                                      "Soilwater","Hyporheicwater", 
-                                                                      "Wellwater","Stream", "Tributary",
-                                                                      "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
-                                                                      "Upriver", "Downriver","RO3", "RO2", "RO1","Deep",
-                                                                      "Marine"),
-                                  labels = c("Soil","Sediment",
-                                             "Soilwater","Soilwater", 
-                                             "Groundwater","Stream", "Tributary",
-                                             "Riverine \nLakes", "Headwater \nPonds", "Lake", "Lake",
-                                             "Upriver","Downriver",
-                                             "Reservoirs","Reservoirs", "Reservoirs","Reservoirs",
-                                             "Estuary"))
-df$Season <- factor(df$Season, levels = c("spring", "summer", "autumn"), 
-                            labels = c("Spring", "Summer","Autumn"))
-df$DnaType <- factor(df$DnaType, levels = c("DNA", "cDNA"), labels = c("DNA", "RNA"))
-
-#df <- df[order(df$Sample),]
-
-df <- df[order(df$sample.type.year),]
-df$Sample <- factor(df$Sample, levels = unique(df$Sample))
-#df <- df[, order.x := paste(sample.type.year, Season)]
-
-# get max value of all
-max.lim <- round(max(log2(df$css.reads+1)),0)
-x.labs <- df[!duplicated(df$Sample),]$order.x
-
-p <- ggplot(df, aes(x = Sample, y = ASV, fill = log2(css.reads + 1))) +
-  theme_bw() +
-  geom_raster() +
-  labs(x = "Habitat Type", y = "ASVs") +
-  scale_fill_viridis_c(option = "magma", name = "CSS Reads",
-                       limits = c(min(log2(df$css.reads + 1)),
-                                  max.lim),
-                       breaks = c(min(log2(df$css.reads + 1)),
-                                  max.lim/ 2,
-                                  max.lim),
-                       labels = c(as.character(min(log2(df$css.reads + 1))),
-                                  as.character(max.lim / 2),
-                                  as.character(max.lim))) +
-  #scale_x_discrete(labels = x.labs) +
-  theme(axis.text.y = element_blank(), 
-        axis.ticks.y = element_blank(), axis.title.x = element_blank(),
-        axis.text.x = element_text(angle = 45, hjust = 1, size = 5),
-        legend.position = "right", plot.title = element_text(size = 12)) +
-  guides(fill = guide_colourbar(barwidth = unit(10, "pt"),
-                                barheight = unit(50, "pt")))
-#scale_fill_gradient(low = low, high = high)
-
-ggsave(paste0("./Figures/Final/PCoA_DNA_heatmap.png"), p,
-       width = 15, height = 15, unit = "cm")
+```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "100%"}
+knitr::include_graphics("../Figures/General/terr_PCoA.png")
 ```
 
-A prominent horse-shoe effect was found when conducting the PCoA analysis with solely DNA samples. The horseshoe effect resolved after log transformation, however, an ecologically ordered heatmap explains the emergence of the horse-shoe effect due to few ASV overlaps between terrestrial and freshwater communities (Morton et al. 2017).
+PCoA analysis with square rooted Bray-Curtis dissimilarity on log\textsubscript{2}(x + 1) transformed community matrix with only terrestrial samples (n = 158, 13201 OTUs). Habitat types are distinguished by colour, seasons are indicated by shapes and nucleic acid type are visualised by differences in opacity.
+
+### Figure S6: Habitat type and seasonal separation of RNA
+
+```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "100%"}
+knitr::include_graphics("../Figures/Final/PCoA_log_RNA_SampleType.png")
+```
+
+PCoA analysis with square rooted Bray-Curtis dissimilarity on log\textsubscript{2}(x + 1) transformed community matrix of all RNA samples (n = 200, 10036 OTUs). Habitat types are distinguished by colour and seasons are indicated by shapes.
 
 # Suppplementary Tables
 
 ### Table S1: Number of samples per habitat type.
-Number of samples are given per habitat type. RO stands for reservoir.
+Number of samples are given per habitat type. 
 ```{r, echo = F}
 met.df <-
-  select_newest(path = "./Output", file.pattern = "201520162017_meta_data")
+  select_newest(path = "../Output", file.pattern = "201520162017_meta_otu99_data_")
 met.df <-
   read.csv(
-    paste0("./Output/", met.df),
+    paste0("../Output/", met.df),
     sep = ";",
     dec = ".",
     stringsAsFactors = F
@@ -178,25 +105,26 @@ met.df$sample.type.year <- factor(met.df$sample.type.year, levels = c("Soil","Se
                                              "Upriver","Downriver",
                                              "Reservoirs","Reservoirs", "Reservoirs","Reservoirs",
                                              "Estuary"))
-met.df$DnaType <- factor(met.df$DnaType, levels = c("DNA", "cDNA"), labels = c("DNA", "RNA"))
+
+met.df$Season <- factor(met.df$Season, levels = c("spring","summer","autumn"),
+                        labels = c("Spring","Summer","Autumn"))
+
+met.df$DnaType <- factor(met.df$DnaType, levels = c("DNA","cDNA"),
+                         labels = c("DNA","RNA"))
 
 n.table <- met.df[, .(n = .N), by = .(sample.type.year, DnaType)][order(sample.type.year, DnaType)]
 n.table <- dcast(n.table, DnaType ~ sample.type.year, value.var = "n", fill = 0)
 colnames(n.table)[1] <- "Nucleic Acid Type"
 n.table[, Sum := sum(.SD, na.rm = T), .SDcols = c("Soil","Sediment",
-                                                 "Soilwater", 
-                                                 "Groundwater","Stream", "Tributary",
-                                                 "Riverine Lakes", "Headwater Ponds", "Lake",
-                                                 "Upriver","Reservoirs","Downriver",
-                                                 "Estuary"), by = 1:nrow(n.table)]
+                                             "Soilwater", 
+                                             "Groundwater","Stream", "Tributary",
+                                             "Riverine Lakes", "Headwater Ponds", "Lake",
+                                             "Upriver","Downriver",
+                                             "Reservoirs",
+                                             "Estuary"), by = 1:nrow(n.table)]
 
 knitr::kable(n.table, "latex", booktabs = T) %>%
   column_spec(1:ncol(n.table), width = "0.5cm") %>%
   row_spec(0, angle = 45)
 ```
-
-
-# References
-
-1. Morton, J. T., Toran, L., Edlund, A., Metcalf, J. L., Lauber, C., & Knight, R. (2017). Uncovering the Horseshoe Effect in Microbial Analyses. mSystems, 2(1), 1–7. https://doi.org/10.1128/msystems.00166-16
 
