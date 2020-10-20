@@ -3,27 +3,26 @@
 #-   xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx   - #
 ###---------------------------------------------###
 
+# 1. R set-up ------------------------------------------------------------------------------
 #----------#
 # PACKAGES #
 #----------#
-library(phyloseq)
-library(tidyverse)
-library(data.table)
-library(plyr)
-library(ggpubr) # arrange ggplots
-library(ggnewscale) # two aesthetic scales
-library(plotly)
-library(doMC) # parallel computing
-library(vegan) #vegdist, diversity
-library(ape) #pcoa
-library(ade4) #is.euclid
-library(mvabund) # multivariate glm
+pckgs <- list("phyloseq", "plyr", "tidyverse", "data.table", # wrangling
+              "ggpubr", "ggnewscale", "plotly", # plotting,
+              "kableExtra", "xlsx", # making tables for manuscript (LaTeX) and export as excel (for ISME)
+              "doMC", # parallel computing
+              "vegan", "ape", "ade4") # statistics
+invisible(lapply(pckgs, library, character.only = T))
+rm(pckgs)
+
+# Note: For package "xlsx" Java has to be installed
+# For Linux users install dependencies: default-jre, default-jdk
 
 #-----------#
 # FUNCTIONS #
 #-----------#
 source("./Functions/custom_fun.R")
-source("./Functions/SET_framework.R")
+#source("./Functions/SET_framework.R")
 
 #-----------------#
 # PARALLEL SET-UP #
@@ -38,13 +37,11 @@ numCores <- detectCores()
 cl <- makeCluster(numCores, type = "FORK") # using forking
 
 # Set seed for session and reproducibility of permutations
+# (NMDS were done, but not part of main workflow anymore)
 set.seed(3)
 
-#################################################################################################################
-#-----------#
-# Read data #
-#-----------#
 
+# 2. Read and prepare data ---------------------------------------------------------------
 
 # do we have several files per object? -> take newest version
 # ASV CSS transformed table
@@ -117,9 +114,8 @@ pb <- phyloseq(otu_table(asv.tab, taxa_are_rows = F),
 #pb <- prune_taxa(!taxa_sums(pb) == 0, pb)
 pb <- prune_samples(!sample_sums(pb) == 0, pb)
 
-############################################################################
 
-# create colour vector for later plotting
+# create colour vector for later plotting -------------------------------------------------
 # ensure consistent colours for all sample types
 
 # export factors for colouring
@@ -140,7 +136,7 @@ colvec <- c("#FCFDBFFF", #"#FEC589FF", #Soil
   "orchid", #"#471063FF", #Reservoir, 
   "#050416FF") #Estuary)
 
-names(colvec) <- as.character(sample.factors)
+names(colvec) <- as.character(sample.factors) # assign names for later easy selection
 
 # create colour vector for plotting
 #colvec <- c("red4","chocolate3","orangered2","orange3",
@@ -157,13 +153,10 @@ names(colvec) <- as.character(sample.factors)
 #           "navy")
 
 
-############
-# Analysis #
-############
-####################################################################################
 
-#- Figure 1 -#
+# 3. Analysis ----------------------------------------------------------------------------------
 
+## Figure 1. -----------------------------------------------------------------------------------
 # Q: Is the microbial assemblage different between habitat types and seasons?
 
 #--------------------------#
@@ -171,7 +164,7 @@ names(colvec) <- as.character(sample.factors)
 #--------------------------#
 # We are dealing with large environmental gradients, thus we expect a high proportion of zeros
 # Therefore, we need to select an asymmetrical similarity distance coefficient
-# If we're dealing with samples from failry homogeneous environmental conditions (short envir. gradients)
+# If we're dealing with samples from fairly homogeneous environmental conditions (short envir. gradients)
 # and we expect few zeros and symmetric association coefficients we can use the Euclidean distance.
 # Logarithm transformation log2(x + 1) (in case of microbial data) can be used to make asymmetric species
 # distributions less asymmetric
@@ -186,7 +179,7 @@ names(colvec) <- as.character(sample.factors)
 
 # PCoA was chosen for all ordinations for consistency
 
-#---------------------------------------------------------------------------------------------------#
+#----------------------------------------------------------------------------------------------
 
 ############
 # Only DNA #
@@ -207,8 +200,8 @@ is.euclid(pb.bray) # FALSE
 pb.bray <- sqrt(pb.bray) # make Euclidean
 is.euclid(pb.bray) # TRUE
 
-ncol(pb.mat)
-nrow(pb.mat)
+ncol(pb.mat) # OTUs
+nrow(pb.mat) # Samples
 
 # make PCoA
 pb.bray.pcoa <- ape::pcoa(pb.bray) # 372 registers
@@ -267,11 +260,15 @@ p <- dna.pcoa$plot + guides(alpha = "none")
   geom_point(size = 2.5, alpha = 0.2, shape = 21, fill = "gray20") +
   #scale_fill_manual(values = colvec, name = "Habitat Type") +
   new_scale_fill() +
-  geom_point(data = dna.pcoa$df[dna.pcoa$df$sample.type.year == "Downriver" | dna.pcoa$df$sample.type.year == "Upriver",], 
-             aes(x = Axis.1, y = Axis.2, fill = abs(distance.from.mouth), shape = sample.type.year), size = 3) +
-  stat_ellipse(data = subset(dna.pcoa$df, (sample.type.year == "Upriver" | sample.type.year == "Downriver")  &
+  geom_point(data = dna.pcoa$df[dna.pcoa$df$sample.type.year == "Downriver" | 
+                                  dna.pcoa$df$sample.type.year == "Upriver",], 
+             aes(x = Axis.1, y = Axis.2, 
+                 fill = abs(distance.from.mouth), shape = sample.type.year), size = 3) +
+  stat_ellipse(data = subset(dna.pcoa$df, (sample.type.year == "Upriver" | 
+                                             sample.type.year == "Downriver")  &
                                Season == "Spring"),
-                 aes(x = Axis.1, y = Axis.2, group = Year), linetype = "dashed", colour = "grey50") +
+                 aes(x = Axis.1, y = Axis.2, group = Year), 
+               linetype = "dashed", colour = "grey50") +
   #stat_ellipse(data = subset(dna.pcoa$df, (sample.type.year == "Upriver" | sample.type.year == "Downriver")),
   #               aes(x = Axis.1, y = Axis.2, group = paste(Year,Season), linetype = as.character(Year))) +
   annotate(geom = "text", x = c(0.28,0.28), y = c(0.255,0.12), label = c("2015", "2016"), 
@@ -353,14 +350,18 @@ perm3 <- anova(mod3, permutations = 9999, pairwise = T, parallel = cl)
 
 TukeyHSD(mod2)
 
-#---------------------------------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------------------------
 
-#- Figure 2 -#
+## Figure 2. -----------------------------------------------------------------------------------
 # Q2: Are the DNA and RNA assemblages different?
 
 ####################
 # Both DNA and RNA #
 ####################
+
+# remove OTUs that only appear in RNA
+pb <- prune_taxa(taxa_names(pb) %in% taxa_names(dna), pb)
+
 # extract species table with species in columns
 pb.mat <- otu_mat(pb)
 # PCoA with Bray-Curtis
@@ -371,7 +372,7 @@ is.euclid(pb.bray)
 # make PCoA
 pb.bray.pcoa <- ape::pcoa(pb.bray) 
 
-ncol(pb.mat) # 
+ncol(pb.mat) # 20185 OTUs
 nrow(pb.mat) # 572 registers
 
 ncol(pb.bray.pcoa$vectors) # 571 axes
@@ -388,6 +389,25 @@ pcoa.plot <- all.pcoa$plot + theme(legend.position = "left")
 
 p <- ggarrange(all.pcoa$plot, pcoa.23$plot, ncol = 2, common.legend = T, legend = "right",
                align = "hv", labels = "auto")
+
+# check screeplot
+ggplot(pb.bray.pcoa$values[pb.bray.pcoa$values$Eigenvalues > 1,],
+       aes(x = as.numeric(row.names(pb.bray.pcoa$values[pb.bray.pcoa$values$Eigenvalues >= 1,])), y = Eigenvalues)) +
+         geom_col()
+
+# how many axes to have 75% of variance captured?
+nrow(pb.bray.pcoa$values[pb.bray.pcoa$values$Cumul_eig <= 0.75,])
+# 186 axes
+
+# how much of the variance captured in the first 29 axes (Eigenvalues > 1)
+sum(pb.bray.pcoa$values[pb.bray.pcoa$values$Eigenvalues > 1,"Eigenvalues"]) *100 / sum(pb.bray.pcoa$values[,"Eigenvalues"])
+
+# explore other axes
+#for(i in 2:ncol(pb.bray.pcoa$vectors)){
+#  temp <- plot_pcoa(pb.bray.pcoa, physeq = pb, plot.axes = c(1,i), colours = colvec, output = T)
+#  ggsave(paste0("./Figures/PCoA/PCoA_DR_ax1_",i,".png"), temp$plot,
+#         width = 12, height = 10, unit = "cm")
+#}
 
 # save
 ggsave(paste0("./Figures/Final/PCoA_all_SampleType.tiff"), p,
@@ -435,6 +455,7 @@ perm4 <- anova(mod4, permutations = 9999, pairwise = T, parallel = cl)
 # nucleic acid type alone = F[1] = 1.6476, p = 0.1998
 # combined = F[48] = 10.96, p = < 2.2e-16
 
+TukeyHSD(mod)
 
 ####################
 #- 3D interactive -#
@@ -456,11 +477,10 @@ p
 
 htmlwidgets::saveWidget(as_widget(p), "PCoA_DNARNA_Season_3D.html")
 
-#---------------------------------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------------------------
 
-#- Figure 3 -#
-
-# Q3: How different are the the DNA and RNA assemblages of the same sample?
+## Figure 3. -----------------------------------------------------------------------------------
+# Q: How different are the the DNA and RNA assemblages of the same sample?
 
 # Calculate incidence based dissimilarity
 # PCoA with Sorensen, incidence based equivalent of Bray Curtis
@@ -528,19 +548,21 @@ cast.dis <- dcast(dissim.dr, ID + sample.type.year + Season ~ Metric, value.var 
 
 
 (pw.sorbray <- ggplot(cast.dis, aes(x =  Bray, y = Sorensen)) +
-  theme_bw() +
-  geom_point(aes(fill = sample.type.year, shape = Season), size = 3) +
+  theme_cust() +
+  geom_point(aes(fill = sample.type.year, shape = Season), size = 2, alpha = 0.9) +
   scale_fill_manual(values =  colvec[names(colvec) %in% as.character(levels(cast.dis$sample.type.year))],
                     name = "Habitat Type") +
   scale_shape_manual(values = c(21, 23, 25)) +
-  labs(x = expression(paste("Pairwise ", italic(D)["BC"]^"DNA:RNA")), 
-       y = expression(paste("Pairwise ", italic(D)["S"]^"DNA:RNA"))) +
+  labs(x = expression(paste("DNA-RNA ", italic(D)["BC"])), #paste("Pairwise ", italic(D)["BC"]^"DNA:RNA")
+       y = expression(paste("DNA-RNA ", italic(D)["S"]))) +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
-  annotate(geom = "text", x = 0.55, y = 0.57, label = "1:1", angle = 45) +
+  annotate(geom = "text", x = 0.53, y = 0.57, label = "1:1", angle = 45, size = 3) +
   theme(legend.key.size = unit(1.5, "lines"),
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank()) +
-  guides(fill = guide_legend(override.aes=list(shape=21), order = 1))
+        panel.grid.minor = element_blank(),
+        legend.key.height = unit(0.4, "cm")) +
+  guides(fill = guide_legend(override.aes=list(shape=21, size = 2), order = 1),
+         shape = guide_legend(override.aes=list(size = 2)))
 )
 
 ggplot(cast.dis, aes(y = Sorensen, x =  Bray)) +
@@ -620,23 +642,27 @@ diff.df <- dcast(dist.3d, DR.names + sample.type.year + Season ~ Metric, value.v
 diff.df <- diff.df[, bcs.ratio := Sorensen / Bray]
 sum.diff <- diff.df[, .(mean =  mean(bcs.ratio, na.rm = T),
                        conf.int = conf.int(bcs.ratio),
-                       stdev = sd(bcs.ratio, na.rm = T)),
+                       stdev = sd(bcs.ratio, na.rm = T),
+                       n = .N),
                    by = .(sample.type.year, Season)]
 
 # calculate confidence interval and means of sample type and season combinations
 sum.dist <- dist.dr[, .(mean =  mean(dist, na.rm = T),
                        conf.int = conf.int(dist),
-                       stdev = sd(dist, na.rm = T)),
+                       stdev = sd(dist, na.rm = T),
+                       n = .N),
                    by = .(Metric, sample.type.year, Season)]
 
 sum.dist1d <- dist.1d[, .(mean =  mean(dist, na.rm = T),
                        conf.int = conf.int(dist),
-                       stdev = sd(dist, na.rm = T)),
+                       stdev = sd(dist, na.rm = T),
+                       n = .N),
                    by = .(Metric, Axis, sample.type.year, Season)]
 
 sum.dist3d <- dist.3d[, .(mean =  mean(dist.3d, na.rm = T),
                           conf.int = conf.int(dist.3d),
-                          stdev = sd(dist.3d, na.rm = T)),
+                          stdev = sd(dist.3d, na.rm = T),
+                          n = .N),
                       by = .(Metric, sample.type.year, Season)]
 
 # add new column to split plot into main and side panel
@@ -690,8 +716,12 @@ d <- scatter_panels(plot.df, labs = c("Habitat Type",
                                       expression(paste(italic("m")["S"], " : ", italic("m")["BC"]))))
 
 (dm.plot <- ggarrange(d$main + geom_hline(yintercept = 1, linetype = "dashed", colour = "grey50") +
-                        theme(axis.title.y = element_text(margin = margin(r = 10))),
-                    d$side + geom_hline(yintercept = 1, linetype = "dashed", colour = "grey50"),
+                       
+                        theme(axis.title.y = element_text(margin = margin(r = 10)),
+                              axis.text.x = element_text(size = 7)),
+                    d$side + geom_hline(yintercept = 1, linetype = "dashed", colour = "grey50") +
+                      theme(
+                        axis.text.x = element_text(size = 7)),
                     widths = c(3,1),
                     ncol = 2, nrow = 1, 
                     #common.legend = T,
@@ -704,18 +734,36 @@ d <- scatter_panels(plot.df, labs = c("Habitat Type",
 # by habitat type, season and nucleic acid type
 
 plot.df <- sum.ls[[3]][!is.nan(sum.ls[[3]]$mean),]
-p <- scatter_panels(plot.df[Metric == "Bray",], labs = c("Habitat Type", 
+plot.df <- plot.df[Metric == "Bray",]
+lim.point <- max(plot.df$mean + plot.df$stdev, na.rm = T)
+p <- scatter_panels(plot.df, labs = c("Habitat Type", 
                                       expression(paste(italic("m")["BC"]))))
-p <- ggarrange(p$main + theme(axis.text.x = element_blank()),
-               p$side + theme(axis.text.x = element_blank()),
+p <- ggarrange(p$main + 
+                 geom_text(aes(y = lim.point + 0.03, colour = Season, label = n), position = position_dodge(width=0.7),
+                           size = 2) +
+                 lims(y = c(min(plot.df$mean - plot.df$stdev, na.rm = T), lim.point + 0.03)) +
+                 theme(axis.text.x = element_blank()),
+               p$side + geom_text(aes(y = lim.point + 0.03, colour = Season, label = n), position = position_dodge(width=0.7),
+                                size = 2) +
+                 lims(y = c(min(plot.df$mean - plot.df$stdev, na.rm = T), lim.point + 0.03)) +
+                 theme(axis.text.x = element_blank()),
                widths = c(3,1),
                ncol = 2, nrow = 1, 
                common.legend = T,
                align = "h",
-               font.label = list(size = 10))
+               font.label = list(size = 10), legend = "none")
 
-(scat.plots <- ggarrange(p, dm.plot, nrow = 2, align = "v", heights = c(0.47,0.53), 
-                         common.legend = T, labels = "auto"))
+(scat.plots <- ggarrange(p, dm.plot, nrow = 2, align = "v", heights = c(0.44,0.56), 
+                         common.legend = T, legend.grob = get_legend(d$main), 
+                         legend = "right", labels = c("b","c")))
+
+(distdissm.col <- ggarrange(pw.sorbray, scat.plots, ncol = 2, labels = c("a",""),
+                            widths = c(1.5,2)))
+
+ggsave("./Figures/Final/dissimBCS_distBC_distratio.png", distdissm.col,
+       width = 23, height = 8.2, units = "cm")
+ggsave("./Figures/Final/distBC_distratio_scatter.tiff", scat.plots,
+       width = 20, height = 9, units = "cm")
 
 ggsave("./Figures/Final/distBC_distratio_scatter.png", scat.plots,
        width = 15, height = 9, units = "cm")
@@ -723,13 +771,12 @@ ggsave("./Figures/Final/distBC_distratio_scatter.tiff", scat.plots,
        width = 15, height = 9, units = "cm")
 #expression(paste(Delta, " ", italic("m")["S"], " - ", italic("m")["BC"])))
 
-#---------------------------------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------------------------
 
-#- Figure 4 -#
+## Figure 4. -----------------------------------------------------------------------------------
+# Q: Who in the rank abundance curve is driving the dissimilarity patterns between DNA and RNA?
 
-# Q4: Who is driving the dissimilarity patterns between DNA and RNA?
-
-# 1. Define abundance groups
+# 1. Define abundance groups--------------------------------------------------------------------
 
 # Conventional grouping does not work with this data set
 # Otherwise, there are no abundant ASVs as we cover too different ecosystem types
@@ -781,7 +828,7 @@ classif.thres[, .(mean.max = mean(max),
                   sd.min = sd(min)), by = .(DnaType, ab.group)]
 #saveRDS(classif.thres, "./Objects/abundance.classification.threshold.rds")
 
-####################################################################################################
+#-----------------------------------------------------------------------------------------------
 
 # After consulting the means and deviations of the maximum and minimum thresholds across samples
 # (see previous script) we settle with:
@@ -800,84 +847,87 @@ ag.class <- melt(temp, id.vars = c("DnaType", "OTU"),
                  variable.name = "sample.type.year", value.name = "ab.group") # make long again
 
 # Add ecosystem domain identifier
-ag.class[, ecosys.domain := "Freshwater"]
-ag.class[sample.type.year == "Soil" | sample.type.year == "Soilwater" | sample.type.year == "Hyporheicwater"
-         | sample.type.year == "Wellwater" | sample.type.year == "Sediment",
-         ecosys.domain := "Soily"]
-ag.class[sample.type.year == "Marine", ecosys.domain := "Marine"]
+#ag.class[, ecosys.domain := "Freshwater"]
+#ag.class[sample.type.year == "Soil" | sample.type.year == "Soilwater" | sample.type.year == "Hyporheicwater"
+#         | sample.type.year == "Wellwater" | sample.type.year == "Sediment",
+#         ecosys.domain := "Soily"]
+#ag.class[sample.type.year == "Marine", ecosys.domain := NA]
 
 # Custom function to identify ASVs for each group
-# 1. Abundant in all sample types never absent = Universally abundant
-# 2. Medium in all sample types never absent = Universally medium
-# 3. Always rare = Universally rare / absent (Assumption: what is absent is so rare that it's below detection limit)
-# 4. Abundant in all of one ecosystem domain (soily, fresh or marine) and never rare or absent = Cosmopolitan
 
 abun.list <- dlply(ag.class, .(DnaType), function(x){
   setDT(x)
   # 1. Universally abundant
-  univ.abun <- unique(as.character(x[ab.group == 1, abundant.counts := .N, by = .(OTU)][abundant.counts == length(levels(factor(sample.type.year))),]$OTU))
-  # 2. Universally medium
-  univ.med <- unique(as.character(x[ab.group == 2, abundant.counts := .N, by = .(OTU)][abundant.counts == length(levels(factor(sample.type.year))),]$OTU))
+  univ.abun <- unique(as.character(x[ab.group == 1, abun.counts := .N, by = .(OTU)][abun.counts == length(levels(factor(sample.type.year))),]$OTU))
+  # 2. Universally moderate/medium
+  univ.med <- unique(as.character(x[ab.group == 2, med.counts := .N, by = .(OTU)][med.counts == length(levels(factor(sample.type.year))),]$OTU))
   # 3. Universally rare (all present)
-  #univ.rare <- as.character(x[ab.group == 3, rare.counts := .N, by = .(OTU)][rare.counts == length(levels(factor(sample.type.year))),]$OTU)
-  # none
+  univ.rare <- as.character(x[ab.group == 3, rare.counts := .N, by = .(OTU)][rare.counts == length(levels(factor(sample.type.year))),]$OTU)
+  #remove cols
+  x[, c("abun.counts", "med.counts", "rare.counts") := list(NULL, NULL, NULL)]
   
-  # 3. Universally rare (not all present)
-  univ.rare <- unique(as.character(x[ab.group == 3 | ab.group == 0, rare.counts := .N, by = .(OTU)][rare.counts == length(levels(factor(sample.type.year))),]$OTU))
+  # 4. Abundant (not all present)
+  abundant <- unique(as.character(x[ab.group == 1 | ab.group == 0, abun.counts := .N, by = .(OTU)][abun.counts == length(levels(factor(sample.type.year))),]$OTU))
+  # 5. Moderate (not all present)
+  moderate <- unique(as.character(x[ab.group == 2 | ab.group == 0, med.counts := .N, by = .(OTU)][med.counts == length(levels(factor(sample.type.year))),]$OTU))
+  # 6. Rare (not all present)
+  rare <- unique(as.character(x[ab.group == 3 | ab.group == 0, rare.counts := .N, by = .(OTU)][rare.counts == length(levels(factor(sample.type.year))),]$OTU))
   
-  # 4. Cosmopolitan
-  x[, domain.count := .N, by = .(OTU, ecosys.domain)]
-  abun.dom <- unique(as.character(x[ab.group == 1, abundant.counts.by.dom := .N, by = .(ecosys.domain, OTU)][abundant.counts.by.dom == domain.count,]$OTU))
-  rare <- as.character(unique(x[ab.group == 3 | ab.group == 0,]$OTU))
-  cosmo <- as.character(unique(x[OTU %in% abun.dom & !(OTU %in% rare),]$OTU))
+  # 6. Habitat specialist
+  # Abundant in only one habitat, never abundant in other habitats
+  hab.spec <- as.character(unique(x[ab.group == 1 | ab.group == 2,
+                abun.counts.by.hab := nrow(.SD), by = .(OTU)][abun.counts.by.hab == 1,]$OTU))
   
-  # 5. Abundant in all of one ecosystem domain, but never abundant in other domains == Specialist
-  abun.dom <- x[ab.group == 1 | ab.group == 2,
-                abun.counts.by.dom := .N, by = .(ecosys.domain, OTU)][abun.counts.by.dom == domain.count, abun.domain := ecosys.domain, by = .(OTU)]
-  spec.asvs <- as.character(unique(abun.dom[!is.na(abun.domain),]$OTU))
-  abun.dom[OTU %in% spec.asvs & is.na(abun.domain), abun.domain := "No" ]
-  abun.dom <- as.character(unique(abun.dom[OTU %in% spec.asvs & 
-                                             abun.domain != ecosys.domain &
-                                             (ab.group == 1 | ab.group == 2),
-                                           abun.counts := .N, by = .(OTU, ecosys.domain)][OTU %in% spec.asvs & abun.domain != ecosys.domain, .(sum.abun.counts = sum(abun.counts, na.rm = T)), by = .(OTU)][sum.abun.counts == 0,]$OTU))
+  # remove OTUs classified as specialists from abundant, moderate and rare
+  abundant <- abundant[!(abundant %in% hab.spec)]
+  moderate <- moderate[!(moderate %in% hab.spec)]
+  rare <- rare[!(rare %in% hab.spec)] # there should be none, but just to be safe
   
-  # 6. Shifters
-  rest <- c(univ.abun, univ.med, univ.rare, cosmo, abun.dom)
+  #remove cols
+  x[, c("abun.counts", "med.counts", "rare.counts", "abun.counts.by.hab") := list(NULL, NULL, NULL, NULL)]
+  
+  # 7. Shifters
+  rest <- c(univ.abun, univ.med, univ.rare, abundant, moderate, rare, hab.spec)
   remain <- x[OTU %in% unique(x$OTU)[!(unique(x$OTU) %in% rest)]]
   
   remain[,
-         abundant.counts := nrow(.SD[ab.group == 2 | ab.group == 3]), by = .(OTU)]
+         abun.counts := nrow(.SD[ab.group == 3]), by = .(OTU)]
+  remain[,med.counts := nrow(.SD[ab.group == 2 ]), by = .(OTU)]
   remain[, rare.counts := nrow(.SD[ab.group == 1]), by = .(OTU)]
   remain[, absent.counts := nrow(.SD[ab.group == 0]), by = .(OTU)]
   
-  # present in all samples
-  # Mostly abundant, sometimes rare
-  present.abundant.shifter <- as.character(unique(remain[abundant.counts >= rare.counts & absent.counts == 0,]$OTU)) # 2534
-  # Mostly rare, sometimes abundant
-  present.rare.shifter <- as.character(unique(remain[absent.counts == 0 &
-                                               rare.counts > abundant.counts,]$OTU))
+  # present in all samples = cosmopolitan, shifts between medium, abundant, rare
+  cosmopolitan <- as.character(unique(remain[absent.counts == 0,]$OTU))
   
-  # Rare 
-  abundant.shifter <- as.character(unique(remain[!(OTU %in% c(present.abundant.shifter, present.rare.shifter)) &
-                                                             abundant.counts >= (rare.counts + absent.counts),]$OTU)) # 1175
-  # Mostly rare, sometimes abundant
-  rare.shifter <- as.character(unique(remain[!(OTU %in% c(present.abundant.shifter, present.rare.shifter)) &
-                                                       (rare.counts + absent.counts) > abundant.counts,]$OTU))
+  # Shifts between medium and abundant
+  upper.shifter <- as.character(unique(remain[!(OTU %in% cosmopolitan) & 
+                                                   med.counts > 0 & rare.counts == 0 & abun.counts > 0,]$OTU))
+  # Shifts between rare and medium
+  lower.shifter <- as.character(unique(remain[!(OTU %in% cosmopolitan) & 
+                                                 med.counts > 0 & rare.counts > 0 & abun.counts == 0,]$OTU))
+  
+  # Shifter, shifts between rare, medium and abundant or between rare an abundant
+  shifter <- as.character(unique(remain[!(OTU %in% c(cosmopolitan, upper.shifter, lower.shifter)) & 
+                                          rare.counts > 0 & abun.counts > 0,]$OTU))
   
   #sanity check
-  if(length(univ.abun) + length(univ.med) + length(univ.rare) + length(cosmo) + length(abun.dom) + length(abundant.shifter) + length(rare.shifter) +  length(present.abundant.shifter) + length(present.rare.shifter) != length(unique(x$OTU))){
+  if(length(univ.abun) + length(univ.med) + length(univ.rare) + length(abundant) + length(moderate) + length(rare) +
+     length(hab.spec) +
+     length(cosmopolitan) + length(shifter) +  length(upper.shifter) + length(lower.shifter) != length(unique(x$OTU))){
     stop("Sum of abundance groups does not equal input")
   }
   
   list(universal.abundant = univ.abun,
        universal.medium = univ.med,
        universal.rare = univ.rare,
-       present.as = present.abundant.shifter,
-       present.rs = present.rare.shifter,
-       cosmopolitan = cosmo,
-       specialist = abun.dom,
-       abundant.shifter = abundant.shifter,
-       rare.shifter = rare.shifter
+       abundant = abundant,
+       moderate = moderate,
+       rare = rare,
+       specialist = hab.spec,
+       cosmopolitan = cosmopolitan,
+       shifter = shifter,
+       upper.shifter = upper.shifter,
+       lower.shifter = lower.shifter
        )
 }, .parallel = T)
 
@@ -895,17 +945,60 @@ rel.df <- rel.df[Year != 2015,]
 rel.df[, ID := paste(sample.type.year, DnaType, sep = "_")]
 
 # what's the N ?
-lapply(ls.asvs, length)
-# universal.rare 17459
-# present abundant shifter 36
-# present rare shifter 7
-# specialist 144
-# abundant.shifter 1175
-# rare.shifter 1364
+unlist(lapply(dna.ab.group, length))
+# abundant 1
+# moderate 4
+# rare 17459
+# specialist 1561
+# cosmopolitan 46
+# shifter 341
+# upper.shifter 755
+# lower.shifter 17
 
-#---------------------------------------------------------------------------------------------------#
+# create table
 
-# 2. Where in the rank abundance curve does community reshuffling occur?
+tab1 <- data.frame(abundance.groups = c("Universal abundant", "Universal moderate", "Universal rare",
+                                        "Abundant", "Moderate", "Rare",
+                                        "Specialist",
+                                        "Cosmopolitan",
+                                        "Shifter",
+                                        "Upper shifter",
+                                        "Lower shifter"),
+           criteria = c("Abundant* in all habitats, never absent",
+                        "Moderate* in all habitats, never absent",
+                        "Rare* in all habitats, never absent",
+                        "Only abundant observations, can be absent",
+                        "Only moderate observations, can be absent",
+                        "Only rare observations, can be absent",
+                        "Only abundant in one habitat type, never abundant in any other habitats",
+                        "Shifts between abundant, moderate and rare, but present in all habitats",
+                        "Shifts between abundant, moderate and rare",
+                        "Shifts in the upper fraction (abundant - moderate) of the rank abundance curve",
+                        "Shifts in the lower fraction (moderate - rare) of the rank abundance curve"),
+           otus = unlist(lapply(dna.ab.group, length)))
+row.names(tab1) <- NULL
+
+colnames(tab1) <- c("Abundance groups", "Criteria", "Categorized OTUs")
+
+# Copy paste to separete LaTeX document
+kable(tab1, format = "latex", booktabs = T, caption = "Abundance groups") %>%
+  kable_styling(position = "center", latex_options = "scale_down" ) %>%
+  row_spec(0) %>%
+  footnote(symbol = linebreak(c("Abundant: 47 >= CSS reads, Moderate: 5 >= CSS reads < 47, Rare: 0 > CSS reads < 5")))
+
+# ISME needs excel tables
+tab1[nrow(tab1)+1,] <- c("Abundant: 47 >= CSS reads, Moderate: 5 >= CSS reads < 47, Rare: 0 > CSS reads < 5", NA, NA)
+
+# Write the first table into a new workbook
+write.xlsx(tab1, file = "./Manuscript/Tables/ISME_tables.xlsx",
+           sheetName = "Tab1", append = FALSE, row.names = F, showNA = F)
+# Add a second data set in a new worksheet
+#write.xlsx(tab2, file = "./Manuscript/Tables/ISME_tables.xlsx", 
+#           sheetName="Tab2", append=TRUE)
+
+#-----------------------------------------------------------------------------------------------
+
+# 2. Where in the rank abundance curve does community reshuffling occur? -----------------------
 # calculate change in abundance between DNA and RNA between each OTU
 
 cast.abun <- dcast(rel.df, DR.names + OTU ~ DnaType, value.var = "css.reads")
@@ -913,8 +1006,10 @@ cast.abun <- cast.abun[!is.na(DNA) & !is.na(cDNA),]
 cast.abun[, diff.abun := DNA - cDNA]
 
 dist.cast <- dcast(dist.3d, DR.names + sample.type.year + Season ~ Metric, value.var = "dist.3d")
+#dist.cast <- dcast(dist.1d[(Axis == "Axis.2" & Metric == "Bray") | (Axis == "Axis.3" & Metric == "Sorensen")
+#                             ,], DR.names + sample.type.year + Season ~ Metric, value.var = "dist")
 dist.cast <- dist.cast[!is.na(dist.cast$Bray),]
-dist.cast[, bcs.ratio := Sorensen - Bray]
+dist.cast[, bcs.ratio := Sorensen / Bray]
 
 cast.abun[dist.cast, c("Bray", "Sorensen", "bcs.ratio", "sample.type.year","Season") :=
             list(i.Bray, i.Sorensen, i.bcs.ratio, i.sample.type.year, i.Season), on = .(DR.names)]
@@ -922,7 +1017,7 @@ cast.abun[dist.cast, c("Bray", "Sorensen", "bcs.ratio", "sample.type.year","Seas
 cast.abun[dist.1d[Metric == "Bray" & Axis == "Axis.2",], c("dist.pc2") := list(i.dist), on = .(DR.names)]
 
 cast.abun <- cast.abun[!(diff.abun == 0),] # omit no abundance difference as they do not contribute to differences
-
+cast.abun[cDNA > 0 & DNA == 0,]
 # add abundance group names into species dataframe
 for(i in 1:length(grp.names)){
   cast.abun[OTU %in% ls.asvs[[grp.names[i]]], ab.names :=  grp.names[i]]
@@ -932,58 +1027,55 @@ for(i in 1:length(grp.names)){
 # omit OTUs only in RNA
 cast.abun <- cast.abun[!is.na(ab.names),]
 
-cast.abun$ab.groups <- factor(cast.abun$ab.names, levels = c('abundant.shifter', 'present.as', 
-                                                        'rare.shifter', 'present.rs', 
-                                                        'specialist', 'universal.rare'),
-                           labels = c('Abundant shifter', 'Universal \nabundant shifter',
-                                      'Rare shifter', 'Universal \nrare shifter',
-                                      'Specialist', 'Universal rare'))
+#cast.abun[ab.names == "abundant" | ab.names == "moderate", ab.names := "ab.mod"]
+cast.abun <- cast.abun[ab.names != "abundant",]
 
-okabe.ito.sel <- c("#D55E00", "#CC79A7",  "#0072B2", "#56B4E9", "#009E73", "#E69F00")
+cast.abun$ab.groups <- factor(cast.abun$ab.names, levels = c('moderate', 'rare',
+                                                             'specialist',
+                                                             'cosmopolitan',
+                                                             'shifter',
+                                                             'upper.shifter', 'lower.shifter'),
+                           labels = c('Moderate', 'Rare',
+                                      'Specialist', 'Cosmopolitan', 'Shifter',
+                                      'Upper shifter', 'Lower shifter'))
 
-within.p <- ggplot(cast.abun, aes(x = Bray, y = log1p(abs(diff.abun)))) +
+#library(thematic)
+#okabe.ito.sel <- okabe_ito(n = 8)
+okabe.ito.sel <- c("#000000",
+                   "#0072B2", "#009E73", "#CC79A7", "#56B4E9","#F0E442", "#E69F00")
+
+
+within.p <- ggplot(cast.abun,  aes(x = dist.pc2, y = log1p(abs(diff.abun)))) +
   theme_pubr() +
   geom_point(colour = "grey80", alpha = 0.8, size = 0.5) +
   labs(x = expression(paste(italic("m")["BC"])),
        y = expression(paste("| ", Delta, " OTU CSS reads |"))) +
   annotate(geom = "rect", xmin = 0, ymin = 0, 
-           xmax = 0.5, ymax = 10, fill = NA, colour = "grey50", linetype = "dashed", alpha = 0.8) +
+           xmax = 0.45, ymax = 8, fill = NA, colour = "grey50", linetype = "dashed", alpha = 0.8) +
   theme(axis.text = element_text(size = 3), axis.title = element_text(size = 5))
 
-(main <- ggplot(cast.abun, aes(x = Bray, y = log1p(abs(diff.abun)))) +
-  theme_bw() +
-  geom_point(colour = "grey80", alpha = 0.2) +
-  geom_smooth(aes(group = ab.groups, colour = ab.groups, fill = ab.groups),
-              method = "gam", formula = y ~ s(x, bs = "cs")) +
-  scale_colour_manual(values = okabe.ito.sel, name = "Abundance\ngroups") +
-  scale_fill_manual(values = okabe.ito.sel, name = "Abundance\ngroups") +
-  labs(x = expression(paste(italic("m")["BC"])),
-       y = expression(paste("| ",Delta, " OTU CSS reads |"))) +
-  coord_cartesian(ylim = c(0,10)) +
-    theme(panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank()) +
-    annotation_custom(ggplotGrob(within.p), xmin = 0, xmax = 0.2, ymin = 7, ymax = 10.2) +
-    theme(legend.position = "right"))
-
-ggsave("./Figures/Final/GAM_ab.groups_mBC.png", main,
-       width = 14, height = 9 , units = "cm")
-
-(main <- ggplot(cast.abun, aes(x = dist.pc2, y = log1p(abs(diff.abun)))) +
-    theme_bw() +
+(main <- ggplot(cast.abun,  aes(x = dist.pc2, y = log1p(abs(diff.abun)))) +
+    theme_pubr() +
     geom_point(colour = "grey80", alpha = 0.2) +
-    geom_smooth(aes(group = ab.groups, colour = ab.groups, fill = ab.groups),
-                method = "gam", formula = y ~ s(x, bs = "cs")) +
+    #geom_smooth(aes(group = ab.groups, colour = ab.groups, fill = ab.groups),
+    #            method = "gam", formula = y ~ s(x, bs = "cs"), alpha = 0.4) +
+    stat_summary_bin(fun=mean, geom="line", aes(colour = ab.groups), bins = 10, size = 1) +
     scale_colour_manual(values = okabe.ito.sel, name = "Abundance\ngroups") +
     scale_fill_manual(values = okabe.ito.sel, name = "Abundance\ngroups") +
     labs(x = expression(paste(italic("m")["BC"]^"PC2")),
-         y = expression(paste("| ",Delta, " OTU CSS reads |"))) +
+         y = expression(paste("log(| ",Delta, " OTU CSS reads | + 1)"))) +
     coord_cartesian(ylim = c(0,10)) +
     theme(panel.grid.major = element_blank(),
           panel.grid.minor = element_blank()) +
-    annotation_custom(ggplotGrob(within.p), xmin = 0, xmax = 0.2, ymin = 7, ymax = 10.2) +
+    #annotate(geom = "text", x = 0.5/2, y = 9, label = "DNA > RNA") +
+    annotation_custom(ggplotGrob(within.p), xmin = 0, xmax = 0.2, ymin = 6.7, ymax = 10) +
     theme(legend.position = "right"))
 
-#######################################################################################################
+ggsave("./Figures/Final/ab.groups_mBC_PC2.png", main,
+       width = 14, height = 9 , units = "cm")
+
+#-----------------------------------------------------------------------------------------------
+
 # fit species onto PCoA ordination
 pb.species <-
   data.frame(
@@ -1016,18 +1108,26 @@ sp.melt$ab.groups <- factor(sp.melt$ab.names, levels = c('abundant.shifter', 'pr
                                          'Rare shifter', 'Universal \nrare shifter',
                                          'Specialist', 'Universal rare'))
 
+sp.melt$ab.groups <- factor(sp.melt$ab.names, levels = c('abundant', 'moderate', 'rare',
+                                                             'specialist',
+                                                             'cosmopolitan',
+                                                             'shifter',
+                                                             'upper.shifter', 'lower.shifter'),
+                              labels = c('Abundant' , 'Moderate', 'Rare',
+                                         'Specialist', 'Cosmopolitan', 'Shifter',
+                                         'Upper shifter', 'Lower shifter'))
+
 sp.melt$Axis <- factor(sp.melt$Axis, levels = c("Axis.1", "Axis.2", "Axis.3"),
                        labels = c("PC1", "PC2", "PC3"))
 
 labels <- data.frame(Axis = rep(c("PC1", "PC2", "PC3"), times = 2),
-                     x = rep(3.5, times = 6), y = c(rep(0.3, times = 3), rep(-0.4, times = 3)),
+                     x = rep(4.5, times = 6), y = c(rep(0.32, times = 3), rep(-0.43, times = 3)),
                      labels = c("Aquatic", "DNA", "Spring",
                                 "Terrestrial", "RNA", "Summer/Autumn"))
 
-
 # combine with PCoA
 (vio <- ggplot(sp.melt, aes(x = ab.groups, y = Scores)) +
-  theme_bw() +
+  theme_pubr() +
   geom_hline(yintercept = 0, colour = "grey20", size = 0.3, linetype = "dotted") +
   facet_grid(.~Axis, scales = "free") +
   geom_boxplot(colour = "grey50", outlier.alpha = 0, width = 0.7) +
@@ -1036,15 +1136,27 @@ labels <- data.frame(Axis = rep(c("PC1", "PC2", "PC3"), times = 2),
   scale_fill_manual(values = okabe.ito.sel, name = "Abundance groups") +
   labs(x = "Abundance groups", y = "Species scores") +
   theme(
-   axis.text.x = element_text(angle = 90, vjust = 0.5),
+   axis.text.x = element_text(angle = 90, vjust = 0.5, size = 10),
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     strip.background = element_rect(fill = "grey30"),
    strip.text = element_text(colour = "white")
-  ))
+  ) +
+    guides(fill = "none"))
 
 ggsave("./Figures/Final/ab.groups_dist_violin.png", vio,
-       width = 18, height = 10, units = "cm")
+       width = 15, height = 10, units = "cm")
+
+(prow <- plot_grid(main + theme(legend.position = "bottom",
+                                legend.title = element_text(size = 9),
+                                legend.text = element_text(size = 8),
+                                legend.key.size = unit(0.4, "cm")) +
+                     guides(colour = guide_legend(nrow = 4)), vio, labels = "auto", 
+          align = "hv", axis = "bt",
+          rel_widths = c(1,2)))
+
+ggsave("./Figures/Final/ab.groups_rollmean_violin.png", prow,
+       width = 25, height = 11, units = "cm")
 
 # Correlate species to axes
 cor.mat <- cor(all.pcoa$df[,2:4], pb.mat, method = "pearson")
@@ -1086,7 +1198,7 @@ ggplot(cor.df, aes(x = cor.pc1, y = cor.pc2, fill = ab.groups)) +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
 
-####################################################################
+#-----------------------------------------------------------------------------------------------
 # compare slopes
 
 cor.df$ab.groups <- factor(cor.df$ab.groups, levels = c('abundant.shifter', 'present.as', 
@@ -1244,7 +1356,7 @@ annotations <- data.frame(
 
 ggsave("./Figures/Final/ab.groups_cor.png", p.trio, width = 20, height = 9, units = "cm")
 
-#############################################################################
+#-----------------------------------------------------------------------------------------------
 
 annotations <- data.frame(
   xpos = c(-Inf,-Inf,Inf,Inf),
@@ -1321,9 +1433,9 @@ ggsave("./Figures/Final/abundance_grps_pear.cors_pcs.png", p.corcor,
        height = 10, width = 20, units = "cm")
 
 
-##########################################################################
+#-----------------------------------------------------------------------------------------------
 
-#- Figure 5 -#
+## Figure 5. -----------------------------------------------------------------------------------
 
 # Q5: ?
 
@@ -1383,7 +1495,7 @@ alpha.df <- bind_rows(alpha, .id = "Data")
 
 write.table(alpha.df, "./Output/alpha_div_otu99_summary.csv", sep = ";", dec = ".", row.names = F)
 
-#####################################################################################################
+#-----------------------------------------------------------------------------------------------
 
 alpha.df <- read.csv("./Output/alpha_div_summary.csv", sep = ";", dec = ".", stringsAsFactors = F)
 
@@ -1423,6 +1535,8 @@ pb <- phyloseq(otu_table(t(rar), taxa_are_rows = T),
                tax_table(tax.tab))
 # remove taxa without observation
 pb <- prune_taxa(!taxa_sums(pb) == 0, pb)
+
+
 
 
 
