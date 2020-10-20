@@ -3,48 +3,49 @@ Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
 The top-level auxiliary file: laromaine_community_assembly_paper.aux
 The style file: apalike.bst
 Database file #1: /media/shared/Documents/University/PhD/BibTEX/LR_miccom_paper.bib
+Warning--I didn't find a database entry for "Catalan2016a"
 Warning--can't use both author and editor fields in Borcard2011
 Warning--can't use both author and editor fields in Caumette2015
 Warning--empty institution in HQreport2009
-You've used 33 entries,
+You've used 65 entries,
             1935 wiz_defined-function locations,
-            697 strings with 10257 characters,
-and the built_in function-call counts, 13253 in all, are:
-= -- 1274
-> -- 670
-< -- 20
-+ -- 232
-- -- 232
-* -- 1215
-:= -- 2380
-add.period$ -- 91
-call.type$ -- 33
-change.case$ -- 280
-chr.to.int$ -- 33
-cite$ -- 36
-duplicate$ -- 426
-empty$ -- 828
-format.name$ -- 287
-if$ -- 2487
+            885 strings with 17551 characters,
+and the built_in function-call counts, 28802 in all, are:
+= -- 2747
+> -- 1583
+< -- 32
++ -- 562
+- -- 562
+* -- 2719
+:= -- 5135
+add.period$ -- 186
+call.type$ -- 65
+change.case$ -- 605
+chr.to.int$ -- 65
+cite$ -- 68
+duplicate$ -- 869
+empty$ -- 1752
+format.name$ -- 657
+if$ -- 5392
 int.to.chr$ -- 1
 int.to.str$ -- 0
-missing$ -- 27
-newline$ -- 160
-num.names$ -- 99
-pop$ -- 214
+missing$ -- 58
+newline$ -- 319
+num.names$ -- 195
+pop$ -- 466
 preamble$ -- 1
-purify$ -- 281
+purify$ -- 606
 quote$ -- 0
-skip$ -- 331
+skip$ -- 661
 stack$ -- 0
-substring$ -- 884
-swap$ -- 26
+substring$ -- 2009
+swap$ -- 57
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 192
+type$ -- 384
 warning$ -- 3
-while$ -- 103
+while$ -- 224
 width$ -- 0
-write$ -- 407
-(There were 3 warnings)
+write$ -- 819
+(There were 4 warnings)
