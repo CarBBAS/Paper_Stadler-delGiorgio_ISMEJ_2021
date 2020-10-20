@@ -17,11 +17,9 @@ xx Pages, xx Figures, xx Tables
 
 # Supplementary Material
 ```{r, echo = FALSE, message = FALSE, results = F}
-library(data.table)
-library(tidyverse)
-library(kableExtra)
-library(vegan)
-library(ape)
+pckgs <- list("data.table", "tidyverse", "kableExtra", "vegan", "ape")
+invisible(lapply(pckgs, library, character.only = T))
+rm(pckgs)
 
 source("../Functions/custom_fun.R")
 ```
@@ -35,15 +33,7 @@ knitr::include_graphics("./Figures/LR_photo_collage.png")
 
 (a) Northern area with shrubs and moss-lichen, (b) Mountainous section close to Reservoir 3, (c) Lower coastal plain with peatland areas, (d) Example of a sampled stream.
 
-### Figure S2: Classification of abundance groups
-```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "80%"}
-knitr::include_graphics(c("../Figures/Final/abundance_class_ex_otu99.png"))
-``` 
-
-
-Classification of abundance groups based on derivative approximation of the log transformed rank abundance curve by habitat type, where a) represents the original rank abundance curve and b) the log transformed equivalent to derive points of maximum and minimum acceleration. Blue point represents the first minimum of the second derivative, red points are the first and second maxima of the second derivative. Pink, green and blue ranges visualise abundant, medium and rare classifications, respectively.
-
-### Figure S3: No substantial effect of data transformation methods on alpha-diversity estimations
+### Figure S2: No substantial effect of data transformation methods on alpha-diversity estimations
 
 ```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "90%"}
 knitr::include_graphics(c("../Figures/Final/All_DNARNA_distance_alphadiv_comparison.png"))
@@ -51,7 +41,23 @@ knitr::include_graphics(c("../Figures/Final/All_DNARNA_distance_alphadiv_compari
 
 Comparing the effect of used method on the relation between DNA alpha diversity indices and the distance between DNA and RNA of the same samples within PCoA space. Rows represent different alpha diversity indices: Shannon-Wiener index (H'), Simpson's index ($\lambda$), Pielou's evenness (J) and Chao1 richness estimator. CSS = cumulative sum scaling, all remaining three subsequent columns are rarefied datasets with the applied minimum library size threshold indicated after "Lib". 
 
-### Figure S4: Taxonomic composition of habitat types
+### Figure S3: Distance along all PCoA axes equal pair-wise dissimilarity
+
+```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "70%"}
+knitr::include_graphics(c("../Figures/Final/allaxesdist_dissim_cor.png"))
+``` 
+
+Distance between DNA and RNA pairs along all PCoA axes ($m_{BC}^{n}$) equal pair-wise dissimilarity ($D_{BC}$). Thus, computing the pair-wise distance among the first three axes of the PCoA captures a proportion of the overall pair-wise dissimilarity that is explained by the drivers of the first three axes.
+
+### Figure S4: Classification of abundance groups
+```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "90%"}
+knitr::include_graphics(c("../Figures/Final/abundance_class_ex_otu99.png"))
+``` 
+
+
+Classification of abundance groups based on derivative approximation of the log transformed rank abundance curve by habitat type, where a) represents the original rank abundance curve and b) the log transformed equivalent to derive points of maximum and minimum acceleration. The blue point represents the first minimum of the second derivative, red points are the first and second maxima of the second derivative. Pink, green and blue ranges visualise abundant, medium and rare classifications, respectively.
+
+### Figure S5: Taxonomic composition of habitat types
 
 ```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "100%"}
 knitr::include_graphics(c("../Figures/Final/Tax_LibSiz_Phyla_otus.png"))
@@ -59,7 +65,7 @@ knitr::include_graphics(c("../Figures/Final/Tax_LibSiz_Phyla_otus.png"))
 
 Given are averages of phyla found across habitat types. Upper panel shows average library sizes across habitat types. Error bars indicate the standard deviation from the mean.
 
-### Figure S5: No clear clustering within terrestrial samples
+### Figure S6: No clear clustering within terrestrial samples
 
 ```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "100%"}
 knitr::include_graphics("../Figures/General/terr_PCoA.png")
@@ -67,7 +73,7 @@ knitr::include_graphics("../Figures/General/terr_PCoA.png")
 
 PCoA analysis with square rooted Bray-Curtis dissimilarity on log\textsubscript{2}(x + 1) transformed community matrix with only terrestrial samples (n = 158, 13201 OTUs). Habitat types are distinguished by colour, seasons are indicated by shapes and nucleic acid type are visualised by differences in opacity.
 
-### Figure S6: Habitat type and seasonal separation of RNA
+### Figure S7: Habitat type and seasonal separation of RNA
 
 ```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "100%"}
 knitr::include_graphics("../Figures/Final/PCoA_log_RNA_SampleType.png")
