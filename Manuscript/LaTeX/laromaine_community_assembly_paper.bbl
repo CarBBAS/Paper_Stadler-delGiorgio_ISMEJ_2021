@@ -51,6 +51,13 @@ Callahan, B.~J., McMurdie, P.~J., and Holmes, S.~P. (2017).
 Campitelli, E. (2020).
 \newblock {ggnewscale: Multiple Fill and Colour Scales in 'ggplot2'}.
 
+\bibitem[Catal{\'{a}}n et~al., 2016]{Catalan2016a}
+Catal{\'{a}}n, N., Marc{\'{e}}, R., Kothawala, D.~N., and Tranvik, L.~J.
+  (2016).
+\newblock {Organic carbon decomposition rates controlled by water retention
+  time across inland waters}.
+\newblock {\em Nature Geoscience}, 9(May):1--7.
+
 \bibitem[Caumette et~al., 2015]{Caumette2015}
 Caumette, P., Bertrand, J.-C., and Normand, P. (2015).
 \newblock {\em {Some Historical Elements of Microbial Ecology}}.
@@ -132,13 +139,6 @@ Hauptmann, A.~L., Markussen, T.~N., Stibal, M., Olsen, N.~S., Elberling, B.,
   its estuary}.
 \newblock {\em Frontiers in Microbiology}, 7(1474):1--16.
 
-\bibitem[Hengl et~al., 2014]{Hengl2014}
-Hengl, T., de~Jesus, J., MacMillan, R., Batjes, N., Heuvelink, G., Ribeiro, E.,
-  Samuel-Rosa, A., Kempen, B., Leenaars, J., Walsh, M., and Gonzalez, M.
-  (2014).
-\newblock {SoilGrids1km—global soil information based on automated mapping}.
-\newblock {\em PLoS ONE}, 9(8):e105992.
-
 \bibitem[Jones et~al., 2012]{Jones2012}
 Jones, S.~E., Cadkin, T.~A., Newton, R.~J., and McMahon, K.~D. (2012).
 \newblock {Spatial and temporal scales of aquatic bacterial beta diversity}.
@@ -150,9 +150,13 @@ Jones, S.~E. and Lennon, J.~T. (2010).
 \newblock {\em Proceedings of the National Academy of Sciences},
   107(13):5881--5886.
 
-\bibitem[Kassambara, 2020]{Kassambara2018}
-Kassambara, A. (2020).
+\bibitem[Kassambara, 2020a]{Kassambara2018}
+Kassambara, A. (2020a).
 \newblock {ggpubr: 'ggplot2' Based Publication Ready Plots}.
+
+\bibitem[Kassambara, 2020b]{Kassambara2020}
+Kassambara, A. (2020b).
+\newblock {rstatix: Pipe-Friendly Framework for Basic Statistical Tests}.
 
 \bibitem[Konopka, 2009]{Konopka2009}
 Konopka, A. (2009).
@@ -163,12 +167,6 @@ Konopka, A. (2009).
 Legendre, P. and Legendre, L. (1998).
 \newblock {\em {Numerical Ecology}}.
 \newblock Elsevier, Amsterdam, 2nd edition.
-
-\bibitem[Lehner and Grill, 2013]{Lehner2013}
-Lehner, B. and Grill, G. (2013).
-\newblock {Global river hydrography and network routing: baseline data and new
-  approaches to study the world's large river systems}.
-\newblock {\em Hydrological Processes}, 27(15):2171--2186.
 
 \bibitem[Logue and Lindstr{\"{o}}m, 2008]{Logue2008}
 Logue, J.~B. and Lindstr{\"{o}}m, E.~S. (2008).
@@ -324,6 +322,12 @@ Stegen, J.~C., Lin, X., Fredrickson, J.~K., and Konopka, A.~E. (2015).
   community assembly}.
 \newblock {\em Frontiers in Microbiology}, 6(370):1--15.
 
+\bibitem[Thomas and Nielsen, 2005]{Thomas2005}
+Thomas, C.~M. and Nielsen, K.~M. (2005).
+\newblock {Mechanisms of, and barriers to, horizontal gene transfer between
+  bacteria}.
+\newblock {\em Nature Reviews Microbiology}, 3(9):711--721.
+
 \bibitem[Thompson et~al., 2017]{Thompson2017}
 Thompson, L.~R., Sanders, J.~G., McDonald, D., Amir, A., Ladau, J., Locey,
   K.~J., Prill, R.~J., Tripathi, A., Gibbons, S.~M., Ackermann, G.,
@@ -339,12 +343,17 @@ Thompson, L.~R., Sanders, J.~G., McDonald, D., Amir, A., Ladau, J., Locey,
   diversity}.
 \newblock {\em Nature}, 551(7681):457--463.
 
+\bibitem[{Van Rossum} et~al., 2020]{VanRossum2020}
+{Van Rossum}, T., Ferretti, P., Maistrenko, O.~M., and Bork, P. (2020).
+\newblock {Diversity within species: interpreting strains in microbiomes}.
+\newblock {\em Nature Reviews Microbiology}, 18:491--506.
+
 \bibitem[Vellend, 2010]{Vellend2010}
 Vellend, M. (2010).
 \newblock {Conceptual synthesis in community ecology}.
 \newblock {\em The Quarterly Review of Biology}, 85(2):183--206.
 
-\bibitem[V{\v{e}}trovsk{\'{y}} and Baldrian, 2013]{Vetrovsky2013a}
+\bibitem[V{\v{e}}trovsk{\'{y}} and Baldrian, 2013]{Vetrovsky2013}
 V{\v{e}}trovsk{\'{y}}, T. and Baldrian, P. (2013).
 \newblock {The Variability of the 16S rRNA Gene in Bacterial Genomes and Its
   Consequences for Bacterial Community Analyses}.

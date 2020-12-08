@@ -1,0 +1,4779 @@
+version: 0.12.2
+filePath: laromaine_community_assembly_paper.tex
+options:
+  $BIBINPUTS:
+    - $ROOTDIR
+    - $ROOTDIR/$OUTDIR
+    - ''
+  $TEXINPUTS:
+    - $ROOTDIR
+    - $ROOTDIR/$OUTDIR
+    - ''
+  bibtexEngine: bibtex
+  cleanPatterns:
+    - '**/*.aux'
+    - '**/*.aux.bak'
+    - '**/*.bbl'
+    - '**/*.bcf'
+    - '**/*.blg'
+    - '**/*.dvi'
+    - '**/*.fdb_latexmk'
+    - '**/*.fls'
+    - '**/*.idx'
+    - '**/*.idx.bak'
+    - '**/*.ilg'
+    - '**/*.ind'
+    - '**/*.lof'
+    - '**/*.log'
+    - '**/*.lol'
+    - '**/*.lot'
+    - '**/*.nav'
+    - '**/*.out'
+    - '**/*.pdf'
+    - '**/*.ps'
+    - '**/*.snm'
+    - '**/*.synctex.gz'
+    - '**/*.toc'
+    - '/**/_minted-${JOB}'
+    - '/${OUTDIR}/sage-plots-for-${JOB}.tex'
+    - /missfont.log
+    - /texput.log
+    - /texput.aux
+  dviToPdfEngine: xdvipdfmx
+  engine: pdflatex
+  epstopdfBoundingBox: default
+  epstopdfOutputPath: $DIR_0/$NAME_0.pdf
+  indexAutomaticRanges: true
+  indexEngine: makeindex
+  indexOrdering: word
+  indexSorting: default
+  knitrConcordance: true
+  knitrOutputPath: $JOB.tex
+  lhs2texStyle: poly
+  literateAgdaEngine: agda
+  literateHaskellEngine: lhs2TeX
+  loadCache: true
+  loadUserOptions: true
+  outputFormat: pdf
+  phaseCycles: 20
+  pweaveCacheDirectory: pweave-cache-for-$JOB
+  pweaveFigureDirectory: pweave-figures-for-$JOB
+  pweaveKernel: python3
+  pweaveOutputFormat: tex
+  pweaveOutputPath: $JOB.tex
+  saveCache: true
+  severity: info
+  validateCache: true
+  synctex: true
+  copyTargetsToRoot: true
+  outputDirectory: ''
+  intermediatePostScript: true
+files:
+  dicy-instance.yaml-ParsedYAML:
+    timeStamp: 2020-12-07T17:55:44.987Z
+    jobNames: []
+    value:
+      severity: info
+    type: ParsedYAML
+  dicy.yaml-ParsedYAML:
+    jobNames: []
+    type: ParsedYAML
+  laromaine_community_assembly_paper.yaml-ParsedYAML:
+    jobNames: []
+    type: ParsedYAML
+  laromaine_community_assembly_paper.tex-ParsedLaTeXMagic:
+    timeStamp: 2020-10-16T14:11:29.518Z
+    jobNames: []
+    value: {}
+    type: ParsedLaTeXMagic
+  /home/masumi/.config/dicy/config.yaml-ParsedYAML:
+    timeStamp: 2020-10-16T14:11:29.513Z
+    jobNames: []
+    value:
+      synctex: true
+      engine: pdflatex
+      severity: warning
+      copyTargetsToRoot: true
+      outputDirectory: ''
+      outputFormat: pdf
+      cleanPatterns:
+        - '**/*.aux'
+        - '**/*.aux.bak'
+        - '**/*.bbl'
+        - '**/*.bcf'
+        - '**/*.blg'
+        - '**/*.dvi'
+        - '**/*.fdb_latexmk'
+        - '**/*.fls'
+        - '**/*.idx'
+        - '**/*.idx.bak'
+        - '**/*.ilg'
+        - '**/*.ind'
+        - '**/*.lof'
+        - '**/*.log'
+        - '**/*.lol'
+        - '**/*.lot'
+        - '**/*.nav'
+        - '**/*.out'
+        - '**/*.pdf'
+        - '**/*.ps'
+        - '**/*.snm'
+        - '**/*.synctex.gz'
+        - '**/*.toc'
+        - '/**/_minted-${JOB}'
+        - '/${OUTDIR}/sage-plots-for-${JOB}.tex'
+        - /missfont.log
+        - /texput.log
+        - /texput.aux
+      intermediatePostScript: true
+    type: ParsedYAML
+  laromaine_community_assembly_paper.tex:
+    timeStamp: 2020-12-07T19:36:17.028Z
+    jobNames: []
+    hash: M3C5BCeGbgUGJk64oo1GUAGBNkftITRSCPwb1FQwbaA=
+    type: LaTeX
+    subType: article
+  /home/masumi/.config/dicy/config.yaml:
+    timeStamp: 2020-12-07T17:55:44.993Z
+    jobNames: []
+    type: YAML
+  x.y-Nil:
+    jobNames: []
+    type: Nil
+  laromaine_community_assembly_paper.blg:
+    timeStamp: 2020-12-07T17:55:45.678Z
+    jobNames: []
+    hash: Ze3CK1Jo14QWrfKicldXVSmJenZ92kB4VSED0X8b++I=
+    type: BibTeXLog
+    subType: BibTeX
+  laromaine_community_assembly_paper.log:
+    timeStamp: 2020-12-07T19:36:19.604Z
+    jobNames: []
+    hash: 5wJI0Qc4GyutsxxB7Trf3ar2cFzX6nU/2AvG4SDyJuQ=
+    type: LaTeXLog
+    subType: pdfTeX
+  laromaine_community_assembly_paper.fls-ParsedFileListing:
+    timeStamp: 2020-12-02T19:20:19.181Z
+    jobNames: []
+    value:
+      messages: []
+      inputs:
+        - /etc/texmf/web2c/texmf.cnf
+        - >-
+          /media/shared/Documents/University/PhD/Analyses/Molecular/catchment_microbial_community/Figures/Final/PCoA_all_SampleType.png
+        - >-
+          /media/shared/Documents/University/PhD/Analyses/Molecular/catchment_microbial_community/Figures/Final/PCoA_log_DNA_collage.png
+        - >-
+          /media/shared/Documents/University/PhD/Analyses/Molecular/catchment_microbial_community/Figures/Final/abgroups_rollmean_violin.png
+        - >-
+          /media/shared/Documents/University/PhD/Analyses/Molecular/catchment_microbial_community/Figures/Final/distBC_distratio_scat.png
+        - >-
+          /media/shared/Documents/University/PhD/Analyses/Molecular/catchment_microbial_community/Manuscript/Figures/LR_miccom_paper_threemaps.png
+        - /usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc
+        - /usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map
+        - /usr/share/texlive/texmf-dist/fonts/tfm/adobe/helvetic/phvb8r.tfm
+        - /usr/share/texlive/texmf-dist/fonts/tfm/adobe/helvetic/phvb8t.tfm
+        - /usr/share/texlive/texmf-dist/fonts/tfm/adobe/helvetic/phvr8c.tfm
+        - /usr/share/texlive/texmf-dist/fonts/tfm/adobe/helvetic/phvr8r.tfm
+        - /usr/share/texlive/texmf-dist/fonts/tfm/adobe/helvetic/phvr8t.tfm
+        - /usr/share/texlive/texmf-dist/fonts/tfm/adobe/helvetic/phvro8r.tfm
+        - /usr/share/texlive/texmf-dist/fonts/tfm/adobe/helvetic/phvro8t.tfm
+        - /usr/share/texlive/texmf-dist/fonts/tfm/jknappen/ec/ecrm1200.tfm
+        - /usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmr10.tfm
+        - /usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmr12.tfm
+        - /usr/share/texlive/texmf-dist/fonts/type1/urw/helvetic/uhvb8a.pfb
+        - /usr/share/texlive/texmf-dist/fonts/type1/urw/helvetic/uhvr8a.pfb
+        - /usr/share/texlive/texmf-dist/fonts/type1/urw/helvetic/uhvro8a.pfb
+        - /usr/share/texlive/texmf-dist/fonts/vf/adobe/helvetic/phvb8t.vf
+        - /usr/share/texlive/texmf-dist/fonts/vf/adobe/helvetic/phvr8c.vf
+        - /usr/share/texlive/texmf-dist/fonts/vf/adobe/helvetic/phvr8t.vf
+        - /usr/share/texlive/texmf-dist/fonts/vf/adobe/helvetic/phvro8t.vf
+        - /usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
+        - /usr/share/texlive/texmf-dist/tex/generic/babel-english/english.ldf
+        - /usr/share/texlive/texmf-dist/tex/generic/babel/babel.def
+        - /usr/share/texlive/texmf-dist/tex/generic/babel/babel.sty
+        - /usr/share/texlive/texmf-dist/tex/generic/babel/switch.def
+        - /usr/share/texlive/texmf-dist/tex/generic/babel/txtbabel.def
+        - /usr/share/texlive/texmf-dist/tex/generic/ifxetex/ifxetex.sty
+        - /usr/share/texlive/texmf-dist/tex/generic/oberdiek/gettitlestring.sty
+        - /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+        - /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-hyperref.sty
+        - /usr/share/texlive/texmf-dist/tex/generic/unicode-data/CaseFolding.txt
+        - >-
+          /usr/share/texlive/texmf-dist/tex/generic/unicode-data/SpecialCasing.txt
+        - /usr/share/texlive/texmf-dist/tex/generic/unicode-data/UnicodeData.txt
+        - /usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+        - /usr/share/texlive/texmf-dist/tex/latex/base/fontenc.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/base/omsenc.dfu
+        - /usr/share/texlive/texmf-dist/tex/latex/base/ot1enc.dfu
+        - /usr/share/texlive/texmf-dist/tex/latex/base/size12.clo
+        - /usr/share/texlive/texmf-dist/tex/latex/base/t1enc.def
+        - /usr/share/texlive/texmf-dist/tex/latex/base/t1enc.dfu
+        - /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/base/ts1cmr.fd
+        - /usr/share/texlive/texmf-dist/tex/latex/base/ts1enc.def
+        - /usr/share/texlive/texmf-dist/tex/latex/base/ts1enc.dfu
+        - /usr/share/texlive/texmf-dist/tex/latex/base/utf8.def
+        - /usr/share/texlive/texmf-dist/tex/latex/booktabs/booktabs.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/caption/caption.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/caption/caption3.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/cite/cite.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
+        - /usr/share/texlive/texmf-dist/tex/latex/graphics-def/pdftex.def
+        - /usr/share/texlive/texmf-dist/tex/latex/graphics/graphics.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/graphics/graphicx.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/graphics/trig.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/hyperref/hpdftex.def
+        - /usr/share/texlive/texmf-dist/tex/latex/hyperref/hyperref.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/hyperref/nameref.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/hyperref/pd1enc.def
+        - /usr/share/texlive/texmf-dist/tex/latex/l3kernel/expl3-code.tex
+        - /usr/share/texlive/texmf-dist/tex/latex/l3kernel/expl3.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/l3kernel/l3pdfmode.def
+        - >-
+          /usr/share/texlive/texmf-dist/tex/latex/l3packages/l3keys2e/l3keys2e.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/l3packages/xparse/xparse.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
+        - /usr/share/texlive/texmf-dist/tex/latex/latexconfig/hyperref.cfg
+        - /usr/share/texlive/texmf-dist/tex/latex/makecell/makecell.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/natbib/natbib.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/oberdiek/auxhook.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/oberdiek/epstopdf-base.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/oberdiek/grfext.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/oberdiek/kvoptions.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/oberdiek/rerunfilecheck.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/psnfss/helvet.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/psnfss/t1phv.fd
+        - /usr/share/texlive/texmf-dist/tex/latex/psnfss/ts1phv.fd
+        - /usr/share/texlive/texmf-dist/tex/latex/setspace/setspace.sty
+        - >-
+          /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx-abbreviations.cfg
+        - /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/titlesec/titlesec.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/tools/array.sty
+        - >-
+          /usr/share/texlive/texmf-dist/tex/latex/translator/translator-basic-dictionary-English.dict
+        - /usr/share/texlive/texmf-dist/tex/latex/translator/translator.sty
+        - /usr/share/texlive/texmf-dist/tex/latex/url/url.sty
+        - /usr/share/texlive/texmf-dist/web2c/texmf.cnf
+        - /usr/share/texmf/fonts/enc/dvips/lm/lm-ec.enc
+        - /usr/share/texmf/fonts/enc/dvips/lm/lm-mathex.enc
+        - /usr/share/texmf/fonts/enc/dvips/lm/lm-mathit.enc
+        - /usr/share/texmf/fonts/enc/dvips/lm/lm-mathsy.enc
+        - /usr/share/texmf/fonts/enc/dvips/lm/lm-rm.enc
+        - /usr/share/texmf/fonts/tfm/public/lm/ec-lmtt12.tfm
+        - /usr/share/texmf/fonts/tfm/public/lm/lmex10.tfm
+        - /usr/share/texmf/fonts/tfm/public/lm/lmmi12.tfm
+        - /usr/share/texmf/fonts/tfm/public/lm/lmmi6.tfm
+        - /usr/share/texmf/fonts/tfm/public/lm/lmmi8.tfm
+        - /usr/share/texmf/fonts/tfm/public/lm/lmsy10.tfm
+        - /usr/share/texmf/fonts/tfm/public/lm/lmsy6.tfm
+        - /usr/share/texmf/fonts/tfm/public/lm/lmsy8.tfm
+        - /usr/share/texmf/fonts/tfm/public/lm/rm-lmr12.tfm
+        - /usr/share/texmf/fonts/tfm/public/lm/rm-lmr6.tfm
+        - /usr/share/texmf/fonts/tfm/public/lm/rm-lmr8.tfm
+        - /usr/share/texmf/fonts/tfm/public/lm/rm-lmss12.tfm
+        - /usr/share/texmf/fonts/tfm/public/lm/rm-lmss8.tfm
+        - /usr/share/texmf/fonts/tfm/public/lm/rm-lmtt12.tfm
+        - /usr/share/texmf/fonts/tfm/public/lm/rm-lmtt8.tfm
+        - /usr/share/texmf/fonts/type1/public/lm/lmex10.pfb
+        - /usr/share/texmf/fonts/type1/public/lm/lmmi12.pfb
+        - /usr/share/texmf/fonts/type1/public/lm/lmmi8.pfb
+        - /usr/share/texmf/fonts/type1/public/lm/lmr12.pfb
+        - /usr/share/texmf/fonts/type1/public/lm/lmr8.pfb
+        - /usr/share/texmf/fonts/type1/public/lm/lmsy10.pfb
+        - /usr/share/texmf/fonts/type1/public/lm/lmtt12.pfb
+        - /usr/share/texmf/tex/latex/lm/lmodern.sty
+        - /usr/share/texmf/tex/latex/lm/omllmm.fd
+        - /usr/share/texmf/tex/latex/lm/omslmsy.fd
+        - /usr/share/texmf/tex/latex/lm/omxlmex.fd
+        - /usr/share/texmf/tex/latex/lm/ot1lmr.fd
+        - /usr/share/texmf/tex/latex/lm/ot1lmss.fd
+        - /usr/share/texmf/tex/latex/lm/ot1lmtt.fd
+        - /usr/share/texmf/tex/latex/lm/t1lmtt.fd
+        - /usr/share/texmf/web2c/texmf.cnf
+        - /var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map
+        - /var/lib/texmf/web2c/pdftex/pdflatex.fmt
+        - laromaine_community_assembly_paper.aux
+        - laromaine_community_assembly_paper.bbl
+        - laromaine_community_assembly_paper.out
+        - laromaine_community_assembly_paper.tex
+      outputs:
+        - laromaine_community_assembly_paper.aux
+        - laromaine_community_assembly_paper.log
+        - laromaine_community_assembly_paper.out
+        - laromaine_community_assembly_paper.pdf
+      calls: []
+    type: ParsedFileListing
+  laromaine_community_assembly_paper.log-ParsedLaTeXLog:
+    timeStamp: 2020-12-07T17:55:48.409Z
+    jobNames: []
+    value:
+      messages:
+        - name: pdfTeX
+          severity: info
+          text: babel 2018/02/14 3.18 The Babel package
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/generic/babel/babel.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 29
+              end: 29
+        - name: pdfTeX
+          severity: info
+          text: inputenc 2015/03/17 v1.2c Input encoding file
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 45
+              end: 45
+        - name: pdfTeX
+          severity: info
+          text: fontenc 2017/04/05 v2.0i Standard LaTeX package
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/fontenc.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 358
+              end: 358
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: Redeclaring font encoding T1
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/t1enc.def
+            range:
+              start: 48
+              end: 48
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 361
+              end: 361
+        - name: pdfTeX
+          severity: info
+          text: lmodern 2009/10/30 v1.6 Latin Modern Fonts
+          source:
+            file: /usr/share/texmf/tex/latex/lm/lmodern.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 363
+              end: 363
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: >-
+            Overwriting symbol font `operators' in version `normal' OT1/cmr/m/n
+            --> OT1/lmr/m/n.
+          source:
+            file: /usr/share/texmf/tex/latex/lm/lmodern.sty
+            range:
+              start: 22
+              end: 22
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 364
+              end: 365
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: >-
+            Overwriting symbol font `letters' in version `normal' OML/cmm/m/it
+            --> OML/lmm/m/it.
+          source:
+            file: /usr/share/texmf/tex/latex/lm/lmodern.sty
+            range:
+              start: 23
+              end: 23
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 366
+              end: 367
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: >-
+            Overwriting symbol font `symbols' in version `normal' OMS/cmsy/m/n
+            --> OMS/lmsy/m/n.
+          source:
+            file: /usr/share/texmf/tex/latex/lm/lmodern.sty
+            range:
+              start: 24
+              end: 24
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 368
+              end: 369
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: >-
+            Overwriting symbol font `largesymbols' in version `normal'
+            OMX/cmex/m/n --> OMX/lmex/m/n.
+          source:
+            file: /usr/share/texmf/tex/latex/lm/lmodern.sty
+            range:
+              start: 25
+              end: 25
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 370
+              end: 371
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: >-
+            Overwriting symbol font `operators' in version `bold' OT1/cmr/bx/n
+            --> OT1/lmr/bx/n.
+          source:
+            file: /usr/share/texmf/tex/latex/lm/lmodern.sty
+            range:
+              start: 26
+              end: 26
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 372
+              end: 373
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: >-
+            Overwriting symbol font `letters' in version `bold' OML/cmm/b/it -->
+            OML/lmm/b/it.
+          source:
+            file: /usr/share/texmf/tex/latex/lm/lmodern.sty
+            range:
+              start: 27
+              end: 27
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 374
+              end: 375
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: >-
+            Overwriting symbol font `symbols' in version `bold' OMS/cmsy/b/n -->
+            OMS/lmsy/b/n.
+          source:
+            file: /usr/share/texmf/tex/latex/lm/lmodern.sty
+            range:
+              start: 28
+              end: 28
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 376
+              end: 377
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: >-
+            Overwriting symbol font `largesymbols' in version `bold'
+            OMX/cmex/m/n --> OMX/lmex/m/n.
+          source:
+            file: /usr/share/texmf/tex/latex/lm/lmodern.sty
+            range:
+              start: 29
+              end: 29
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 378
+              end: 379
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: >-
+            Overwriting math alphabet `\mathbf' in version `normal' OT1/cmr/bx/n
+            --> OT1/lmr/bx/n.
+          source:
+            file: /usr/share/texmf/tex/latex/lm/lmodern.sty
+            range:
+              start: 31
+              end: 31
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 380
+              end: 381
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: >-
+            Overwriting math alphabet `\mathsf' in version `normal' OT1/cmss/m/n
+            --> OT1/lmss/m/n.
+          source:
+            file: /usr/share/texmf/tex/latex/lm/lmodern.sty
+            range:
+              start: 32
+              end: 32
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 382
+              end: 383
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: >-
+            Overwriting math alphabet `\mathit' in version `normal' OT1/cmr/m/it
+            --> OT1/lmr/m/it.
+          source:
+            file: /usr/share/texmf/tex/latex/lm/lmodern.sty
+            range:
+              start: 33
+              end: 33
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 384
+              end: 385
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: >-
+            Overwriting math alphabet `\mathtt' in version `normal' OT1/cmtt/m/n
+            --> OT1/lmtt/m/n.
+          source:
+            file: /usr/share/texmf/tex/latex/lm/lmodern.sty
+            range:
+              start: 34
+              end: 34
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 386
+              end: 387
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: >-
+            Overwriting math alphabet `\mathbf' in version `bold' OT1/cmr/bx/n
+            --> OT1/lmr/bx/n.
+          source:
+            file: /usr/share/texmf/tex/latex/lm/lmodern.sty
+            range:
+              start: 35
+              end: 35
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 388
+              end: 389
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: >-
+            Overwriting math alphabet `\mathsf' in version `bold' OT1/cmss/bx/n
+            --> OT1/lmss/bx/n.
+          source:
+            file: /usr/share/texmf/tex/latex/lm/lmodern.sty
+            range:
+              start: 36
+              end: 36
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 390
+              end: 391
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: >-
+            Overwriting math alphabet `\mathit' in version `bold' OT1/cmr/bx/it
+            --> OT1/lmr/bx/it.
+          source:
+            file: /usr/share/texmf/tex/latex/lm/lmodern.sty
+            range:
+              start: 37
+              end: 37
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 392
+              end: 393
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: >-
+            Overwriting math alphabet `\mathtt' in version `bold' OT1/cmtt/m/n
+            --> OT1/lmtt/m/n.
+          source:
+            file: /usr/share/texmf/tex/latex/lm/lmodern.sty
+            range:
+              start: 38
+              end: 38
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 394
+              end: 395
+        - name: pdfTeX
+          severity: info
+          text: helvet 2005/04/12 PSNFSS-v9.2a (WaS)
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/psnfss/helvet.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 397
+              end: 397
+        - name: pdfTeX
+          severity: info
+          text: keyval 2014/10/28 v1.15 key=value parser (DPC)
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 399
+              end: 399
+        - name: pdfTeX
+          severity: info
+          text: textcomp 2017/04/05 v2.0i Standard LaTeX package
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 402
+              end: 402
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: >-
+            Sub-encoding information: 5 = only ISO-Adobe without \textcurrency 4
+            = 5 + \texteuro 3 = 4 + \textohm 2 = 3 + \textestimated +
+            \textcurrency 1 = TS1 - \textcircled - \t 0 = TS1 (full) Font
+            families with sub-encoding setting implement only a restricted
+            character set as indicated. Family '?' is the default used for
+            unknown fonts. See the documentation for details.
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 403
+              end: 413
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting ? sub-encoding to TS1/1
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 79
+              end: 79
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 414
+              end: 414
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          text: Redefining \oldstylenums
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 334
+              end: 334
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 491
+              end: 491
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting cmr sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 349
+              end: 349
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 492
+              end: 492
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting cmss sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 350
+              end: 350
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 493
+              end: 493
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting cmtt sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 351
+              end: 351
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 494
+              end: 494
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting cmvtt sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 352
+              end: 352
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 495
+              end: 495
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting cmbr sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 353
+              end: 353
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 496
+              end: 496
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting cmtl sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 354
+              end: 354
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 497
+              end: 497
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting ccr sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 355
+              end: 355
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 498
+              end: 498
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting ptm sub-encoding to TS1/4
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 356
+              end: 356
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 499
+              end: 499
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting pcr sub-encoding to TS1/4
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 357
+              end: 357
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 500
+              end: 500
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting phv sub-encoding to TS1/4
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 358
+              end: 358
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 501
+              end: 501
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting ppl sub-encoding to TS1/3
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 359
+              end: 359
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 502
+              end: 502
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting pag sub-encoding to TS1/4
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 360
+              end: 360
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 503
+              end: 503
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting pbk sub-encoding to TS1/4
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 361
+              end: 361
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 504
+              end: 504
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting pnc sub-encoding to TS1/4
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 362
+              end: 362
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 505
+              end: 505
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting pzc sub-encoding to TS1/4
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 363
+              end: 363
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 506
+              end: 506
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting bch sub-encoding to TS1/4
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 364
+              end: 364
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 507
+              end: 507
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting put sub-encoding to TS1/5
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 365
+              end: 365
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 508
+              end: 508
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting uag sub-encoding to TS1/5
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 366
+              end: 366
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 509
+              end: 509
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting ugq sub-encoding to TS1/5
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 367
+              end: 367
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 510
+              end: 510
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting ul8 sub-encoding to TS1/4
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 368
+              end: 368
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 511
+              end: 511
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting ul9 sub-encoding to TS1/4
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 369
+              end: 369
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 512
+              end: 512
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting augie sub-encoding to TS1/5
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 370
+              end: 370
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 513
+              end: 513
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting dayrom sub-encoding to TS1/3
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 371
+              end: 371
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 514
+              end: 514
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting dayroms sub-encoding to TS1/3
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 372
+              end: 372
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 515
+              end: 515
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting pxr sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 373
+              end: 373
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 517
+              end: 517
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting pxss sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 374
+              end: 374
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 518
+              end: 518
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting pxtt sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 375
+              end: 375
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 519
+              end: 519
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting txr sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 376
+              end: 376
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 520
+              end: 520
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting txss sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 377
+              end: 377
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 521
+              end: 521
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting txtt sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 378
+              end: 378
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 522
+              end: 522
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting lmr sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 379
+              end: 379
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 523
+              end: 523
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting lmdh sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 380
+              end: 380
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 524
+              end: 524
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting lmss sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 381
+              end: 381
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 525
+              end: 525
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting lmssq sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 382
+              end: 382
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 526
+              end: 526
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting lmvtt sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 383
+              end: 383
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 527
+              end: 527
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting lmtt sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 384
+              end: 384
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 528
+              end: 528
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting qhv sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 385
+              end: 385
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 529
+              end: 529
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting qag sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 386
+              end: 386
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 530
+              end: 530
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting qbk sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 387
+              end: 387
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 531
+              end: 531
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting qcr sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 388
+              end: 388
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 532
+              end: 532
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting qcs sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 389
+              end: 389
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 533
+              end: 533
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting qpl sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 390
+              end: 390
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 534
+              end: 534
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting qtm sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 391
+              end: 391
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 535
+              end: 535
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting qzc sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 392
+              end: 392
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 536
+              end: 536
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting qhvc sub-encoding to TS1/0
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 393
+              end: 393
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 537
+              end: 537
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting futs sub-encoding to TS1/4
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 394
+              end: 394
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 538
+              end: 538
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting futx sub-encoding to TS1/4
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 395
+              end: 395
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 539
+              end: 539
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting futj sub-encoding to TS1/4
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 396
+              end: 396
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 540
+              end: 540
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting hlh sub-encoding to TS1/3
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 397
+              end: 397
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 541
+              end: 541
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting hls sub-encoding to TS1/3
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 398
+              end: 398
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 542
+              end: 542
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting hlst sub-encoding to TS1/3
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 399
+              end: 399
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 543
+              end: 543
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting hlct sub-encoding to TS1/5
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 400
+              end: 400
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 544
+              end: 544
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting hlx sub-encoding to TS1/5
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 401
+              end: 401
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 545
+              end: 545
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting hlce sub-encoding to TS1/5
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 402
+              end: 402
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 546
+              end: 546
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting hlcn sub-encoding to TS1/5
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 403
+              end: 403
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 547
+              end: 547
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting hlcw sub-encoding to TS1/5
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 404
+              end: 404
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 548
+              end: 548
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting hlcf sub-encoding to TS1/5
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 405
+              end: 405
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 549
+              end: 549
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting pplx sub-encoding to TS1/3
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 406
+              end: 406
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 550
+              end: 550
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting pplj sub-encoding to TS1/3
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 407
+              end: 407
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 551
+              end: 551
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting ptmx sub-encoding to TS1/4
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 408
+              end: 408
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 552
+              end: 552
+        - severity: info
+          name: pdfTeX
+          category: Package textcomp
+          text: Setting ptmj sub-encoding to TS1/4
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+            range:
+              start: 409
+              end: 409
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 553
+              end: 553
+        - name: pdfTeX
+          severity: info
+          text: expl3 2018/02/21 L3 programming layer (loader)
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/l3kernel/expl3.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 556
+              end: 556
+        - name: pdfTeX
+          severity: info
+          text: expl3 2018/02/21 L3 programming layer (code)
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/l3kernel/expl3-code.tex
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 558
+              end: 558
+        - name: pdfTeX
+          severity: info
+          text: xparse 2018/02/21 L3 Experimental document command parser
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/latex/l3packages/xparse/xparse.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 705
+              end: 705
+        - name: pdfTeX
+          severity: info
+          text: siunitx 2017/11/26 v2.7k A comprehensive (SI) units package
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 712
+              end: 712
+        - name: pdfTeX
+          severity: info
+          text: amstext 2000/06/29 v2.01 AMS text
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 714
+              end: 714
+        - name: pdfTeX
+          severity: info
+          text: array 2016/10/06 v2.4d Tabular extension package (FMi)
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/tools/array.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 720
+              end: 720
+        - name: pdfTeX
+          severity: info
+          text: l3keys2e 2018/02/21 LaTeX2e option processing using LaTeX3 keys
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/latex/l3packages/l3keys2e/l3keys2e.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 727
+              end: 727
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty
+            range:
+              start: 7250
+              end: 7250
+          text: |-
+            "xparse/define-command"
+            Defining command \DeclareBinaryPrefix with sig. 'mmm'.
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 769
+              end: 773
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty
+            range:
+              start: 7253
+              end: 7253
+          text: |-
+            "xparse/define-command"
+            Defining command \DeclareSIPostPower with sig. 'mm'.
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 774
+              end: 778
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty
+            range:
+              start: 7256
+              end: 7256
+          text: |-
+            "xparse/define-command"
+            Defining command \DeclareSIPrefix with sig. 'mmm'.
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 779
+              end: 783
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty
+            range:
+              start: 7259
+              end: 7259
+          text: |-
+            "xparse/define-command"
+            Defining command \DeclareSIPrePower with sig. 'mm'.
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 784
+              end: 788
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty
+            range:
+              start: 7262
+              end: 7262
+          text: |-
+            "xparse/define-command"
+            Defining command \DeclareSIQualifier with sig. 'mm'.
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 789
+              end: 793
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty
+            range:
+              start: 7265
+              end: 7265
+          text: |-
+            "xparse/define-command"
+            Defining command \DeclareSIUnit with sig. 'O{}mm'.
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 794
+              end: 798
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty
+            range:
+              start: 7268
+              end: 7268
+          text: |-
+            "xparse/define-command"
+            Defining command \DeclareSIUnitWithOptions with sig. 'mmm'.
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 799
+              end: 803
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty
+            range:
+              start: 7283
+              end: 7283
+          text: |-
+            "xparse/define-command"
+            Defining command \ang with sig. 'o>{\SplitArgument {2}{;}}m'.
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 804
+              end: 808
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty
+            range:
+              start: 7292
+              end: 7292
+          text: |-
+            "xparse/define-command"
+            Defining command \num with sig. 'om'.
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 809
+              end: 813
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty
+            range:
+              start: 7301
+              end: 7301
+          text: |-
+            "xparse/define-command"
+            Defining command \numlist with sig. 'o>{\SplitList {;}}m'.
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 814
+              end: 818
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty
+            range:
+              start: 7310
+              end: 7310
+          text: |-
+            "xparse/define-command"
+            Defining command \numrange with sig. 'omm'.
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 819
+              end: 823
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty
+            range:
+              start: 7322
+              end: 7322
+          text: |-
+            "xparse/define-command"
+            Defining command \SIlist with sig. 'o>{\SplitList {;}}mm'.
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 824
+              end: 828
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty
+            range:
+              start: 7334
+              end: 7334
+          text: |-
+            "xparse/define-command"
+            Defining command \SIrange with sig. 'ommm'.
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 829
+              end: 833
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty
+            range:
+              start: 7346
+              end: 7346
+          text: |-
+            "xparse/define-command"
+            Defining command \SI with sig. 'omom'.
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 834
+              end: 838
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty
+            range:
+              start: 7349
+              end: 7349
+          text: |-
+            "xparse/define-command"
+            Defining command \sisetup with sig. 'm'.
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 839
+              end: 843
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty
+            range:
+              start: 7364
+              end: 7364
+          text: |-
+            "xparse/define-command"
+            Defining command \tablenum with sig. 'om'.
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 844
+              end: 848
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty
+            range:
+              start: 7376
+              end: 7376
+          text: |-
+            "xparse/define-command"
+            Defining command \si with sig. 'om'.
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 849
+              end: 853
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty
+            range:
+              start: 7423
+              end: 7423
+          text: |-
+            "xparse/define-command"
+            Defining command \numInBookmark with sig. 'om'.
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 854
+              end: 858
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty
+            range:
+              start: 7425
+              end: 7425
+          text: |-
+            "xparse/define-command"
+            Defining command \numrangeInBookmark with sig. 'omm'.
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 859
+              end: 863
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty
+            range:
+              start: 7427
+              end: 7427
+          text: |-
+            "xparse/define-command"
+            Defining command \SIInBookmark with sig. 'omom'.
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 864
+              end: 868
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty
+            range:
+              start: 7429
+              end: 7429
+          text: |-
+            "xparse/define-command"
+            Defining command \SIlistInBookmark with sig. 'omm'.
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 869
+              end: 873
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty
+            range:
+              start: 7431
+              end: 7431
+          text: |-
+            "xparse/define-command"
+            Defining command \SIrangeInBookmark with sig. 'ommm'.
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 874
+              end: 878
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty
+            range:
+              start: 7432
+              end: 7432
+          text: |-
+            "xparse/define-command"
+            Defining command \siInBookmark with sig. 'om'.
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 879
+              end: 883
+        - name: pdfTeX
+          severity: info
+          text: translator 2018/01/04 v1.12 Easy translation of strings in LaTeX
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/translator/translator.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 886
+              end: 886
+        - name: pdfTeX
+          severity: info
+          text: 'natbib 2010/09/13 8.31b (PWD, AO)'
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/natbib/natbib.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 888
+              end: 888
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          text: Redefining \cite
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/natbib/natbib.sty
+            range:
+              start: 694
+              end: 694
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 891
+              end: 891
+        - name: pdfTeX
+          severity: info
+          text: hyperref 2018/02/06 v6.86b Hypertext links for LaTeX
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/hyperref/hyperref.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 894
+              end: 894
+        - name: pdfTeX
+          severity: info
+          text: >-
+            hobsub-hyperref 2016/05/16 v1.14 Bundle oberdiek, subset hyperref
+            (HO)
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-hyperref.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 896
+              end: 897
+        - name: pdfTeX
+          severity: info
+          text: 'hobsub-generic 2016/05/16 v1.14 Bundle oberdiek, subset generic (HO)'
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 899
+              end: 899
+        - name: pdfTeX
+          severity: info
+          text: hobsub 2016/05/16 v1.14 Construct package bundles (HO)
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 900
+              end: 900
+        - name: pdfTeX
+          severity: info
+          text: infwarerr 2016/05/16 v1.4 Providing info/warning/error messages (HO)
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 901
+              end: 901
+        - name: pdfTeX
+          severity: info
+          text: ltxcmds 2016/05/16 v1.23 LaTeX kernel commands for general use (HO)
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 902
+              end: 902
+        - name: pdfTeX
+          severity: info
+          text: ifluatex 2016/05/16 v1.4 Provides the ifluatex switch (HO)
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 903
+              end: 903
+        - severity: info
+          name: pdfTeX
+          category: Package ifluatex
+          text: LuaTeX not detected.
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 904
+              end: 904
+        - name: pdfTeX
+          severity: info
+          text: ifvtex 2016/05/16 v1.6 Detect VTeX and its facilities (HO)
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 905
+              end: 905
+        - severity: info
+          name: pdfTeX
+          category: Package ifvtex
+          text: VTeX not detected.
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 906
+              end: 906
+        - name: pdfTeX
+          severity: info
+          text: intcalc 2016/05/16 v1.2 Expandable calculations with integers (HO)
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 907
+              end: 907
+        - name: pdfTeX
+          severity: info
+          text: ifpdf 2017/03/15 v3.2 Provides the ifpdf switch
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 908
+              end: 908
+        - name: pdfTeX
+          severity: info
+          text: etexcmds 2016/05/16 v1.6 Avoid name clashes with e-TeX commands (HO)
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 909
+              end: 909
+        - severity: info
+          name: pdfTeX
+          category: Package etexcmds
+          text: >-
+            Could not find \expanded. That can mean that you are not using
+            pdfTeX 1.50 or that some package has redefined \expanded. In the
+            latter case, load this package earlier.
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 910
+              end: 913
+        - name: pdfTeX
+          severity: info
+          text: kvsetkeys 2016/05/16 v1.17 Key value parser (HO)
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 914
+              end: 914
+        - name: pdfTeX
+          severity: info
+          text: kvdefinekeys 2016/05/16 v1.4 Define keys (HO)
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 915
+              end: 915
+        - name: pdfTeX
+          severity: info
+          text: >-
+            pdftexcmds 2018/01/21 v0.26 Utility functions of pdfTeX for LuaTeX
+            (HO)
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 916
+              end: 917
+        - severity: info
+          name: pdfTeX
+          category: Package pdftexcmds
+          text: LuaTeX not detected.
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 918
+              end: 918
+        - severity: info
+          name: pdfTeX
+          category: Package pdftexcmds
+          text: \pdf@primitive is available.
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 919
+              end: 919
+        - severity: info
+          name: pdfTeX
+          category: Package pdftexcmds
+          text: \pdf@ifprimitive is available.
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 920
+              end: 920
+        - severity: info
+          name: pdfTeX
+          category: Package pdftexcmds
+          text: \pdfdraftmode found.
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 921
+              end: 921
+        - name: pdfTeX
+          severity: info
+          text: pdfescape 2016/05/16 v1.14 Implements pdfTeX's escape features (HO)
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 922
+              end: 922
+        - name: pdfTeX
+          severity: info
+          text: >-
+            bigintcalc 2016/05/16 v1.4 Expandable calculations on big integers
+            (HO)
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 923
+              end: 924
+        - name: pdfTeX
+          severity: info
+          text: bitset 2016/05/16 v1.2 Handle bit-vector datatype (HO)
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 925
+              end: 925
+        - name: pdfTeX
+          severity: info
+          text: uniquecounter 2016/05/16 v1.3 Provide unlimited unique counter (HO)
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 926
+              end: 926
+        - severity: info
+          name: pdfTeX
+          category: Package hobsub
+          text: Skipping package `hobsub' (already loaded).
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-hyperref.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 928
+              end: 928
+        - name: pdfTeX
+          severity: info
+          text: letltxmacro 2016/05/16 v1.5 Let assignment for LaTeX macros (HO)
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-hyperref.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 929
+              end: 929
+        - name: pdfTeX
+          severity: info
+          text: hopatch 2016/05/16 v1.3 Wrapper for package hooks (HO)
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-hyperref.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 930
+              end: 930
+        - name: pdfTeX
+          severity: info
+          text: xcolor-patch 2016/05/16 xcolor patch
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-hyperref.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 931
+              end: 931
+        - name: pdfTeX
+          severity: info
+          text: atveryend 2016/05/16 v1.9 Hooks at the very end of document (HO)
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-hyperref.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 932
+              end: 932
+        - severity: info
+          name: pdfTeX
+          category: Package atveryend
+          text: \enddocument detected (standard20110627).
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-hyperref.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 933
+              end: 933
+        - name: pdfTeX
+          severity: info
+          text: atbegshi 2016/06/09 v1.18 At begin shipout hook (HO)
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-hyperref.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 934
+              end: 934
+        - name: pdfTeX
+          severity: info
+          text: refcount 2016/05/16 v3.5 Data extraction from label references (HO)
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-hyperref.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 935
+              end: 935
+        - name: pdfTeX
+          severity: info
+          text: hycolor 2016/05/16 v1.8 Color options for hyperref/bookmark (HO)
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-hyperref.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 936
+              end: 936
+        - name: pdfTeX
+          severity: info
+          text: ifxetex 2010/09/12 v0.6 Provides ifxetex conditional
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/generic/ifxetex/ifxetex.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 938
+              end: 938
+        - name: pdfTeX
+          severity: info
+          text: auxhook 2016/05/16 v1.4 Hooks for auxiliary files (HO)
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/oberdiek/auxhook.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 940
+              end: 940
+        - name: pdfTeX
+          severity: info
+          text: kvoptions 2016/05/16 v3.12 Key value format for package options (HO)
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/oberdiek/kvoptions.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 942
+              end: 942
+        - severity: info
+          name: pdfTeX
+          category: Package hyperref
+          text: Hyper figures OFF
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/hyperref/hyperref.sty
+            range:
+              start: 4509
+              end: 4509
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 956
+              end: 956
+        - severity: info
+          name: pdfTeX
+          category: Package hyperref
+          text: Link nesting OFF
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/hyperref/hyperref.sty
+            range:
+              start: 4514
+              end: 4514
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 957
+              end: 957
+        - severity: info
+          name: pdfTeX
+          category: Package hyperref
+          text: Hyper index ON
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/hyperref/hyperref.sty
+            range:
+              start: 4517
+              end: 4517
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 958
+              end: 958
+        - severity: info
+          name: pdfTeX
+          category: Package hyperref
+          text: Plain pages OFF
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/hyperref/hyperref.sty
+            range:
+              start: 4524
+              end: 4524
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 959
+              end: 959
+        - severity: info
+          name: pdfTeX
+          category: Package hyperref
+          text: Backreferencing OFF
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/hyperref/hyperref.sty
+            range:
+              start: 4529
+              end: 4529
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 960
+              end: 960
+        - severity: info
+          name: pdfTeX
+          category: Package hyperref
+          text: Implicit mode ON; LaTeX internals redefined.
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/hyperref/hyperref.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 961
+              end: 961
+        - severity: info
+          name: pdfTeX
+          category: Package hyperref
+          text: Bookmarks ON
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/hyperref/hyperref.sty
+            range:
+              start: 4762
+              end: 4762
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 962
+              end: 962
+        - name: pdfTeX
+          severity: info
+          text: 'url 2013/09/16 ver 3.4 Verb mode for urls, etc.'
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/url/url.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 966
+              end: 966
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          text: Redefining \url
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/hyperref/hyperref.sty
+            range:
+              start: 5115
+              end: 5115
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 968
+              end: 968
+        - severity: info
+          name: pdfTeX
+          category: Package hyperref
+          text: Hyper figures OFF
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/hyperref/hyperref.sty
+            range:
+              start: 6369
+              end: 6369
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 973
+              end: 973
+        - severity: info
+          name: pdfTeX
+          category: Package hyperref
+          text: Link nesting OFF
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/hyperref/hyperref.sty
+            range:
+              start: 6374
+              end: 6374
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 974
+              end: 974
+        - severity: info
+          name: pdfTeX
+          category: Package hyperref
+          text: Hyper index ON
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/hyperref/hyperref.sty
+            range:
+              start: 6377
+              end: 6377
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 975
+              end: 975
+        - severity: info
+          name: pdfTeX
+          category: Package hyperref
+          text: backreferencing OFF
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/hyperref/hyperref.sty
+            range:
+              start: 6384
+              end: 6384
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 976
+              end: 976
+        - severity: info
+          name: pdfTeX
+          category: Package hyperref
+          text: Link coloring OFF
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/hyperref/hyperref.sty
+            range:
+              start: 6389
+              end: 6389
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 977
+              end: 977
+        - severity: info
+          name: pdfTeX
+          category: Package hyperref
+          text: Link coloring with OCG OFF
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/hyperref/hyperref.sty
+            range:
+              start: 6394
+              end: 6394
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 978
+              end: 978
+        - severity: info
+          name: pdfTeX
+          category: Package hyperref
+          text: PDF/A mode OFF
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/hyperref/hyperref.sty
+            range:
+              start: 6399
+              end: 6399
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 979
+              end: 979
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          text: Redefining \ref
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/hyperref/hyperref.sty
+            range:
+              start: 6439
+              end: 6439
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 980
+              end: 980
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          text: Redefining \pageref
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/hyperref/hyperref.sty
+            range:
+              start: 6443
+              end: 6443
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 981
+              end: 981
+        - severity: info
+          name: pdfTeX
+          category: Package hyperref
+          text: 'Driver (autodetected): hpdftex.'
+          source:
+            file: laromaine_community_assembly_paper.tex
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 986
+              end: 986
+        - name: pdfTeX
+          severity: info
+          text: rerunfilecheck 2016/05/16 v1.8 Rerun checks for auxiliary files (HO)
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/latex/oberdiek/rerunfilecheck.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 992
+              end: 992
+        - severity: info
+          name: pdfTeX
+          category: Package uniquecounter
+          text: New unique counter `rerunfilecheck'
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/latex/oberdiek/rerunfilecheck.sty
+            range:
+              start: 282
+              end: 282
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 993
+              end: 994
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          text: Redefining \cite
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/cite/cite.sty
+            range:
+              start: 302
+              end: 302
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 998
+              end: 998
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          text: Redefining \nocite
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/cite/cite.sty
+            range:
+              start: 332
+              end: 332
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 999
+              end: 999
+        - name: pdfTeX
+          severity: info
+          text: cite 2015/02/27 v 5.5
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/cite/cite.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1000
+              end: 1000
+        - name: pdfTeX
+          severity: info
+          text: 'graphicx 2017/06/01 v1.1a Enhanced LaTeX Graphics (DPC,SPQR)'
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/graphics/graphicx.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1002
+              end: 1002
+        - name: pdfTeX
+          severity: info
+          text: 'graphics 2017/06/25 v1.2c Standard LaTeX Graphics (DPC,SPQR)'
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/graphics/graphics.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1004
+              end: 1004
+        - name: pdfTeX
+          severity: info
+          text: trig 2016/01/03 v1.10 sin cos tan (DPC)
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/graphics/trig.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1006
+              end: 1006
+        - severity: info
+          name: pdfTeX
+          category: Package graphics
+          text: 'Driver file: pdftex.def'
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/graphics/graphics.sty
+            range:
+              start: 99
+              end: 99
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1010
+              end: 1010
+        - name: pdfTeX
+          severity: info
+          text: caption 2016/02/21 v3.3-144 Customizing captions (AR)
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/caption/caption.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1017
+              end: 1017
+        - name: pdfTeX
+          severity: info
+          text: caption3 2016/05/22 v1.7-166 caption3 kernel (AR)
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/caption/caption3.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1019
+              end: 1019
+        - severity: info
+          name: pdfTeX
+          category: Package caption3
+          text: 'TeX engine: e-TeX'
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/caption/caption3.sty
+            range:
+              start: 67
+              end: 67
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1020
+              end: 1020
+        - severity: info
+          name: pdfTeX
+          category: Package caption
+          text: hyperref package is loaded.
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/caption/caption.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1030
+              end: 1030
+        - name: pdfTeX
+          severity: info
+          text: titlesec 2016/03/21 v2.10.2 Sectioning titles
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/titlesec/titlesec.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1032
+              end: 1032
+        - name: pdfTeX
+          severity: info
+          text: setspace 2011/12/19 v6.7a set line spacing
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/setspace/setspace.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1043
+              end: 1043
+        - name: pdfTeX
+          severity: info
+          text: booktabs 2016/04/27 v1.618033 publication quality tables
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/booktabs/booktabs.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1045
+              end: 1045
+        - name: pdfTeX
+          severity: info
+          text: makecell 2009/08/03 V0.1e Managing of Tab Column Heads and Cells
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/makecell/makecell.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1064
+              end: 1064
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: Checking defaults for OML/cmm/m/it ... okay
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 39
+              end: 39
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1073
+              end: 1074
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: Checking defaults for T1/cmr/m/n ... okay
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 39
+              end: 39
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1075
+              end: 1076
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: Checking defaults for OT1/cmr/m/n ... okay
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 39
+              end: 39
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1077
+              end: 1078
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: Checking defaults for OMS/cmsy/m/n ... okay
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 39
+              end: 39
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1079
+              end: 1080
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: Checking defaults for OMX/cmex/m/n ... okay
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 39
+              end: 39
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1081
+              end: 1082
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: Checking defaults for U/cmr/m/n ... okay
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 39
+              end: 39
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1083
+              end: 1084
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: Checking defaults for TS1/cmr/m/n
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 39
+              end: 39
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1085
+              end: 1085
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: Try loading font information for TS1+cmr ... okay
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 39
+              end: 39
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1086
+              end: 1090
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: Checking defaults for PD1/pdf/m/n ... okay
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 39
+              end: 39
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1091
+              end: 1092
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: Try loading font information for T1+phv
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 39
+              end: 39
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1093
+              end: 1093
+        - severity: info
+          name: pdfTeX
+          category: Package hyperref
+          text: Link coloring OFF
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 39
+              end: 39
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1104
+              end: 1104
+        - name: pdfTeX
+          severity: info
+          text: nameref 2016/05/21 v2.44 Cross-referencing by name of section
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/hyperref/nameref.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1106
+              end: 1106
+        - name: pdfTeX
+          severity: info
+          text: gettitlestring 2016/05/16 v1.5 Cleanup title references (HO)
+          source:
+            file: >-
+              /usr/share/texlive/texmf-dist/tex/generic/oberdiek/gettitlestring.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1108
+              end: 1108
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          text: Redefining \ref
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 39
+              end: 39
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1112
+              end: 1112
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          text: Redefining \pageref
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 39
+              end: 39
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1113
+              end: 1113
+        - severity: info
+          name: pdfTeX
+          category: LaTeX
+          text: Redefining \nameref
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 39
+              end: 39
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1114
+              end: 1114
+        - name: pdfTeX
+          severity: info
+          text: epstopdf-base 2016/05/15 v2.6 Base part for package epstopdf
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/oberdiek/epstopdf-base.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1137
+              end: 1137
+        - name: pdfTeX
+          severity: info
+          text: grfext 2016/05/16 v1.2 Manage graphics extensions (HO)
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/oberdiek/grfext.sty
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1139
+              end: 1139
+        - severity: info
+          name: pdfTeX
+          category: Package epstopdf-base
+          text: Redefining graphics rule for `.eps'
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/oberdiek/epstopdf-base.sty
+            range:
+              start: 438
+              end: 438
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1141
+              end: 1142
+        - severity: info
+          name: pdfTeX
+          category: Package grfext
+          text: >-
+            Graphics extension search list:
+            [.pdf,.png,.jpg,.mps,.jpeg,.jbig2,.jb2,.PDF,.PNG,.JPG,.JPEG,.JBIG2,.JB2,.eps]
+            \AppendGraphicsExtensions.
+          source:
+            file: /usr/share/texlive/texmf-dist/tex/latex/oberdiek/epstopdf-base.sty
+            range:
+              start: 456
+              end: 456
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1143
+              end: 1146
+        - severity: info
+          name: pdfTeX
+          category: Package caption
+          text: Begin \AtBeginDocument code.
+          source:
+            file: laromaine_community_assembly_paper.tex
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1151
+              end: 1151
+        - severity: info
+          name: pdfTeX
+          category: Package caption
+          text: End \AtBeginDocument code.
+          source:
+            file: laromaine_community_assembly_paper.tex
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1152
+              end: 1152
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: Try loading font information for OT1+lmr
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 39
+              end: 39
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1154
+              end: 1154
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: Try loading font information for OML+lmm
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 39
+              end: 39
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1158
+              end: 1158
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: Try loading font information for OMS+lmsy
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 39
+              end: 39
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1162
+              end: 1162
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: Try loading font information for OMX+lmex
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 39
+              end: 39
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1167
+              end: 1167
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: External font `lmex10' loaded for size <12>.
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 39
+              end: 39
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1172
+              end: 1173
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: External font `lmex10' loaded for size <8>.
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 39
+              end: 39
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1174
+              end: 1175
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: External font `lmex10' loaded for size <6>.
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 39
+              end: 39
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1176
+              end: 1177
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: Try loading font information for OT1+lmss
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 39
+              end: 39
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1178
+              end: 1178
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: Try loading font information for OT1+lmtt
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 39
+              end: 39
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1184
+              end: 1184
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: >-
+            Font shape `T1/phv/bx/n' in size <12> not available Font shape
+            `T1/phv/b/n' tried instead.
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 75
+              end: 75
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1238
+              end: 1239
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: >-
+            Font shape `T1/phv/m/it' in size <12> not available Font shape
+            `T1/phv/m/sl' tried instead.
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 89
+              end: 89
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1241
+              end: 1242
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: Try loading font information for TS1+phv
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 92
+              end: 92
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1250
+              end: 1250
+        - severity: info
+          name: pdfTeX
+          category: LaTeX Font
+          text: Try loading font information for T1+lmtt
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 174
+              end: 174
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1277
+              end: 1277
+        - severity: info
+          name: pdfTeX
+          category: Package pdftex.def
+          text: >-
+            ../Figures/LR_miccom_paper_threemaps.png used Requested size:
+            341.43306pt x 409.68506pt.
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 239
+              end: 239
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1323
+              end: 1325
+        - severity: info
+          name: pdfTeX
+          category: Package pdftex.def
+          text: >-
+            ../../Figures/Final/PCoA_log_DNA_collage.png used Requested size:
+            455.24408pt x 273.11636pt.
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 246
+              end: 246
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1330
+              end: 1332
+        - severity: info
+          name: pdfTeX
+          category: Package pdftex.def
+          text: >-
+            ../../Figures/Final/PCoA_all_SampleType.png used Requested size:
+            483.69684pt x 266.01007pt.
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 253
+              end: 253
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1341
+              end: 1343
+        - severity: info
+          name: pdfTeX
+          category: Package pdftex.def
+          text: >-
+            ../../Figures/Final/distBC_distratio_scat.png used Requested size:
+            426.79134pt x 284.61072pt.
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 260
+              end: 260
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1353
+              end: 1355
+        - severity: info
+          name: pdfTeX
+          category: Package pdftex.def
+          text: >-
+            ../../Figures/Final/abgroups_rollmean_violin.png used Requested
+            size: 426.79134pt x 187.80664pt.
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 267
+              end: 267
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1365
+              end: 1367
+        - severity: info
+          name: pdfTeX
+          category: Package atveryend
+          text: Empty hook `BeforeClearDocument'
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 273
+              end: 273
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1373
+              end: 1373
+        - severity: info
+          name: pdfTeX
+          category: Package atveryend
+          text: Empty hook `AfterLastShipout'
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 273
+              end: 273
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1378
+              end: 1378
+        - severity: info
+          name: pdfTeX
+          category: Package atveryend
+          text: Executing hook `AtVeryEndDocument'
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 273
+              end: 273
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1382
+              end: 1382
+        - severity: info
+          name: pdfTeX
+          category: Package atveryend
+          text: Executing hook `AtEndAfterFileList'
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 273
+              end: 273
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1383
+              end: 1383
+        - severity: info
+          name: pdfTeX
+          category: Package rerunfilecheck
+          text: >-
+            File `laromaine_community_assembly_paper.out' has not changed.
+            Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
+          source:
+            file: laromaine_community_assembly_paper.tex
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1384
+              end: 1386
+        - severity: info
+          name: pdfTeX
+          category: Package atveryend
+          text: Empty hook `AtVeryVeryEnd'
+          source:
+            file: laromaine_community_assembly_paper.tex
+            range:
+              start: 273
+              end: 273
+          log:
+            file: laromaine_community_assembly_paper.log
+            range:
+              start: 1387
+              end: 1387
+      inputs: []
+      outputs:
+        - laromaine_community_assembly_paper.pdf
+      calls: []
+    type: ParsedLaTeXLog
+  laromaine_community_assembly_paper.blg-ParsedBibTeXLog:
+    timeStamp: 2020-12-02T19:58:29.769Z
+    jobNames: []
+    value:
+      messages:
+        - severity: warning
+          name: BibTeX
+          text: can't use both author and editor fields in Borcard2011
+          log:
+            file: laromaine_community_assembly_paper.blg
+            range:
+              start: 6
+              end: 6
+        - severity: warning
+          name: BibTeX
+          text: can't use both author and editor fields in Caumette2015
+          log:
+            file: laromaine_community_assembly_paper.blg
+            range:
+              start: 7
+              end: 7
+        - severity: warning
+          name: BibTeX
+          text: empty institution in HQreport2009
+          log:
+            file: laromaine_community_assembly_paper.blg
+            range:
+              start: 8
+              end: 8
+      inputs:
+        - laromaine_community_assembly_paper.aux
+        - /usr/share/texlive/texmf-dist/bibtex/bst/base/apalike.bst
+        - /media/shared/Documents/University/PhD/BibTEX/LR_miccom_paper.bib
+      outputs: []
+      calls: []
+    type: ParsedBibTeXLog
+  laromaine_community_assembly_paper.pdf:
+    timeStamp: 2020-12-07T19:36:19.604Z
+    jobNames: []
+    hash: JMk3d2GB9Yyrc4WkZd09jTP4+AqCwsU6YDSuB820yys=
+    type: PortableDocumentFormat
+  laromaine_community_assembly_paper.aux:
+    timeStamp: 2020-12-07T19:36:19.579Z
+    jobNames: []
+    hash: iExi/a0Pa051ngyVUaBOXrD1rYLc5cJRrKRlKWnnYCg=
+    type: LaTeXAuxilary
+  laromaine_community_assembly_paper.fls:
+    timeStamp: 2020-12-07T19:36:19.600Z
+    jobNames: []
+    hash: JrA0z2zAM3DkqY7zq8JxRBZDRcV2hnw488mkcfoxb+k=
+    type: FileListing
+  laromaine_community_assembly_paper.synctex.gz:
+    timeStamp: 2020-12-07T19:36:19.604Z
+    jobNames: []
+    hash: uCcgpNjo+RHxd0L2PlovoMGLasr4quV1BN/bOcNP/PE=
+    type: SyncTeX
+  laromaine_community_assembly_paper.aux-ParsedLaTeXAuxilary:
+    timeStamp: 2020-12-02T19:58:34.186Z
+    jobNames: []
+    value:
+      commands:
+        - relax
+        - providecommand
+        - bibstyle
+        - providecommand
+        - HyperFirstAtBeginDocument
+        - global
+        - gdef
+        - global
+        - gdef
+        - gdef
+        - AtEndDocument
+        - let
+        - let
+        - fi
+        - fi
+        - global
+        - gdef
+        - providecommand
+        - providecommand
+        - babel@aux
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - citation
+        - bibdata
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - bibcite
+        - '@writefile'
+        - providecommand
+        - newlabel
+        - '@writefile'
+        - '@writefile'
+        - '@writefile'
+        - '@writefile'
+        - '@writefile'
+    type: ParsedLaTeXAuxilary
+  /etc/texmf/web2c/texmf.cnf:
+    timeStamp: 2020-06-12T17:13:22.963Z
+    jobNames: []
+  /media/shared/Documents/University/PhD/Analyses/Molecular/catchment_microbial_community/Figures/Final/PCoA_all_SampleType.png:
+    timeStamp: 2020-10-07T13:38:50.841Z
+    jobNames: []
+  /media/shared/Documents/University/PhD/Analyses/Molecular/catchment_microbial_community/Figures/Final/PCoA_log_DNA_collage.png:
+    timeStamp: 2020-10-07T13:34:47.992Z
+    jobNames: []
+  /media/shared/Documents/University/PhD/Analyses/Molecular/catchment_microbial_community/Figures/Final/abgroups_rollmean_violin.png:
+    timeStamp: 2020-11-06T16:18:58.211Z
+    jobNames: []
+  /media/shared/Documents/University/PhD/Analyses/Molecular/catchment_microbial_community/Figures/Final/dissimBCS_distBC_distratio.png:
+    timeStamp: 2020-10-22T15:16:06.835Z
+    jobNames: []
+  /media/shared/Documents/University/PhD/Analyses/Molecular/catchment_microbial_community/Manuscript/Figures/LR_miccom_paper_threemaps.png:
+    timeStamp: 2020-06-23T19:51:42.646Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc:
+    timeStamp: 2016-11-25T18:31:06.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map:
+    timeStamp: 2017-11-27T23:19:31.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/fonts/tfm/adobe/helvetic/phvb8r.tfm:
+    timeStamp: 2016-11-25T18:31:28.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/fonts/tfm/adobe/helvetic/phvb8t.tfm:
+    timeStamp: 2016-11-25T18:31:28.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/fonts/tfm/adobe/helvetic/phvr8c.tfm:
+    timeStamp: 2016-11-25T18:31:28.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/fonts/tfm/adobe/helvetic/phvr8r.tfm:
+    timeStamp: 2016-11-25T18:31:28.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/fonts/tfm/adobe/helvetic/phvr8t.tfm:
+    timeStamp: 2016-11-25T18:31:28.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/fonts/tfm/adobe/helvetic/phvro8r.tfm:
+    timeStamp: 2016-11-25T18:31:28.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/fonts/tfm/adobe/helvetic/phvro8t.tfm:
+    timeStamp: 2016-11-25T18:31:28.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/fonts/tfm/jknappen/ec/ecrm1200.tfm:
+    timeStamp: 2016-11-25T18:31:36.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmr10.tfm:
+    timeStamp: 2016-11-25T18:31:41.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmr12.tfm:
+    timeStamp: 2016-11-25T18:31:41.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/fonts/type1/urw/helvetic/uhvb8a.pfb:
+    timeStamp: 2016-11-25T18:32:26.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/fonts/type1/urw/helvetic/uhvr8a.pfb:
+    timeStamp: 2016-11-25T18:32:26.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/fonts/type1/urw/helvetic/uhvro8a.pfb:
+    timeStamp: 2016-11-25T18:32:26.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/fonts/vf/adobe/helvetic/phvb8t.vf:
+    timeStamp: 2016-11-25T18:32:37.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/fonts/vf/adobe/helvetic/phvr8c.vf:
+    timeStamp: 2016-11-25T18:32:37.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/fonts/vf/adobe/helvetic/phvr8t.vf:
+    timeStamp: 2016-11-25T18:32:37.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/fonts/vf/adobe/helvetic/phvro8t.vf:
+    timeStamp: 2016-11-25T18:32:37.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii:
+    timeStamp: 2016-11-25T18:33:26.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/tex/generic/babel-english/english.ldf:
+    timeStamp: 2017-06-06T21:46:58.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/tex/generic/babel/babel.def:
+    timeStamp: 2018-02-14T21:34:13.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/tex/generic/babel/babel.sty:
+    timeStamp: 2018-02-14T21:34:13.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/generic/babel/switch.def:
+    timeStamp: 2018-02-14T21:34:13.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/tex/generic/babel/txtbabel.def:
+    timeStamp: 2018-02-14T21:34:13.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/tex/generic/ifxetex/ifxetex.sty:
+    timeStamp: 2016-11-25T18:33:35.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/generic/oberdiek/gettitlestring.sty:
+    timeStamp: 2016-11-25T18:33:35.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty:
+    timeStamp: 2018-01-26T22:43:53.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-hyperref.sty:
+    timeStamp: 2016-11-25T18:33:35.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/generic/unicode-data/CaseFolding.txt:
+    timeStamp: 2017-06-27T21:55:49.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/tex/generic/unicode-data/SpecialCasing.txt:
+    timeStamp: 2017-06-27T21:55:49.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/tex/generic/unicode-data/UnicodeData.txt:
+    timeStamp: 2017-06-27T21:55:49.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty:
+    timeStamp: 2016-11-25T18:33:40.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty:
+    timeStamp: 2016-11-25T18:33:40.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/base/article.cls:
+    timeStamp: 2016-11-25T18:33:41.000Z
+    jobNames: []
+    type: LaTeXClass
+  /usr/share/texlive/texmf-dist/tex/latex/base/fontenc.sty:
+    timeStamp: 2017-04-15T22:59:15.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty:
+    timeStamp: 2016-11-25T18:33:41.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/base/omsenc.dfu:
+    timeStamp: 2017-02-22T00:01:07.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/tex/latex/base/ot1enc.dfu:
+    timeStamp: 2017-02-22T00:01:07.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/tex/latex/base/size12.clo:
+    timeStamp: 2016-11-25T18:33:41.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/tex/latex/base/t1enc.def:
+    timeStamp: 2017-04-15T22:59:15.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/tex/latex/base/t1enc.dfu:
+    timeStamp: 2017-02-22T00:01:07.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty:
+    timeStamp: 2017-04-15T22:59:15.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/base/ts1cmr.fd:
+    timeStamp: 2016-11-25T18:33:41.000Z
+    jobNames: []
+    type: FontDescription
+  /usr/share/texlive/texmf-dist/tex/latex/base/ts1enc.def:
+    timeStamp: 2016-11-25T18:33:41.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/tex/latex/base/ts1enc.dfu:
+    timeStamp: 2017-02-22T00:01:07.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/tex/latex/base/utf8.def:
+    timeStamp: 2017-02-22T00:01:07.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/tex/latex/booktabs/booktabs.sty:
+    timeStamp: 2016-11-25T18:33:43.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/caption/caption.sty:
+    timeStamp: 2016-11-25T18:33:43.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/caption/caption3.sty:
+    timeStamp: 2016-11-25T18:33:43.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/cite/cite.sty:
+    timeStamp: 2016-11-25T18:33:45.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/graphics-cfg/graphics.cfg:
+    timeStamp: 2016-11-25T18:33:50.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/tex/latex/graphics-def/pdftex.def:
+    timeStamp: 2018-01-09T22:36:08.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/tex/latex/graphics/graphics.sty:
+    timeStamp: 2017-06-25T21:52:12.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/graphics/graphicx.sty:
+    timeStamp: 2017-06-25T21:52:12.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty:
+    timeStamp: 2016-11-25T18:33:50.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/graphics/trig.sty:
+    timeStamp: 2016-11-25T18:33:50.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/hyperref/hpdftex.def:
+    timeStamp: 2018-02-07T22:17:34.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/tex/latex/hyperref/hyperref.sty:
+    timeStamp: 2018-02-07T22:17:34.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/hyperref/nameref.sty:
+    timeStamp: 2016-11-25T18:33:51.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/hyperref/pd1enc.def:
+    timeStamp: 2018-02-07T22:17:34.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/tex/latex/l3kernel/expl3-code.tex:
+    timeStamp: 2018-02-23T21:54:14.000Z
+    jobNames: []
+    type: TeX
+  /usr/share/texlive/texmf-dist/tex/latex/l3kernel/expl3.sty:
+    timeStamp: 2018-02-23T21:54:14.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/l3kernel/l3pdfmode.def:
+    timeStamp: 2018-02-23T21:54:14.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/tex/latex/l3packages/l3keys2e/l3keys2e.sty:
+    timeStamp: 2018-02-22T22:17:51.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/l3packages/xparse/xparse.sty:
+    timeStamp: 2018-02-22T22:17:51.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg:
+    timeStamp: 2016-11-25T18:33:53.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/tex/latex/latexconfig/hyperref.cfg:
+    timeStamp: 2016-11-25T18:33:53.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/tex/latex/makecell/makecell.sty:
+    timeStamp: 2016-11-25T18:33:53.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/natbib/natbib.sty:
+    timeStamp: 2018-03-05T00:41:47.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/oberdiek/auxhook.sty:
+    timeStamp: 2016-11-25T18:33:56.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/oberdiek/epstopdf-base.sty:
+    timeStamp: 2016-11-25T18:33:56.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/oberdiek/grfext.sty:
+    timeStamp: 2016-11-25T18:33:56.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/oberdiek/kvoptions.sty:
+    timeStamp: 2016-11-25T18:33:56.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/oberdiek/rerunfilecheck.sty:
+    timeStamp: 2016-11-25T18:33:56.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/psnfss/helvet.sty:
+    timeStamp: 2016-11-25T18:33:57.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/psnfss/t1phv.fd:
+    timeStamp: 2016-11-25T18:33:57.000Z
+    jobNames: []
+    type: FontDescription
+  /usr/share/texlive/texmf-dist/tex/latex/psnfss/ts1phv.fd:
+    timeStamp: 2016-11-25T18:33:57.000Z
+    jobNames: []
+    type: FontDescription
+  /usr/share/texlive/texmf-dist/tex/latex/setspace/setspace.sty:
+    timeStamp: 2016-11-25T18:33:58.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx-abbreviations.cfg:
+    timeStamp: 2017-11-26T23:26:48.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty:
+    timeStamp: 2017-11-26T23:26:48.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/titlesec/titlesec.sty:
+    timeStamp: 2016-11-25T18:34:01.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/tools/array.sty:
+    timeStamp: 2017-01-23T00:01:06.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/translator/translator-basic-dictionary-English.dict:
+    timeStamp: 2017-11-30T21:55:26.000Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/tex/latex/translator/translator.sty:
+    timeStamp: 2018-01-06T21:33:00.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/url/url.sty:
+    timeStamp: 2016-11-25T18:34:02.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/web2c/texmf.cnf:
+    timeStamp: 2018-03-05T00:41:47.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/enc/dvips/lm/lm-ec.enc:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/enc/dvips/lm/lm-mathex.enc:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/enc/dvips/lm/lm-mathit.enc:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/enc/dvips/lm/lm-mathsy.enc:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/enc/dvips/lm/lm-rm.enc:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/tfm/public/lm/ec-lmtt12.tfm:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/tfm/public/lm/lmex10.tfm:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/tfm/public/lm/lmmi12.tfm:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/tfm/public/lm/lmmi6.tfm:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/tfm/public/lm/lmmi8.tfm:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/tfm/public/lm/lmsy10.tfm:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/tfm/public/lm/lmsy6.tfm:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/tfm/public/lm/lmsy8.tfm:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/tfm/public/lm/rm-lmr12.tfm:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/tfm/public/lm/rm-lmr6.tfm:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/tfm/public/lm/rm-lmr8.tfm:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/tfm/public/lm/rm-lmss12.tfm:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/tfm/public/lm/rm-lmss8.tfm:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/tfm/public/lm/rm-lmtt12.tfm:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/tfm/public/lm/rm-lmtt8.tfm:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/type1/public/lm/lmex10.pfb:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/type1/public/lm/lmmi12.pfb:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/type1/public/lm/lmmi8.pfb:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/type1/public/lm/lmr12.pfb:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/type1/public/lm/lmr8.pfb:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/type1/public/lm/lmsy10.pfb:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/fonts/type1/public/lm/lmtt12.pfb:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/tex/latex/lm/lmodern.sty:
+    timeStamp: 2009-10-30T19:04:00.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texmf/tex/latex/lm/omllmm.fd:
+    timeStamp: 2009-10-30T19:04:00.000Z
+    jobNames: []
+    type: FontDescription
+  /usr/share/texmf/tex/latex/lm/omslmsy.fd:
+    timeStamp: 2009-10-30T19:04:00.000Z
+    jobNames: []
+    type: FontDescription
+  /usr/share/texmf/tex/latex/lm/omxlmex.fd:
+    timeStamp: 2009-10-30T19:04:00.000Z
+    jobNames: []
+    type: FontDescription
+  /usr/share/texmf/tex/latex/lm/ot1lmr.fd:
+    timeStamp: 2009-10-30T19:04:00.000Z
+    jobNames: []
+    type: FontDescription
+  /usr/share/texmf/tex/latex/lm/ot1lmss.fd:
+    timeStamp: 2009-10-30T19:04:00.000Z
+    jobNames: []
+    type: FontDescription
+  /usr/share/texmf/tex/latex/lm/ot1lmtt.fd:
+    timeStamp: 2009-10-30T19:04:00.000Z
+    jobNames: []
+    type: FontDescription
+  /usr/share/texmf/tex/latex/lm/t1lmtt.fd:
+    timeStamp: 2009-10-30T19:04:00.000Z
+    jobNames: []
+    type: FontDescription
+  /usr/share/texmf/web2c/texmf.cnf:
+    timeStamp: 2018-03-05T00:41:47.000Z
+    jobNames: []
+  /var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map:
+    timeStamp: 2020-06-15T22:01:21.713Z
+    jobNames: []
+  /var/lib/texmf/web2c/pdftex/pdflatex.fmt:
+    timeStamp: 2020-06-15T22:01:23.461Z
+    jobNames: []
+  laromaine_community_assembly_paper.bbl:
+    timeStamp: 2020-12-07T17:55:45.678Z
+    jobNames: []
+    hash: hT26OK/92P9xabrBijW2tErX1R6ZntiAHooUMruN6LA=
+  laromaine_community_assembly_paper.out:
+    timeStamp: 2020-12-07T19:36:17.739Z
+    jobNames: []
+    hash: 47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=
+    type: OUT
+  /usr/share/texlive/texmf-dist/bibtex/bst/base/apalike.bst:
+    timeStamp: 2016-11-25T18:27:13.000Z
+    jobNames: []
+    type: BibTeXStyle
+  /media/shared/Documents/University/PhD/BibTEX/LR_miccom_paper.bib:
+    timeStamp: 2020-12-07T18:05:26.253Z
+    jobNames: []
+    type: BibTeXFile
+  /usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty:
+    timeStamp: 2016-11-25T18:33:40.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty:
+    timeStamp: 2017-09-08T21:22:37.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty:
+    timeStamp: 2016-11-25T18:33:40.000Z
+    jobNames: []
+    type: LaTeXStyle
+  /media/shared/Documents/University/PhD/Analyses/Molecular/catchment_microbial_community/Figures/Final/distBC_distratio_scat.png:
+    timeStamp: 2020-11-18T17:45:07.069Z
+    jobNames: []
+  /usr/share/texlive/texmf-dist/bibtex/bst/natbib/unsrtnat.bst:
+    timeStamp: 2016-11-25T18:27:15.000Z
+    jobNames: []
+    type: BibTeXStyle
+  /usr/share/texmf/fonts/tfm/public/lm/ec-lmr12.tfm:
+    timeStamp: 2009-10-07T18:04:00.000Z
+    jobNames: []
+  /usr/share/texmf/tex/latex/lm/t1lmr.fd:
+    timeStamp: 2009-10-30T19:04:00.000Z
+    jobNames: []
+    type: FontDescription
+  /usr/share/texlive/texmf-dist/bibtex/bst/natbib/plainnat.bst:
+    timeStamp: 2016-11-25T18:27:15.000Z
+    jobNames: []
+    type: BibTeXStyle
+rules:
+  - name: ApplyOptions
+    command: load
+    phase: initialize
+    parameters: []
+    inputs:
+      - file: dicy.yaml-ParsedYAML
+        type: default
+      - file: laromaine_community_assembly_paper.yaml-ParsedYAML
+        type: default
+      - file: laromaine_community_assembly_paper.tex-ParsedLaTeXMagic
+        type: default
+      - file: dicy-instance.yaml-ParsedYAML
+        type: default
+      - file: /home/masumi/.config/dicy/config.yaml-ParsedYAML
+        type: default
+    outputs: []
+  - name: LoadAndValidateCache
+    command: load
+    phase: initialize
+    parameters: []
+    inputs: []
+    outputs: []
+  - name: Migrate
+    command: load
+    phase: initialize
+    parameters: []
+    inputs: []
+    outputs: []
+  - name: ApplyOptions
+    command: load
+    phase: execute
+    parameters: []
+    inputs:
+      - file: dicy.yaml-ParsedYAML
+        type: default
+      - file: laromaine_community_assembly_paper.yaml-ParsedYAML
+        type: default
+      - file: laromaine_community_assembly_paper.tex-ParsedLaTeXMagic
+        type: default
+      - file: dicy-instance.yaml-ParsedYAML
+        type: default
+      - file: /home/masumi/.config/dicy/config.yaml-ParsedYAML
+        type: default
+    outputs: []
+  - name: ParseOptionsFile
+    command: load
+    phase: execute
+    parameters: []
+    inputs:
+      - file: /home/masumi/.config/dicy/config.yaml
+        type: default
+    outputs:
+      - file: /home/masumi/.config/dicy/config.yaml-ParsedYAML
+        type: default
+  - name: ParseLaTeXMagic
+    command: load
+    phase: execute
+    parameters:
+      - laromaine_community_assembly_paper.tex
+    inputs:
+      - file: laromaine_community_assembly_paper.tex
+        type: default
+    outputs:
+      - file: laromaine_community_assembly_paper.tex-ParsedLaTeXMagic
+        type: default
+  - name: AssignJobNames
+    command: load
+    phase: finalize
+    parameters: []
+    inputs: []
+    outputs: []
+  - name: FindLogFiles
+    command: build
+    phase: initialize
+    parameters: []
+    inputs: []
+    outputs: []
+  - name: LaTeX
+    command: build
+    phase: execute
+    parameters:
+      - laromaine_community_assembly_paper.tex
+    inputs:
+      - file: laromaine_community_assembly_paper.tex
+        type: default
+      - file: laromaine_community_assembly_paper.fls-ParsedFileListing
+        type: default
+      - file: laromaine_community_assembly_paper.log-ParsedLaTeXLog
+        type: default
+      - file: laromaine_community_assembly_paper.aux
+        type: default
+      - file: /etc/texmf/web2c/texmf.cnf
+        type: default
+      - file: >-
+          /media/shared/Documents/University/PhD/Analyses/Molecular/catchment_microbial_community/Figures/Final/PCoA_all_SampleType.png
+        type: default
+      - file: >-
+          /media/shared/Documents/University/PhD/Analyses/Molecular/catchment_microbial_community/Figures/Final/PCoA_log_DNA_collage.png
+        type: default
+      - file: >-
+          /media/shared/Documents/University/PhD/Analyses/Molecular/catchment_microbial_community/Figures/Final/abgroups_rollmean_violin.png
+        type: default
+      - file: >-
+          /media/shared/Documents/University/PhD/Analyses/Molecular/catchment_microbial_community/Figures/Final/dissimBCS_distBC_distratio.png
+        type: default
+      - file: >-
+          /media/shared/Documents/University/PhD/Analyses/Molecular/catchment_microbial_community/Manuscript/Figures/LR_miccom_paper_threemaps.png
+        type: default
+      - file: /usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc
+        type: default
+      - file: /usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map
+        type: default
+      - file: /usr/share/texlive/texmf-dist/fonts/tfm/adobe/helvetic/phvb8r.tfm
+        type: default
+      - file: /usr/share/texlive/texmf-dist/fonts/tfm/adobe/helvetic/phvb8t.tfm
+        type: default
+      - file: /usr/share/texlive/texmf-dist/fonts/tfm/adobe/helvetic/phvr8c.tfm
+        type: default
+      - file: /usr/share/texlive/texmf-dist/fonts/tfm/adobe/helvetic/phvr8r.tfm
+        type: default
+      - file: /usr/share/texlive/texmf-dist/fonts/tfm/adobe/helvetic/phvr8t.tfm
+        type: default
+      - file: /usr/share/texlive/texmf-dist/fonts/tfm/adobe/helvetic/phvro8r.tfm
+        type: default
+      - file: /usr/share/texlive/texmf-dist/fonts/tfm/adobe/helvetic/phvro8t.tfm
+        type: default
+      - file: /usr/share/texlive/texmf-dist/fonts/tfm/jknappen/ec/ecrm1200.tfm
+        type: default
+      - file: /usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmr10.tfm
+        type: default
+      - file: /usr/share/texlive/texmf-dist/fonts/tfm/public/cm/cmr12.tfm
+        type: default
+      - file: /usr/share/texlive/texmf-dist/fonts/type1/urw/helvetic/uhvb8a.pfb
+        type: default
+      - file: /usr/share/texlive/texmf-dist/fonts/type1/urw/helvetic/uhvr8a.pfb
+        type: default
+      - file: /usr/share/texlive/texmf-dist/fonts/type1/urw/helvetic/uhvro8a.pfb
+        type: default
+      - file: /usr/share/texlive/texmf-dist/fonts/vf/adobe/helvetic/phvb8t.vf
+        type: default
+      - file: /usr/share/texlive/texmf-dist/fonts/vf/adobe/helvetic/phvr8c.vf
+        type: default
+      - file: /usr/share/texlive/texmf-dist/fonts/vf/adobe/helvetic/phvr8t.vf
+        type: default
+      - file: /usr/share/texlive/texmf-dist/fonts/vf/adobe/helvetic/phvro8t.vf
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/generic/babel-english/english.ldf
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/generic/babel/babel.def
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/generic/babel/babel.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/generic/babel/switch.def
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/generic/babel/txtbabel.def
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/generic/ifxetex/ifxetex.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/generic/oberdiek/gettitlestring.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-generic.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/generic/oberdiek/hobsub-hyperref.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/generic/unicode-data/CaseFolding.txt
+        type: default
+      - file: >-
+          /usr/share/texlive/texmf-dist/tex/generic/unicode-data/SpecialCasing.txt
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/generic/unicode-data/UnicodeData.txt
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/base/fontenc.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/base/omsenc.dfu
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/base/ot1enc.dfu
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/base/size12.clo
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/base/t1enc.def
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/base/t1enc.dfu
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/base/textcomp.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/base/ts1cmr.fd
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/base/ts1enc.def
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/base/ts1enc.dfu
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/base/utf8.def
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/booktabs/booktabs.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/caption/caption.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/caption/caption3.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/cite/cite.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/graphics-def/pdftex.def
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/graphics/graphics.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/graphics/graphicx.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/graphics/trig.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/hyperref/hpdftex.def
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/hyperref/hyperref.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/hyperref/nameref.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/hyperref/pd1enc.def
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/l3kernel/expl3-code.tex
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/l3kernel/expl3.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/l3kernel/l3pdfmode.def
+        type: default
+      - file: >-
+          /usr/share/texlive/texmf-dist/tex/latex/l3packages/l3keys2e/l3keys2e.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/l3packages/xparse/xparse.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/latexconfig/hyperref.cfg
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/makecell/makecell.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/natbib/natbib.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/oberdiek/auxhook.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/oberdiek/epstopdf-base.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/oberdiek/grfext.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/oberdiek/kvoptions.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/oberdiek/rerunfilecheck.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/psnfss/helvet.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/psnfss/t1phv.fd
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/psnfss/ts1phv.fd
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/setspace/setspace.sty
+        type: default
+      - file: >-
+          /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx-abbreviations.cfg
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/siunitx/siunitx.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/titlesec/titlesec.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/tools/array.sty
+        type: default
+      - file: >-
+          /usr/share/texlive/texmf-dist/tex/latex/translator/translator-basic-dictionary-English.dict
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/translator/translator.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/url/url.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/web2c/texmf.cnf
+        type: default
+      - file: /usr/share/texmf/fonts/enc/dvips/lm/lm-ec.enc
+        type: default
+      - file: /usr/share/texmf/fonts/enc/dvips/lm/lm-mathex.enc
+        type: default
+      - file: /usr/share/texmf/fonts/enc/dvips/lm/lm-mathit.enc
+        type: default
+      - file: /usr/share/texmf/fonts/enc/dvips/lm/lm-mathsy.enc
+        type: default
+      - file: /usr/share/texmf/fonts/enc/dvips/lm/lm-rm.enc
+        type: default
+      - file: /usr/share/texmf/fonts/tfm/public/lm/ec-lmtt12.tfm
+        type: default
+      - file: /usr/share/texmf/fonts/tfm/public/lm/lmex10.tfm
+        type: default
+      - file: /usr/share/texmf/fonts/tfm/public/lm/lmmi12.tfm
+        type: default
+      - file: /usr/share/texmf/fonts/tfm/public/lm/lmmi6.tfm
+        type: default
+      - file: /usr/share/texmf/fonts/tfm/public/lm/lmmi8.tfm
+        type: default
+      - file: /usr/share/texmf/fonts/tfm/public/lm/lmsy10.tfm
+        type: default
+      - file: /usr/share/texmf/fonts/tfm/public/lm/lmsy6.tfm
+        type: default
+      - file: /usr/share/texmf/fonts/tfm/public/lm/lmsy8.tfm
+        type: default
+      - file: /usr/share/texmf/fonts/tfm/public/lm/rm-lmr12.tfm
+        type: default
+      - file: /usr/share/texmf/fonts/tfm/public/lm/rm-lmr6.tfm
+        type: default
+      - file: /usr/share/texmf/fonts/tfm/public/lm/rm-lmr8.tfm
+        type: default
+      - file: /usr/share/texmf/fonts/tfm/public/lm/rm-lmss12.tfm
+        type: default
+      - file: /usr/share/texmf/fonts/tfm/public/lm/rm-lmss8.tfm
+        type: default
+      - file: /usr/share/texmf/fonts/tfm/public/lm/rm-lmtt12.tfm
+        type: default
+      - file: /usr/share/texmf/fonts/tfm/public/lm/rm-lmtt8.tfm
+        type: default
+      - file: /usr/share/texmf/fonts/type1/public/lm/lmex10.pfb
+        type: default
+      - file: /usr/share/texmf/fonts/type1/public/lm/lmmi12.pfb
+        type: default
+      - file: /usr/share/texmf/fonts/type1/public/lm/lmmi8.pfb
+        type: default
+      - file: /usr/share/texmf/fonts/type1/public/lm/lmr12.pfb
+        type: default
+      - file: /usr/share/texmf/fonts/type1/public/lm/lmr8.pfb
+        type: default
+      - file: /usr/share/texmf/fonts/type1/public/lm/lmsy10.pfb
+        type: default
+      - file: /usr/share/texmf/fonts/type1/public/lm/lmtt12.pfb
+        type: default
+      - file: /usr/share/texmf/tex/latex/lm/lmodern.sty
+        type: default
+      - file: /usr/share/texmf/tex/latex/lm/omllmm.fd
+        type: default
+      - file: /usr/share/texmf/tex/latex/lm/omslmsy.fd
+        type: default
+      - file: /usr/share/texmf/tex/latex/lm/omxlmex.fd
+        type: default
+      - file: /usr/share/texmf/tex/latex/lm/ot1lmr.fd
+        type: default
+      - file: /usr/share/texmf/tex/latex/lm/ot1lmss.fd
+        type: default
+      - file: /usr/share/texmf/tex/latex/lm/ot1lmtt.fd
+        type: default
+      - file: /usr/share/texmf/tex/latex/lm/t1lmtt.fd
+        type: default
+      - file: /usr/share/texmf/web2c/texmf.cnf
+        type: default
+      - file: /var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map
+        type: default
+      - file: /var/lib/texmf/web2c/pdftex/pdflatex.fmt
+        type: default
+      - file: laromaine_community_assembly_paper.bbl
+        type: default
+      - file: laromaine_community_assembly_paper.out
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
+        type: default
+      - file: /usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty
+        type: default
+      - file: >-
+          /media/shared/Documents/University/PhD/Analyses/Molecular/catchment_microbial_community/Figures/Final/distBC_distratio_scat.png
+        type: default
+      - file: /usr/share/texmf/fonts/tfm/public/lm/ec-lmr12.tfm
+        type: default
+      - file: /usr/share/texmf/tex/latex/lm/t1lmr.fd
+        type: default
+    outputs:
+      - file: laromaine_community_assembly_paper.pdf
+        type: target
+      - file: laromaine_community_assembly_paper.aux
+        type: default
+      - file: laromaine_community_assembly_paper.fls
+        type: default
+      - file: laromaine_community_assembly_paper.log
+        type: default
+      - file: laromaine_community_assembly_paper.synctex.gz
+        type: target
+      - file: laromaine_community_assembly_paper.out
+        type: default
+  - name: ParseBibTeXLog
+    command: build
+    phase: execute
+    parameters:
+      - laromaine_community_assembly_paper.blg
+    inputs:
+      - file: laromaine_community_assembly_paper.blg
+        type: default
+    outputs:
+      - file: laromaine_community_assembly_paper.blg-ParsedBibTeXLog
+        type: default
+  - name: ParseLaTeXLog
+    command: build
+    phase: execute
+    parameters:
+      - laromaine_community_assembly_paper.log
+    inputs:
+      - file: laromaine_community_assembly_paper.log
+        type: default
+    outputs:
+      - file: laromaine_community_assembly_paper.log-ParsedLaTeXLog
+        type: default
+  - name: ParseLaTeXAuxilary
+    command: build
+    phase: execute
+    parameters:
+      - laromaine_community_assembly_paper.aux
+    inputs:
+      - file: laromaine_community_assembly_paper.aux
+        type: default
+    outputs:
+      - file: laromaine_community_assembly_paper.aux-ParsedLaTeXAuxilary
+        type: default
+  - name: ParseFileListing
+    command: build
+    phase: execute
+    parameters:
+      - laromaine_community_assembly_paper.fls
+    inputs:
+      - file: laromaine_community_assembly_paper.fls
+        type: default
+    outputs:
+      - file: laromaine_community_assembly_paper.fls-ParsedFileListing
+        type: default
+  - name: BibTeX
+    command: build
+    phase: execute
+    parameters:
+      - laromaine_community_assembly_paper.aux
+      - laromaine_community_assembly_paper.aux-ParsedLaTeXAuxilary
+    inputs:
+      - file: laromaine_community_assembly_paper.aux
+        type: default
+      - file: laromaine_community_assembly_paper.aux-ParsedLaTeXAuxilary
+        type: default
+      - file: laromaine_community_assembly_paper.log-ParsedLaTeXLog
+        type: default
+      - file: laromaine_community_assembly_paper.blg-ParsedBibTeXLog
+        type: default
+      - file: /usr/share/texlive/texmf-dist/bibtex/bst/base/apalike.bst
+        type: default
+      - file: /media/shared/Documents/University/PhD/BibTEX/LR_miccom_paper.bib
+        type: default
+      - file: /usr/share/texlive/texmf-dist/bibtex/bst/natbib/unsrtnat.bst
+        type: default
+      - file: /usr/share/texlive/texmf-dist/bibtex/bst/natbib/plainnat.bst
+        type: default
+    outputs:
+      - file: laromaine_community_assembly_paper.bbl
+        type: default
+      - file: laromaine_community_assembly_paper.blg
+        type: default
+  - name: LogProducedTargets
+    command: build
+    phase: finalize
+    parameters: []
+    inputs: []
+    outputs: []
+  - name: CheckForMissingBuildRule
+    command: build
+    phase: finalize
+    parameters:
+      - laromaine_community_assembly_paper.tex
+    inputs:
+      - file: laromaine_community_assembly_paper.tex
+        type: default
+    outputs: []
+  - name: FindLogFiles
+    command: log
+    phase: initialize
+    parameters: []
+    inputs: []
+    outputs: []
+  - name: ParseBibTeXLog
+    command: log
+    phase: execute
+    parameters:
+      - laromaine_community_assembly_paper.blg
+    inputs:
+      - file: laromaine_community_assembly_paper.blg
+        type: default
+    outputs:
+      - file: laromaine_community_assembly_paper.blg-ParsedBibTeXLog
+        type: default
+  - name: ParseLaTeXLog
+    command: log
+    phase: execute
+    parameters:
+      - laromaine_community_assembly_paper.log
+    inputs:
+      - file: laromaine_community_assembly_paper.log
+        type: default
+    outputs:
+      - file: laromaine_community_assembly_paper.log-ParsedLaTeXLog
+        type: default
+  - name: ReportLogMessages
+    command: log
+    phase: execute
+    parameters:
+      - laromaine_community_assembly_paper.log-ParsedLaTeXLog
+    inputs:
+      - file: laromaine_community_assembly_paper.log-ParsedLaTeXLog
+        type: default
+    outputs: []
+  - name: ReportLogMessages
+    command: log
+    phase: execute
+    parameters:
+      - laromaine_community_assembly_paper.blg-ParsedBibTeXLog
+    inputs:
+      - file: laromaine_community_assembly_paper.blg-ParsedBibTeXLog
+        type: default
+    outputs: []
+  - name: SaveCache
+    command: save
+    phase: execute
+    parameters: []
+    inputs: []
+    outputs: []
