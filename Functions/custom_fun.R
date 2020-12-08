@@ -3,7 +3,6 @@
 #####################
 ## Data management ##
 #####################
-
 select_newest <- function(path, file.pattern, by = NULL) {
   # some error dealing
   if (length(path) > 1) {
@@ -121,6 +120,24 @@ physeq_to_metagenomeSeq_mod <- function (physeq, ...)
 ########################
 
 minhead <- function(x){x[1:5,1:5]}
+
+# Significance function
+abbrev.p <- function(x){
+  if(x < 0.0001){
+    out <- c("< 0.0001","****")
+    } else if(x <= 0.001){
+      out <- c("< 0.001","***")
+      } else if(x <= 0.01){
+        out <- c("< 0.01","**")
+        } else if(x <= 0.05){
+          out <- c("< 0.05","*")
+        } else {
+          out <- c(as.character(paste("=",round(x, 2)),"n.s.")
+          )
+        }
+  return(out)
+}
+
 
 #####################
 ## Curve functions ##
@@ -410,7 +427,7 @@ scatter_panels <- function(data, labs = c(x,y)){
       geom_errorbar(aes(ymin = mean - stdev, ymax = mean + stdev, colour = Season),
                     position = position_dodge(0.7), width = 0) +
       geom_jitter(aes(fill = Season), shape = 21, 
-                  position = position_dodge(0.7), size = 2.5) +
+                  position = position_dodge(0.7), size = 2.5, alpha = 1) +
       scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
       scale_colour_manual(values = c("#009E73", "#FFAA1D", "#D55E00")) +
       labs(x = labs[1], 
