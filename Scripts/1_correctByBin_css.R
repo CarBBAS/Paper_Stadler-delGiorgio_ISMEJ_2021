@@ -79,6 +79,10 @@ ps <- phyloseq(otu_table(seqtab, taxa_are_rows = F),
                sample_data(meta),
                tax_table(tax))
 
+# How many unclassified?
+t <- ps %>% subset_taxa(is.na(domain))
+nrow(tax_mat(t))
+
 # Filter only bacteria, omitting chloroplasts and mitochondria
 pb <- ps %>%
   subset_taxa(domain == "Bacteria" &
@@ -210,7 +214,7 @@ sumdf[sumdf$DR.names == "RO304R", "DR.names"] <- "RO34R"
 sumdf[sumdf$DR.names == "RO307R", "DR.names"] <- "RO37R" 
 sumdf[sumdf$DR.names == "L230R", "DR.names"] <- "L330R" # L230 does not exist
 
-# remove Ds and Rs to match counterpart DR.namess
+# remove Ds and Rs to match counterpart DR.names
 sumdf$DR.names[sumdf$DnaType == "DNA"] <- str_replace(sumdf$DR.names[sumdf$DnaType == "DNA"], "D$", "")
 sumdf$DR.names[sumdf$DnaType == "cDNA"] <- str_replace(sumdf$DR.names[sumdf$DnaType == "cDNA"], "R$", "")
 

@@ -13,7 +13,7 @@
 # presence-absence matrix, where rows are sites, columns are species
 
 # extract species table with species in columns
-pb.mat <- t(otu_mat(pb))
+pb.mat <- otu_mat(pb)
 # convert to presence-absence
 pb.mat.pa <- decostand(pb.mat, "pa")
 
@@ -72,9 +72,9 @@ bd.df <- as.data.frame(cbind(apply(bd.df[1:2], 2, function(x){
 
 # remove Ds and Rs to match counterpart samples
 bd.df$ID.x[bd.df$DnaType.x == "DNA"] <- str_replace(bd.df$Sample.x[bd.df$DnaType.x == "DNA"], "D$", "")
-bd.df$ID.x[bd.df$DnaType.x == "cDNA"] <- str_replace(bd.df$Sample.x[bd.df$DnaType.x == "cDNA"], "R$", "")
+bd.df$ID.x[bd.df$DnaType.x == "RNA"] <- str_replace(bd.df$Sample.x[bd.df$DnaType.x == "RNA"], "R$", "")
 bd.df$ID.y[bd.df$DnaType.y == "DNA"] <- str_replace(bd.df$Sample.y[bd.df$DnaType.y == "DNA"], "D$", "")
-bd.df$ID.y[bd.df$DnaType.y == "cDNA"] <- str_replace(bd.df$Sample.y[bd.df$DnaType.y == "cDNA"], "R$", "")
+bd.df$ID.y[bd.df$DnaType.y == "RNA"] <- str_replace(bd.df$Sample.y[bd.df$DnaType.y == "RNA"], "R$", "")
 
 # keep all rows where Sample.x and Sample.y are the same
 bd.df <- bd.df[bd.df$ID.x == bd.df$ID.y,]
@@ -103,28 +103,28 @@ bd.dt <- sum[bd.df, c("sample.type.year",
                                                  i.Year, i.Season), on = .(ID)]
 
 bd.dt$sample.type.year <- factor(bd.dt$sample.type.year, levels = c("Soil","Sediment",
-                                                                    "Soilwater","Hyporheicwater", 
-                                                                    "Wellwater","Stream", "Tributary",
-                                                                    "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
-                                                                    "Upriver","RO3", "RO2", "RO1","Deep",
-                                                                    "Downriver",
-                                                                    "Marine"),
-                                 labels = c("Soil","Sediment",
-                                            "Soilwater","Hyporheicwater", 
-                                            "Groundwater","Stream", "Tributary",
-                                            "Headwater \nLakes", "Upstream \nPonds", "Lake", "Lake",
-                                            "Upriver","RO3","RO2", "RO1","Hypolimnion","Downriver",
-                                            "Estuary"))
-bd.dt$Season <- factor(bd.dt$Season, levels = c("spring", "summer", "autumn"), 
-                       labels = c("Spring", "Summer","Autumn"))
+                                             "Soilwater", "Stream", "Tributary",
+                                             "Riverine \nLakes", "Lake",
+                                             "Upriver","Downriver",
+                                             "Reservoirs",
+                                             "Estuary"))
 
-
-ggtern(bd.dt[Metric == "Jaccard",], aes(x = I, y = RC, z = S)) +
+library(ggtern)
+(terti <- ggtern(bd.dt[Metric == "Jaccard",], aes(x = I, y = RC, z = S)) +
   theme_bw() +
-  geom_point(aes(fill = sample.type.year), shape = 21) +
+  geom_point(aes(fill = sample.type.year), shape = 21, size = 2, alpha =.8) +
   theme_showarrows() +
   facet_grid(.~Season) +
-  scale_fill_manual(values = colvec)
+  scale_fill_manual(values = colvec, name = "Habitat Type") +
+  labs(x = "", y = "", z = "",
+       xarrow = "I", yarrow = "RC", zarrow = "S"))
+
+ggsave("./Figures/Final/indicandum_tertiary_plot.png",
+       height = 10, width = 20, units = "cm")
+
+# I = intersection of nestedness and beta div = richness difference
+# RC = Relative complement of nestedness in beta diversity = replacement
+# S = Sorensen
 
 # add new column to split plot into main and side panel
 bd.dt[, panels := "main"]

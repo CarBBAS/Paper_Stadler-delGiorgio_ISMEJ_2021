@@ -197,7 +197,7 @@ deriv <- ggplot() +
 
 p <- ggarrange(raw, logged, deriv, ncol = 3, labels = "auto")
 # add x axis title to be in the middle of two panels
-(p <- annotate_figure(p, bottom = text_grob("ASV Rank")))
+(p <- annotate_figure(p, bottom = text_grob("OTU Rank")))
 ggsave("./Figures/Final/abundance_class_ex_otu99.png", p,
        width = 22, height = 9, unit = "cm")
 
