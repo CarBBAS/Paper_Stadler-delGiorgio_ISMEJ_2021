@@ -1,13 +1,19 @@
-###-----------------------------------------###
-#-   Pre-processing of data for Chapter 1   - #
-###-----------------------------------------###
+#-- Script for the publication:
+#-- Title
+#-- Responsible author: Masumi Stadler
+
+# This script is the second of a series of scripts that were used to analyse the data
+# used in the publication.
+
 ###-----------------------------------###
 #-   Binning and CSS transformation   - #
 ###-----------------------------------###
-# This script processes the meta data of the whole La Romaine project to extract the necessary information
-# for the first paper of this thesis.
+# This script processes the meta data of the whole La Romaine project to extract the necessary information for the paper
 
 # First we take all samples except those from Bioassays and 2018 (as RNA data is not avaialable at this moment)
+# For users/viewers: Only parts of the whole data will be published at point of publication
+# as other data will be used for further thesis chapters, thus a few lines will have to be skipped as they are only
+# relevant for the whole data
 
 # Second, we split the data set into ID groups (Year, Season, DnaType, ASV) and evaluate whether
 # there is an actual observation or if that particular ASV is absent in that ID group.
@@ -19,45 +25,54 @@
 # Third, we will transform the corrected counts with metgenomeSeq to CSS ().
 
 # Finally, we calculate the relative abundances based on the css read numbers for completeness.
-#setwd("/media/shared/Documents/University/PhD/Analyses/Molecular/lr.chapter1")
-setwd("/home/bioinf/data/Molecular/Masumi/Bioinf.LaRomaine/catchment_microbial_community")
-#----------#
-# PACKAGES #
-#----------#
-library(phyloseq)
-library(metagenomeSeq)
-library(tidyverse)
-library(data.table)
-library(doMC)
-library(plyr)
-# allow progress bar
-library(svMisc)
-library(pbapply)
 
-#-----------#
-# FUNCTIONS #
-#-----------#
+# 1. R set-up ------------------------------------------------------------------------------
+### Packages -------------------------------------------------------------------------------
+pckgs <- list("phyloseq", "metagenomeSeq", # OTU clustering
+              "tidyverse", "plyr", "data.table", # wrangling
+              "doMC", "pbapply", # parallel computing
+              "svMisc") # progress bar in loop
+
+
+### Check if packages are installed, output packages not installed:
+(miss.pckgs <- unlist(pckgs)[!(unlist(pckgs) %in% installed.packages()[,"Package"])])
+#if(length(miss.pckgs) > 0) install.packages(miss.pckgs)
+# Many packages have to be installed through Bioconductor, please refer to the package websites
+
+### Load
+invisible(lapply(pckgs, library, character.only = T))
+rm(pckgs, miss.pckgs)
+
+### Functions -----------------------------------------------------------------------------
 source("./Functions/custom_fun.R")
 
-#-----------------#
-# PARALLEL SET-UP #
-#-----------------#
+### Parallel set-up -----------------------------------------------------------------------
 # register number of cores for parallel computing with 'apply' family
 detectCores() # 24 (private PC: 4), we do not have 24 cores. It's 12 cores, 24 threads.
 registerDoMC()
 getDoParWorkers() # 12 (private PC: 2)
 
-#---------------------#
-# Raw data processing #
-#---------------------#
-# Read in microbial data
-tax <-
-  readRDS("./MotherData/taxtab_idtaxa_silva_v138_2018.rds") # assigned taxonomy
-seqtab <- readRDS("./MotherData/nochim_seqtab_2018.rds")
+# Set seed for session and reproducibility of permutations
+# (just for consistency, no random iteration in this script)
+set.seed(3)
 
-# OTU table
-tax <- readRDS("./Objects/otu_taxtab_99.rds")
-seqtab <- readRDS("./Objects/otu_seqtab_99.rds")
+# 2. Raw data processing ---------------------------------------------------------------
+# Read in OTU table and taxonomy information
+#tax <- readRDS("./Objects/otu_taxtab_99.rds")
+#seqtab <- readRDS("./Objects/otu_seqtab_99.rds")
+tax <- read.csv("./Output/OTU_99_taxonomy.csv", 
+                sep = ',', row.names = 1, colClasses = "character", stringsAsFactors = F)
+tax.names <- rownames(tax) # somehow mutate_if removes rownames, save and add later
+tax <- tax %>% mutate_if(is.character, list(~na_if(.,"")))
+# some NAs are just an empty string, fill with NA
+rownames(tax) <- tax.names; rm(tax.names)
+tax <- as.matrix(tax[order(rownames(tax)),])
+#seqtab <- read.csv("./Output/OTU_99_table.csv",
+#                   sep = ',', row.names = 1, stringsAsFactors = F)
+# faster to read in R object
+seqtab <- readRDS('./Objects/OTU_99_table.rds')
+seqtab <- seqtab[order(rownames(seqtab)),order(colnames(seqtab))]
+
 
 # Read in meta data
 meta <-
@@ -68,20 +83,26 @@ meta <-
     stringsAsFactors = F
   )
 
+# we have more samples than in the data set needed (aka meta), as new 2018 data were added.
+# Omit rows with 2018 samples
+seqtab <- seqtab[rownames(seqtab) %in% meta$DadaNames,]
+
 # phyloseq needs the sample names of the meta data to be the same as the microbial data
 meta <- sample_data(meta)
 
 # Assign rownames to be Sample ID's
 rownames(meta) <- meta$DadaNames
+meta <- meta[order(rownames(meta)),]
 
 # Construct phyloseq object
 ps <- phyloseq(otu_table(seqtab, taxa_are_rows = F),
                sample_data(meta),
                tax_table(tax))
 
-# How many unclassified?
-t <- ps %>% subset_taxa(is.na(domain))
+# How many unclassified OTUs?
+t <- ps %>% subset_taxa(taxa_sums(ps) != 0) %>% subset_taxa(is.na(domain))
 nrow(tax_mat(t))
+rm(t)
 
 # Filter only bacteria, omitting chloroplasts and mitochondria
 pb <- ps %>%
@@ -89,39 +110,8 @@ pb <- ps %>%
                 family  != "Mitochondria" &
                 order   != "Chloroplast")
 
-#----------------------------#
-# Rename ASV exact sequences #
-#----------------------------#
-# Rename exact sequences to ASV_n
-asv_id <- data.frame(
-  Sequence = taxa_names(pb),
-  ID = paste("ASV", seq(length = length(taxa_names(
-    pb
-  ))), sep = "_"),
-  stringsAsFactors = F
-)
-
-# create folder for saving
-dir.create(file.path("./Output"))
-# save for later cross checking
-write.table(
-  asv_id,
-  paste0("./Output/ASV_sequences_", Sys.Date(), ".csv"),
-  sep = ";",
-  dec = ".",
-  row.names = F
-)
-
-taxa_names(pb)[1:5] # check ASVs = exact sequence as colname
-# actually overwrite
-taxa_names(pb) <-
-  paste("ASV", seq(length = length(taxa_names(pb))), sep = "_")
-taxa_names(pb)[1:5]
-
-#--------------------------------#
-# Shrink data to relevant subset #
-#--------------------------------#
-# Filter out ASVs that do not have any abundance in data set
+# 3. Shrink to relevant subset ---------------------------------------------------------------
+# Filter out OTUs that do not have any abundance in data set
 pb <- filter_taxa(pb, function(x)
   sum(x) > 0, TRUE)
 
@@ -142,24 +132,22 @@ pb <- subset_samples(pb, !(sample.type.year == "Bioassay" | sample.type.year == 
 pb <- prune_taxa(taxa_sums(pb) != 0, pb)
 
 # extract individual tables from phyloseq obj
-asv.tab <- otu_table(pb)
+otu.tab <- otu_table(pb)
 
 met.df <- sample_df(pb)
 
 tax.df <- tax_mat(pb)
 
 # remove unnecessary objects
-rm(asv_id, meta, ps, seqtab, tax)
+rm(meta, ps, seqtab, tax)
 
-###########################
-#- Correct too few reads -#
-###########################
+# 4. Correct too few reads ---------------------------------------------------------------
 # transform ASV table into data.table
-asv.tab <- setDT(as.data.frame(asv.tab, strings.As.Factors = F), keep.rownames = "Sample")
+otu.tab <- setDT(as.data.frame(otu.tab, strings.As.Factors = F), keep.rownames = "Sample")
 
 # melt OTU table into long format
-asv.tab <- melt.data.table(
-  asv.tab,
+otu.tab <- melt.data.table(
+  otu.tab,
   id.vars = "Sample",
   measure.vars = patterns("^OTU_"),
   variable.name = "OTU",
@@ -168,8 +156,8 @@ asv.tab <- melt.data.table(
 
 # Join OTU and meta table
 sumdf <- left_join(
-  asv.tab,
-  met.df[met.df$DadaNames %in% asv.tab$Sample,] %>%
+  otu.tab,
+  met.df[met.df$DadaNames %in% otu.tab$Sample,] %>%
     dplyr::select(
       DadaNames,
       Year,
@@ -198,7 +186,7 @@ sumdf[sample.type.year == "Hyporheicwater", catchment.area := -30]
 sumdf[sumdf$Sample == "RO2111.60mD",]$sample.type.year <- "Deep"
 
 
-#-- Match DNA and RNA --#
+# 5. Match DNA and RNA ---------------------------------------------------------------
 # new sample name column to identify which DNAs belong to which RNA
 sumdf[, DR.names := Sample]
 # correct a few wrong sample names for matching DNA and RNA
@@ -226,32 +214,31 @@ notindna <- sum.reads[DnaType == "DNA" & sum.reads == 0,]$OTU
 sum.reads <- sum.reads[order(OTU, DnaType),]
 
 nrow(tax.df[rownames(tax.df) %in% sum.reads[OTU %in% as.character(notindna) & sum.reads > 100,]$OTU,])
-# 163 OTUs only in RNA and that have a high read number (> 100)
+# 162 OTUs only in RNA and that have a high read number (> 100)
 # 490 with ASVs and clustering by 99.7% similarity
 
 sumdf <- sumdf[!(OTU %in% notindna),]
-# removing 3357 OTUs
+length(notindna)
+# removing 3353 OTUs
 
 #combine back with some meta Data and sample names
-# order by catchment.area
-sumdf <- sumdf[order(ID, catchment.area)]
-
 # add ID column for parallel computing
 sumdf[, ID := paste(Year, Season, DnaType, OTU, sep = ".")]
 
 # split data frame in present and absent
 # (Otherwise computational power is overwhelmed)
 sumdf[, n := .N, by = .(ID)] # number of samples by factorial combination
-sumdf[, n.obs := nrow(.SD[reads > 0]), by = .(ID)] # how many of those have an actual observation of ASV?
+sumdf[, n.obs := nrow(.SD[reads > 0]), by = .(ID)] # how many of those have an actual observation of an OTU?
 
 # initiate presence-absence col
 sumdf[, PA := character()]
 sumdf[is.na(PA) &
-        n.obs == 0, PA := "Absent", by = .(ID)] # if for a factorial combination, there was not a single observation define as absent
+        n.obs == 0, PA := "Absent", by = .(ID)]
+# if for a factorial combination, there was not a single observation define as absent
 sumdf[is.na(PA) & n.obs > 0, PA := "Present", by = .(ID)]
 # all observations above 0 are present
 
-#- Actual quality control -#
+# 6. Quality control ---------------------------------------------------------------
 getDoParWorkers() # 12
 # check if cores were allocated correctly
 
@@ -265,7 +252,8 @@ absent <- sumdf[PA == "Absent",]
 present[, bin := paste(sample.type.year, Year, Season, DnaType, OTU, sep = "_")]
 # number of observations by bin
 present[, n.bin := .N, by = .(bin)]
-present[n.bin == 1 & reads < 10, cor.reads := 0] # select all with only one observation by bin, overwrite all reads less than 10 with 0
+present[n.bin == 1 & reads < 10, cor.reads := 0]
+# select all with only one observation by bin, overwrite all reads less than 10 with 0
 present[is.na(cor.reads), cor.reads := reads] # fill in rest
 present[, bin := NULL][, n.bin := NULL] # remove unncessary columns for downstream analysis
 
@@ -289,9 +277,10 @@ cor.pb <- phyloseq(otu_table(cor.reads, taxa_are_rows = F),
                    sample_data(met.df),
                    tax_table(tax.df[row.names(tax.df) %in% colnames(cor.reads),]))
 
-######################
-# CSS transformation #
-######################
+# save initial sumdf data frame to be used later as reference (sample ~ corrected sample name)
+saveRDS(sumdf, "./Objects/summary.meta.with.oldnames.rds")
+
+# 7. CSS transformation ---------------------------------------------------------------
 # We apply the cumuluative sum scaling transformation (Paulson et al. Nature Methods 2013)
 # metagenomeSeq needs, samples in columns, "features" (= ASVs) in rows
 # export phyloseq object into MRexperiment
@@ -317,7 +306,7 @@ MRcounts(pb.ms, norm = T)[1100:1110, 1:5]
 # export normalised count matrices
 pb.mat <- MRcounts(pb.ms, norm = T)
 pb.mat <- round(pb.mat, digits = 0) # export as count data instead of decimals
-exportMat(pb.mat, file = paste0("./Output/201520162017_CSS_otu99_asvtab_", Sys.Date(),".tsv"))
+exportMat(pb.mat, file = paste0("./Output/201520162017_CSS_otu99_otutab_", Sys.Date(),".tsv"))
 
 # export sample statistics
 # create folder for saving
@@ -338,9 +327,7 @@ css <- melt.data.table(
 
 fin <- merge(fin, css, by = c("Sample", "OTU"))
 
-#---------------------#
-# Relative abundances #
-#---------------------#
+# 8. Calculate relative abundances ---------------------------------------------------------------
 # !! not recommended to use !! #
 # but calculate for completeness
 # calculate relative abundances
@@ -352,9 +339,7 @@ fin[, rel.abund := css.reads / library.size]
 san <- fin[, .(check = sum(rel.abund)), .(Sample)]
 san$check # all 1
 
-#---------------------#
-# Who became absent ? #
-#---------------------#
+# 9. Identify who became absent after quality control ---------------------------------------------------------------
 # Classify those as absent after correcting by bin
 fin[, n := .N, by = .(ID)] # number of samples by factorial combination
 fin[, n.obs := nrow(.SD[css.reads > 0]), by = .(ID)] # how many of those have an actual observation of ASV?
@@ -373,9 +358,7 @@ out <- dupl.mean[fin, c("Sample","Season","Year","sample.type.year","soilorwater
             list(i.Sample,i.Season,i.Year,i.sample.type.year,i.soilorwater,i.catchment.area,
                  i.distance.from.mouth, i.n, i.n.obs, i.PA, i.ID, i.library.size), on = .(DR.names, DnaType, OTU)]
 
-#------#
-# Save #
-#------#
+# 11. Export ---------------------------------------------------------------
 # rearrange data frame before saving
 setcolorder(
   out,
@@ -407,22 +390,24 @@ saveRDS(out,
         paste0("./Objects/201520162017_css_otu99_",
                Sys.Date(),
                ".rds"))
-
+write.table(out, paste0("./Output/201520162017_css_otu99_",
+                      Sys.Date(),
+                      ".csv"), sep = ",", dec = ".",  row.names = F)
 ## Extract final info from all phyloseq objects
 # export shrinked ASV table
 
-asv.tab <- setDF(dcast(out, Sample ~ OTU, value.var = "css.reads"))
-row.names(asv.tab) <- asv.tab$Sample; asv.tab[, "Sample"] <- NULL
-asv.tab <- as.matrix(asv.tab)
+otu.tab <- setDF(dcast(out, Sample ~ OTU, value.var = "css.reads"))
+row.names(otu.tab) <- otu.tab$Sample; otu.tab[, "Sample"] <- NULL
+otu.tab <- as.matrix(otu.tab)
 
 # remove empty samples or empty OTUs
-asv.tab <- asv.tab[rowSums(asv.tab) > 0,]
-asv.tab <- asv.tab[, colSums(asv.tab) > 0]
+otu.tab <- otu.tab[rowSums(otu.tab) > 0,]
+otu.tab <- otu.tab[, colSums(otu.tab) > 0]
 
-# row orders need to match between tax.tab and asv.tab
-asv.tab <- asv.tab[order(row.names(asv.tab)),]
+# row orders need to match between tax.tab and otu.tab
+otu.tab <- otu.tab[order(row.names(otu.tab)),]
 write.table(
-  asv.tab,
+  otu.tab,
   paste0("./Output/201520162017_fin_css_otu99_table_", Sys.Date(), ".csv"),
   sep = ";",
   dec = ".",
@@ -433,7 +418,7 @@ write.table(
 met.df <- sample_df(pb)
 
 # only take those samples in OTU table, will remove duplicates and one lost sample
-met.df <- met.df[met.df$DadaNames %in% levels(factor(row.names(asv.tab))),]
+met.df <- met.df[met.df$DadaNames %in% levels(factor(row.names(otu.tab))),]
 setDT(met.df)
 met.df <- met.df[out, c("DR.names", "sample.type.year") := 
                  list(i.DR.names, i.sample.type.year), on = .(DadaNames == Sample)]
@@ -449,8 +434,8 @@ write.table(
 )
 
 tax.df <- tax_mat(pb)
-tax.df <- tax.df[row.names(tax.df) %in% levels(factor(colnames(asv.tab))),]
-# orders need to match between tax.tab and asv.tab
+tax.df <- tax.df[row.names(tax.df) %in% levels(factor(colnames(otu.tab))),]
+# orders need to match between tax.tab and otu.tab
 tax.df <- tax.df[order(row.names(tax.df)),]
 
 write.table(
@@ -462,10 +447,12 @@ write.table(
 )
 
 #rm(met.df, out, pb, pb.mat, pb.ms, present, san, seqdf, sum.reads, sumdf, tax.df, tax.tab, test,notindna, p, absent,
-#   asv.tab, cor.reads, css, dupl.mean, fin)
-##################################################################
-###################################################################################################
-## Rarefaction
+#   otu.tab, cor.reads, css, dupl.mean, fin)
+
+
+
+
+# 12. Rarefaction ---------------------------------------------------------------
 # overwrite library size data with corrected reads
 sample_data(cor.pb)$LibrarySize <- sample_sums(cor.pb)
 hist(sample_data(cor.pb)$LibrarySize)
@@ -580,3 +567,46 @@ for (j in 1:length(min_lib)) {
 #---------------------#
 sessionInfo()
 
+
+#R version 4.0.3 (2020-10-10)
+#Platform: x86_64-pc-linux-gnu (64-bit)
+#Running under: Ubuntu 18.04.5 LTS
+
+#Matrix products: default
+#BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.7.1
+#LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.7.1
+
+#locale:
+#  [1] LC_CTYPE=en_CA.UTF-8       LC_NUMERIC=C              
+#[3] LC_TIME=en_CA.UTF-8        LC_COLLATE=en_CA.UTF-8    
+#[5] LC_MONETARY=en_CA.UTF-8    LC_MESSAGES=en_CA.UTF-8   
+#[7] LC_PAPER=en_CA.UTF-8       LC_NAME=C                 
+#[9] LC_ADDRESS=C               LC_TELEPHONE=C            
+#[11] LC_MEASUREMENT=en_CA.UTF-8 LC_IDENTIFICATION=C       
+
+#attached base packages:
+#  [1] stats4    parallel  stats     graphics  grDevices utils     datasets  methods  
+#[9] base     
+
+#other attached packages:
+#  [1] doMC_1.3.7          iterators_1.0.13    foreach_1.5.1       data.table_1.13.2  
+#[5] plyr_1.8.6          forcats_0.5.0       stringr_1.4.0       dplyr_1.0.2        
+#[9] purrr_0.3.4         readr_1.4.0         tidyr_1.1.2         tibble_3.0.4       
+#[13] ggplot2_3.3.2       tidyverse_1.3.0     DECIPHER_2.16.1     RSQLite_2.2.1      
+#[17] Biostrings_2.56.0   XVector_0.28.0      IRanges_2.22.2      S4Vectors_0.26.1   
+#[21] BiocGenerics_0.34.0
+
+#loaded via a namespace (and not attached):
+#  [1] Rcpp_1.0.5       lubridate_1.7.9  assertthat_0.2.1 digest_0.6.27   
+#[5] R6_2.4.1         cellranger_1.1.0 backports_1.1.10 reprex_0.3.0    
+#[9] httr_1.4.2       pillar_1.4.6     zlibbioc_1.34.0  rlang_0.4.8     
+#[13] readxl_1.3.1     rstudioapi_0.11  blob_1.2.1       bit_4.0.4       
+#[17] munsell_0.5.0    broom_0.7.2      compiler_4.0.3   modelr_0.1.8    
+#[21] pkgconfig_2.0.3  tidyselect_1.1.0 codetools_0.2-17 fansi_0.4.1     
+#[25] crayon_1.3.4     dbplyr_1.4.4     withr_2.3.0      grid_4.0.3      
+#[29] jsonlite_1.7.1   gtable_0.3.0     lifecycle_0.2.0  DBI_1.1.0       
+#[33] magrittr_1.5     scales_1.1.1     cli_2.1.0        stringi_1.5.3   
+#[37] fs_1.5.0         xml2_1.3.2       ellipsis_0.3.1   generics_0.0.2  
+#[41] vctrs_0.3.4      tools_4.0.3      bit64_4.0.5      glue_1.4.2      
+#[45] hms_0.5.3        colorspace_1.4-1 rvest_0.3.6      memoise_1.1.0   
+#[49] haven_2.3.1

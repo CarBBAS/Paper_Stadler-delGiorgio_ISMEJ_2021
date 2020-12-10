@@ -7,7 +7,7 @@ set.seed(3)
 ### Packages -------------------------------------------------------------------------------
 pckgs <- list("phyloseq", "plyr", "tidyverse", "data.table", # wrangling
               "ggpubr", "ggnewscale", "cowplot", "plotly", # plotting,
-              "kableExtra", "xlsx", # making tables for manuscript (LaTeX) and export as excel (for ISME)
+              "kableExtra",# "xlsx", # making tables for manuscript (LaTeX) and export as excel (for ISME)
               "doMC", # parallel computing
               "vegan", "ape", "ade4") # statistics
 
@@ -337,8 +337,8 @@ perm.mod <- adonis(pb.mat ~ sample.type.year + Season,
                    permutations = 9999, data = ord.df, sqrt.dist = T, method = "bray",
                    parallel = cl)
 #-- results
-# habitat = F[12] = 17.09, R^2 = 0.35107, p = 1e-04
-# season = F[2] = 11.08, R^2 = 0.03793, p = 1e-04
+# habitat = F[12] = 17.07, R^2 = 0.35083, p = 1e-04
+# season = F[2] = 11.09, R^2 = 0.03798, p = 1e-04
 # iterations = 9999
 
 # calculate multivariate dispersions
@@ -362,9 +362,9 @@ perm3 <- anova(mod3, permutations = 9999, pairwise = T, parallel = cl)
 # runs into errors with permutest, anova.cca is same function but runs without errors...
 
 #-- results
-# habitat alone = F[12] = 32.17, p = 1e-04
-# season alone = F[2] = 42.79, p = 1e-04
-# combined = F[27] = 17.77, p = < 2.2e-16
+# habitat alone = F[12] = 32.32, p = < 2.2e-16
+# season alone = F[2] = 42.77, p = < 2.2e-16
+# combined = F[27] = 17.81, p = < 2.2e-16
 
 # individual comparisons (exploring differences in dispersion among groups)
 TukeyHSD(mod2)
@@ -386,7 +386,7 @@ is.euclid(pb.bray)
 pb.bray.pcoa <- ape::pcoa(pb.bray)
 
 
-ncol(pb.mat) # 20185 OTUs
+ncol(pb.mat) # 20182 OTUs
 nrow(pb.mat) # 572 registers
 
 ncol(pb.bray.pcoa$vectors) # 571 axes
@@ -421,9 +421,6 @@ ggplot(pb.bray.pcoa$values[pb.bray.pcoa$values$Eigenvalues > 1,],
 nrow(pb.bray.pcoa$values[pb.bray.pcoa$values$Cumul_eig <= 0.75,])
 # 186 axes
 
-# how much of the variance captured in the first 29 axes (Eigenvalues > 1)
-sum(pb.bray.pcoa$values[pb.bray.pcoa$values$Eigenvalues > 1,"Eigenvalues"]) *100 / sum(pb.bray.pcoa$values[,"Eigenvalues"])
-
 # explore other axes
 #for(i in 2:ncol(pb.bray.pcoa$vectors)){
 #  temp <- plot_pcoa(pb.bray.pcoa, physeq = pb, plot.axes = c(1,i), colours = colvec, output = T)
@@ -443,9 +440,9 @@ perm.mod <- adonis(pb.mat ~ sample.type.year + Season + DnaType,
                    permutations = 9999, data = ord.df, sqrt.dist = T, method = "bray",
                    parallel = cl)
 #-- results
-# habitat = F[12] = 20.65, R^2 = 0.28824, p = 1e-04
-# season = F[2] = 14.862, R^2 = 0.03458, p = 1e-04
-# nucleic acid type = F[1] = 26.072, R^2 = 0.03033, p = 1e-04
+# habitat = F[12] = 20.637, R^2 = 0.28819, p = 1e-04
+# season = F[2] = 14.845, R^2 = 0.03455, p = 1e-04
+# nucleic acid type = F[1] = 25.988, R^2 = 0.03024, p = 1e-04
 # iterations = 9999
 
 # calculate multivariate dispersions
@@ -470,10 +467,10 @@ perm4 <- anova(mod4, permutations = 9999, pairwise = T, parallel = cl)
 # runs into errors with permutest and parallel, anova.cca is same function but without errors...
 
 #-- results
-# habitat alone = F[12] = 31.577, p = 1e-04
-# season alone = F[2] = 44.262, p = 1e-04
-# nucleic acid type alone = F[1] = 1.6476, p = 0.1998
-# combined = F[48] = 10.96, p = < 2.2e-16
+# habitat alone = F[12] = 31.611, p =  < 2.2e-16
+# season alone = F[2] = 44.548, p = < 2.2e-16
+# nucleic acid type alone = F[1] = 1.6727, p = 0.1964
+# combined = F[48] = 10.921, p = < 2.2e-16
 
 tuk <-TukeyHSD(mod4)
 t <- data.frame(Groups = rownames(tuk$group),unlist(tuk$group))
@@ -1429,74 +1426,43 @@ alpha <- llply(as.list(perm.rar), function(x){
 names(alpha) <- c(paste0("lib", min_lib), "css")
 alpha.df <- bind_rows(alpha, .id = "Data")
 
-write.table(alpha.df, "./Output/alpha_div_otu99_summary.csv", sep = ";", dec = ".", row.names = F)
+# combine with DR.names and meta data
+sumdf <- readRDS("./Objects/summary.meta.with.oldnames.rds")
+
+sumdf <- sumdf[,c("Sample","DR.names", "DnaType","Season"), with = T]
+sumdf <- setDT(sumdf %>% distinct()) ; setDT(alpha.df)
+alpha.df[sumdf, c("DR.names","Season","DnaType") := list(i.DR.names,
+                                                         i.Season,
+                                                         i.DnaType), on = .(Sample)]
+
+write.table(alpha.df, paste0("./Output/alpha_div_otu99_summary_", Sys.Date(),".csv"), sep = ",", dec = ".", row.names = F)
 
 #-----------------------------------------------------------------------------------------------
+alpha.df <- select_newest("./Output/", "alpha_div_otu99_summary_")
+alpha.df <- read.csv(paste0("./Output/", alpha.df), sep = ",", stringsAsFactors = F)
 
-alpha.df <- read.csv("./Output/alpha_div_summary.csv", sep = ";", dec = ".", stringsAsFactors = F)
-
-# correct a few wrong sample names for matching DNA and RNA
-alpha.df[alpha.df$Sample == "RO2R52R", "Sample"] <- "RO2.52R"
-alpha.df[alpha.df$Sample == "SWR34R", "Sample"] <- "SW34R"
-alpha.df[alpha.df$Sample == "RO2.36pD", "Sample"] <- "RO2.36D"
-alpha.df[alpha.df$Sample == "RO2.36pR", "Sample"] <- "RO2.36R"
-alpha.df[alpha.df$Sample == "RO2111.60mD", "Sample"] <- "RO2111.90mD"
-alpha.df[alpha.df$Sample == "RO2.30DPR", "Sample"] <- "RO2.30R" # two DNA
-alpha.df[alpha.df$Sample == "RO301.HypoR", "Sample"] <- "RO31.HypoR"
-alpha.df[alpha.df$Sample == "RO301R", "Sample"] <- "RO31R" 
-alpha.df[alpha.df$Sample == "RO304R", "Sample"] <- "RO34R" 
-alpha.df[alpha.df$Sample == "RO307R", "Sample"] <- "RO37R" 
-alpha.df[alpha.df$Sample == "L230R", "Sample"] <- "L330R" # L230 does not exist
-
-
-rar <- select_newest("./Objects", "201520162017_css_otu99_")
-
-rar <- readRDS(paste0("./Objects/", rar))
-
-alpha.df$Sample[!(alpha.df$Sample %in% rar$Sample)]
-
-data.table::setDT(rar)
-# make mean column to count
-rar <- setDF(dcast(rar, Sample ~ OTU, value.var = "iter.mean"))
-rownames(rar) <- rar$Sample
-rar$Sample <- NULL
-rar < t(as.matrix(rar))
-rar <- rar[order(row.names(rar)),]
-
-tax.tab <- tax.tab[row.names(tax.tab) %in% colnames(rar),]
-tax.tab <- tax.tab[order(match(row.names(tax.tab), colnames(rar))),]
-met.df <- met.df[row.names(met.df) %in% row.names(rar),]
-met.df <- met.df[order(match(row.names(met.df), row.names(rar))),]
-
-pb <- phyloseq(otu_table(t(rar), taxa_are_rows = T),
-               sample_data(met.df),
-               tax_table(tax.tab))
-# remove taxa without observation
-pb <- prune_taxa(!taxa_sums(pb) == 0, pb)
-
-
-
-
-
-
-# get data from All PCoA
-pdataframe <- dist.dr$raw.df
-
-# get ID
-setDT(alpha.df); setDT(pdataframe)
-alpha.df[pdataframe, c("ID","DnaType") := 
-           list(i.ID, i.DnaType), on = .(Sample)]
+# make to data table
+setDT(alpha.df)
 
 # split DNA and RNA
 dna.alpha <- alpha.df[alpha.df$DnaType == "DNA",]
-rna.alpha <- alpha.df[alpha.df$DnaType == "RNA",]
+rna.alpha <- alpha.df[alpha.df$DnaType == "cDNA",]
+
+temp <- alpha.df[DR.names %in% unique(alpha.df[DnaType == "cDNA",]$DR.names),][Data == "css",]
+t <- temp[DR.names %in% DR.names[duplicated(DR.names)],]
+cast.alpha <- dcast(temp,
+                     DR.names + Season ~ DnaType, value.var = c("Shannon", "Simpson", "Pielou","Chao1"))
+
+ggplot(cast.alpha, aes(x = Pielou_DNA, y = Pielou_cDNA, colour = Season)) +
+  geom_point()
+
 
 ###
 # DNA
 ###
 
 # Execute regressions first on DNA diversity
-df <- melt(dna.alpha, id.vars = c("ID","Data"),
+df <- melt(dna.alpha, id.vars = c("DR.names","Data"),
                   measure.vars = c("Shannon","Simpson","Pielou","Chao1"),
                   variable.name = "Index",
                   value.name = "Diversity")
@@ -1504,12 +1470,9 @@ df <- melt(dna.alpha, id.vars = c("ID","Data"),
 # Only focus on CSS, non rarefied data and two diversity indices
 df <- df[Data == "css" & (Index == "Shannon" | Index == "Pielou"),]
 
-# calculate mean of duplicates
-df[, .(Diversity = mean(Diversity, na.rm = T)), by = .(ID, Index)]
-
 # merge with distance
-reg.df <- df[dist.dr$indiv.df, c("distance", "sample.type.year") := 
-                       list(i.distance, i.sample.type.year), on = .(ID)]
+reg.df <- df[dist.75[Metric == "Sorensen",], c("distance", "sample.type.year", "Season") := 
+                       list(i.dist, i.sample.type.year, i.Season), on = .(DR.names)]
 
 # remove any NAs, e.g. samples from 2015
 reg.df <- reg.df[!is.na(distance),]
@@ -1522,12 +1485,12 @@ z <- z[, .(Diversity = mean(Diversity, na.rm = T),
 
 plot(Diversity ~ distance, data = z) # does not seem linear
 lm0 <- lm(z$Diversity ~ 1)  ; summary(lm0)
-lm1 <- lm(z$Diversity ~ z$distance); summary(lm1) # adj R2 0.67
-lm2 <- lm(z$Diversity ~ poly(z$distance, 2)); summary(lm2) # adj R2 0.73
-lm3 <- lm(z$Diversity ~ poly(z$distance, 3)); summary(lm3) # adj R2 0.70
+lm1 <- lm(z$Diversity ~ z$distance); summary(lm1) # adj R2 -0.03645 p > 0.05
+lm2 <- lm(z$Diversity ~ poly(z$distance, 2)); summary(lm2) # adj R2 0.47 p > 0.05
+lm3 <- lm(z$Diversity ~ poly(z$distance, 3)); summary(lm3) # adj R2 0.18 p > 0.05
 anova(lm0,lm1) # preferred model is lm1, higher R2 and lowered RSS
 # polynomials do not add much, and avoid overfitting and choose a parsimonious model
-anova(lm1,lm2) 
+anova(lm1,lm2) # preferred model lm2
 anova(lm2,lm3) 
 rm(z)
 
@@ -1551,7 +1514,7 @@ lin.ls <- dlply(reg.df, .(Index), function(z){
   means <- z[, .(Diversity = mean(Diversity, na.rm = T),
                       distance = mean(distance, na.rm = T)), by = .(sample.type.year)]
   if(unique(z$Index) == "Shannon"){
-    lin <- lm(means$Diversity ~ means$distance)
+    lin <- lm(means$Diversity ~ poly(means$distance, 2))
   } else if(unique(z$Index) == "Pielou") {
     lin <-  lm(means$Diversity ~ poly(means$distance, 2))
   }
@@ -1681,7 +1644,7 @@ ggsave("./Figures/Final/Richness_distance_nonlin_reg.png", p,
 ####
 
 # Execute regressions now with RNA diversity
-df <- melt(rna.alpha, id.vars = c("ID","Data"),
+df <- melt(rna.alpha, id.vars = c("DR.names","Data"),
            measure.vars = c("Shannon","Simpson","Pielou","Chao1"),
            variable.name = "Index",
            value.name = "Diversity")
@@ -1690,11 +1653,11 @@ df <- melt(rna.alpha, id.vars = c("ID","Data"),
 df <- df[Data == "css" & (Index == "Shannon" | Index == "Pielou"),]
 
 # calculate mean of duplicates
-df[, .(Diversity = mean(Diversity, na.rm = T)), by = .(ID, Index)]
+df[, .(Diversity = mean(Diversity, na.rm = T)), by = .(DR.names, Index)]
 
 # merge with distance
-reg.df <- df[dist.dr$indiv.df, c("distance", "sample.type.year") := 
-               list(i.distance, i.sample.type.year), on = .(ID)]
+reg.df <- df[dist.75, c("distance", "sample.type.year") := 
+               list(i.dist, i.sample.type.year), on = .(DR.names)]
 
 # remove any NAs, e.g. samples from 2015
 reg.df <- reg.df[!is.na(distance),]
@@ -1737,7 +1700,7 @@ lin.ls <- dlply(reg.df, .(Index), function(z){
   means <- z[, .(Diversity = mean(Diversity, na.rm = T),
                  distance = mean(distance, na.rm = T)), by = .(sample.type.year)]
   # both are poly 2
-  lin <-  lm(means$Diversity ~ poly(means$distance, 2))
+  lin <-  lm(means$Diversity ~ means$distance, 2))
 
   # check linear assumptions
   #plot(lin) # normality not good
