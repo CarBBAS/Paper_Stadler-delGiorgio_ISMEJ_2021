@@ -209,3 +209,477 @@ wb.melt <- merge(melt(wb, id.vars = c("sample.type.year", "Season", "panels"),
       axis.ticks.y = element_blank()
     )
 )
+
+
+###
+# DNA
+###
+
+# Execute regressions first on DNA diversity
+df <- melt(dna.alpha, id.vars = c("DR.names","Data"),
+           measure.vars = c("Shannon","Simpson","Pielou","Chao1"),
+           variable.name = "Index",
+           value.name = "Diversity")
+
+# Only focus on CSS, non rarefied data and two diversity indices
+df <- df[Data == "css" & (Index == "Shannon" | Index == "Pielou"),]
+
+# merge with distance
+reg.df <- df[dist.75[Metric == "Sorensen",], c("distance", "sample.type.year", "Season") := 
+               list(i.dist, i.sample.type.year, i.Season), on = .(DR.names)]
+
+# remove any NAs, e.g. samples from 2015
+reg.df <- reg.df[!is.na(distance),]
+setorderv(reg.df, c("Index","Diversity")) # rearrange dataframe
+
+# decide which model is best (e.g. linear or polynomial)
+z <- reg.df[Index == "Shannon"]
+z <- z[, .(Diversity = mean(Diversity, na.rm = T),
+           distance = mean(distance, na.rm = T)), by = .(sample.type.year)]
+
+plot(Diversity ~ distance, data = z) # does not seem linear
+lm0 <- lm(z$Diversity ~ 1)  ; summary(lm0)
+lm1 <- lm(z$Diversity ~ z$distance); summary(lm1) # adj R2 -0.03645 p > 0.05
+lm2 <- lm(z$Diversity ~ poly(z$distance, 2)); summary(lm2) # adj R2 0.47 p > 0.05
+lm3 <- lm(z$Diversity ~ poly(z$distance, 3)); summary(lm3) # adj R2 0.18 p > 0.05
+anova(lm0,lm1) # preferred model is lm1, higher R2 and lowered RSS
+# polynomials do not add much, and avoid overfitting and choose a parsimonious model
+anova(lm1,lm2) # preferred model lm2
+anova(lm2,lm3) 
+rm(z)
+
+
+z <- reg.df[Index == "Pielou"]
+z <- z[, .(Diversity = mean(Diversity, na.rm = T),
+           distance = mean(distance, na.rm = T)), by = .(sample.type.year)]
+
+plot(Diversity ~ distance, data = z) # does not seem linear
+lm0 <- lm(z$Diversity ~ 1)  ; summary(lm0)
+lm1 <- lm(z$Diversity ~ z$distance); summary(lm1) # adj R2 0.70
+lm2 <- lm(z$Diversity ~ poly(z$distance, 2)); summary(lm2) # adj R2 0.85
+lm3 <- lm(z$Diversity ~ poly(z$distance, 3)); summary(lm3) # adj R2 0.81
+anova(lm0,lm1) 
+anova(lm1,lm2) # preferred model is lm2, higher R2 and lowered RSS, and significance < 0.01
+anova(lm2,lm3) 
+rm(z)
+
+lin.ls <- dlply(reg.df, .(Index), function(z){
+  setDT(z)
+  means <- z[, .(Diversity = mean(Diversity, na.rm = T),
+                 distance = mean(distance, na.rm = T)), by = .(sample.type.year)]
+  if(unique(z$Index) == "Shannon"){
+    lin <- lm(means$Diversity ~ poly(means$distance, 2))
+  } else if(unique(z$Index) == "Pielou") {
+    lin <-  lm(means$Diversity ~ poly(means$distance, 2))
+  }
+  
+  # check linear assumptions
+  #plot(lin) # normality not good
+  # large sample sizes, normality does not affect results too much (central limit theorem)
+  # homoscedasticity and independence important
+  #summary(lin)
+  #confint(lin, level = 0.95)
+  
+  # get data for plotting
+  x <- data.frame(x = sort(means$distance))
+  pred <- predict(lin, newdata = x, se = T)
+  ci <- pred$se.fit[order(means$distance)] * qt(0.95 / 2 + 0.5, pred$df)
+  y <- pred$fit[order(means$distance)]
+  ymin <- y - ci
+  ymax <- y + ci
+  
+  plot.df <- data.frame(x = sort(means$distance),
+                        y = y,
+                        ymin = ymin,
+                        ymax = ymax,
+                        se = pred$se.fit[order(means$distance)])
+  
+  # extract only colours that are in data frame
+  colvec <- colvec[names(colvec) %in% as.character(levels(means$sample.type.year))]
+  
+  p <- ggplot() +
+    theme_cust("pubr") +
+    geom_point(data = z, aes(x = distance, y = Diversity), 
+               colour = "gray40", alpha = 0.3, size = 2) +
+    geom_line(data = plot.df, aes(x = x, y = y), inherit.aes = F, size = 1) +
+    geom_line(data = plot.df, aes(x = x, y = ymax), inherit.aes = F, size = 0.7, linetype = "dashed") +
+    geom_line(data = plot.df, aes(x = x, y = ymin), inherit.aes = F, size = 0.7, linetype = "dashed") +
+    geom_point(data = means,
+               aes(x = distance, y = Diversity, fill = sample.type.year), shape = 21, size = 3) +
+    scale_fill_manual(values = colvec, name = "Sample Type") +
+    labs(x = "",
+         y = paste0(unique(z$Index)))
+  
+  # get model statistics
+  options(scipen = 999) # avoid scientific annotations
+  
+  fnr <- substitute(italic(R)^2~"="~r2*","~~italic(F)[df]~"="~Fstat,
+                    list(r2 = format(summary(lin)$r.squared, digits = 2),
+                         Fstat = format(summary(lin)$fstatistic[[1]], digits = 4),
+                         df = paste0(format(summary(lin)$fstatistic[[2]], digits = 0),
+                                     ",", format(summary(lin)$fstatistic[[3]], digits = 0))))
+  pv1 <- summary(lin)$coefficients[2,4]
+  pv1 <- if(pv1 < 0.0001){
+    "< 0.0001"} else if(pv1 < 0.001){
+      "< 0.001"} else if(pv1 < 0.01){
+        "< 0.01"} else if(pv1 < 0.05){
+          "< 0.05"
+        } else {
+          paste("=",round(pv1, 2))
+        }
+  
+  if(unique(z$Index) == "Pielou"){
+    eq1 <- substitute(italic(y) == a - b %.% italic(x) + b2 %.% italic(x)^2,
+                      list(a = format(as.vector(coef(lin)[1]), digits = 2),
+                           b = format(as.vector(abs(coef(lin)[2])), digits = 2),
+                           b2 = format(as.vector(coef(lin)[3]), digits = 2)))
+    
+    pv2 <- summary(lin)$coefficients[3,4]
+    pv2 <- if(pv2 < 0.0001){
+      "< 0.0001"} else if(pv2 < 0.001){
+        "< 0.001"} else if(pv2 < 0.01){
+          "< 0.01"} else if(pv2 < 0.05){
+            "< 0.05"
+          } else {
+            paste("=",round(pv2, 2))
+          }
+    ps <- substitute(italic(p)[beta[1]]~pval1*","~italic(p)[beta[2]]~pval2,
+                     list(pval1 = pv1,
+                          pval2 = pv2))
+    (p <- p + 
+        annotate("text", x = 0.4, y = 0.9, 
+                 label = as.character(as.expression(eq1)), parse = T, size = 2.5)+
+        annotate("text", x = 0.4, y = 0.88, 
+                 label = as.character(as.expression(fnr)), parse = T, size = 2.5) +
+        annotate("text", x = 0.4, y = 0.86, 
+                 label = as.character(as.expression(ps)), parse = T, size = 2.5) 
+    )
+  } else {
+    eq1 <- substitute(italic(y) == a - b %.% italic(x),
+                      list(a = format(as.vector(coef(lin)[1]), digits = 2),
+                           b = format(as.vector(abs(coef(lin)[2])), digits = 2)))
+    ps <- substitute(italic(p)~pval1,
+                     list(pval1 = pv1))
+    
+    (p <- p + 
+        annotate("text", x = 0.4, y = 6.5, 
+                 label = as.character(as.expression(eq1)), parse = T, size = 2.5)+
+        annotate("text", x = 0.4, y = 6.3, 
+                 label = as.character(as.expression(fnr)), parse = T, size = 2.5) +
+        annotate("text", x = 0.4, y = 6.1, 
+                 label = as.character(as.expression(ps)), parse = T, size = 2.5) 
+    )
+  }
+  
+  #, abs(round(coef(lin)[2], 2)), "*x +",
+  #round(coef(lin)[3], 2), "*x"^2*""
+  
+  list(original = z,
+       binned = means,
+       lin = lin,
+       coef = coef(lin),
+       fitted = plot.df,
+       plot = p)
+  
+})
+
+(p <- ggarrange(lin.ls[[1]]$plot, lin.ls[[2]]$plot,
+                ncol = 2, common.legend = T, legend = "right"))
+
+(p <- annotate_figure(p, 
+                      bottom = text_grob("Distance in ordination space",
+                                         just = "centre")))
+ggsave("./Figures/Final/Richness_distance_nonlin_reg.png", p,
+       width = 22, height = 11, unit = "cm")
+
+
+####
+## RNA
+####
+
+# Execute regressions now with RNA diversity
+df <- melt(rna.alpha, id.vars = c("DR.names","Data"),
+           measure.vars = c("Shannon","Simpson","Pielou","Chao1"),
+           variable.name = "Index",
+           value.name = "Diversity")
+
+# Only focus on CSS, non rarefied data and two diversity indices
+df <- df[Data == "css" & (Index == "Shannon" | Index == "Pielou"),]
+
+# calculate mean of duplicates
+df[, .(Diversity = mean(Diversity, na.rm = T)), by = .(DR.names, Index)]
+
+# merge with distance
+reg.df <- df[dist.75, c("distance", "sample.type.year") := 
+               list(i.dist, i.sample.type.year), on = .(DR.names)]
+
+# remove any NAs, e.g. samples from 2015
+reg.df <- reg.df[!is.na(distance),]
+setorderv(reg.df, c("Index","Diversity")) # rearrange dataframe
+
+# decide which model is best (e.g. linear or polynomial)
+z <- reg.df[Index == "Shannon"]
+z <- z[, .(Diversity = mean(Diversity, na.rm = T),
+           distance = mean(distance, na.rm = T)), by = .(sample.type.year)]
+
+plot(Diversity ~ distance, data = z) # does not seem linear
+lm0 <- lm(z$Diversity ~ 1)  ; summary(lm0)
+lm1 <- lm(z$Diversity ~ z$distance); summary(lm1) # adj R2 0.018
+lm2 <- lm(z$Diversity ~ poly(z$distance, 2)); summary(lm2) # adj R2 0.33
+lm3 <- lm(z$Diversity ~ poly(z$distance, 3)); summary(lm3) # adj R2 0.34
+anova(lm0,lm1)
+anova(lm1,lm2) # preferred model is lm2, higher R2 and lowered RSS
+# linear model itself is very bad
+anova(lm2,lm3) 
+rm(z)
+
+
+z <- reg.df[Index == "Pielou"]
+z <- z[, .(Diversity = mean(Diversity, na.rm = T),
+           distance = mean(distance, na.rm = T)), by = .(sample.type.year)]
+
+plot(Diversity ~ distance, data = z) # does not seem linear
+lm0 <- lm(z$Diversity ~ 1)  ; summary(lm0)
+lm1 <- lm(z$Diversity ~ z$distance); summary(lm1) # adj R2 0.05
+lm2 <- lm(z$Diversity ~ poly(z$distance, 2)); summary(lm2) # adj R2 0.53
+lm3 <- lm(z$Diversity ~ poly(z$distance, 3)); summary(lm3) # adj R2 0.61
+anova(lm0,lm1) 
+anova(lm1,lm2)
+anova(lm2,lm3) # preferred model is lm2, higher R2 and lowered RSS
+# poly 3 has higher R2 but is not significant
+rm(z)
+
+lin.ls <- dlply(reg.df, .(Index), function(z){
+  setDT(z)
+  means <- z[, .(Diversity = mean(Diversity, na.rm = T),
+                 distance = mean(distance, na.rm = T)), by = .(sample.type.year)]
+  # both are poly 2
+  lin <-  lm(means$Diversity ~ means$distance, 2))
+
+# check linear assumptions
+#plot(lin) # normality not good
+# large sample sizes, normality does not affect results too much (central limit theorem)
+# homoscedasticity and independence important
+#summary(lin)
+#confint(lin, level = 0.95)
+
+# get data for plotting
+x <- data.frame(x = sort(means$distance))
+pred <- predict(lin, newdata = x, se = T)
+ci <- pred$se.fit[order(means$distance)] * qt(0.95 / 2 + 0.5, pred$df)
+y <- pred$fit[order(means$distance)]
+ymin <- y - ci
+ymax <- y + ci
+
+plot.df <- data.frame(x = sort(means$distance),
+                      y = y,
+                      ymin = ymin,
+                      ymax = ymax,
+                      se = pred$se.fit[order(means$distance)])
+
+# extract only colours that are in data frame
+colvec <- colvec[names(colvec) %in% as.character(levels(means$sample.type.year))]
+
+p <- ggplot() +
+  theme_cust("pubr") +
+  geom_point(data = z, aes(x = distance, y = Diversity), 
+             colour = "gray40", alpha = 0.3, size = 2) +
+  geom_line(data = plot.df, aes(x = x, y = y), inherit.aes = F, size = 1) +
+  geom_line(data = plot.df, aes(x = x, y = ymax), inherit.aes = F, size = 0.7, linetype = "dashed") +
+  geom_line(data = plot.df, aes(x = x, y = ymin), inherit.aes = F, size = 0.7, linetype = "dashed") +
+  geom_point(data = means,
+             aes(x = distance, y = Diversity, fill = sample.type.year), shape = 21, size = 3) +
+  scale_fill_manual(values = colvec, name = "Sample Type") +
+  labs(x = "",
+       y = paste0(unique(z$Index)))
+
+# get model statistics
+options(scipen = 999) # avoid scientific annotations
+
+fnr <- substitute(italic(R)^2~"="~r2*","~~italic(F)[df]~"="~Fstat,
+                  list(r2 = format(summary(lin)$r.squared, digits = 2),
+                       Fstat = format(summary(lin)$fstatistic[[1]], digits = 4),
+                       df = paste0(format(summary(lin)$fstatistic[[2]], digits = 0),
+                                   ",", format(summary(lin)$fstatistic[[3]], digits = 0))))
+pv1 <- summary(lin)$coefficients[2,4]
+pv1 <- if(pv1 < 0.0001){
+  "< 0.0001"} else if(pv1 < 0.001){
+    "< 0.001"} else if(pv1 < 0.01){
+      "< 0.01"} else if(pv1 < 0.05){
+        "< 0.05"
+      } else {
+        paste("=",round(pv1, 2))
+      }
+if(unique(z$Index) == "Pielou"){
+  eq1 <- substitute(italic(y) == a - b %.% italic(x) + b2 %.% italic(x)^2,
+                    list(a = format(as.vector(coef(lin)[1]), digits = 2),
+                         b = format(as.vector(abs(coef(lin)[2])), digits = 2),
+                         b2 = format(as.vector(coef(lin)[3]), digits = 2)))
+  
+  pv2 <- summary(lin)$coefficients[3,4]
+  pv2 <- if(pv2 < 0.0001){
+    "< 0.0001"} else if(pv2 < 0.001){
+      "< 0.001"} else if(pv2 < 0.01){
+        "< 0.01"} else if(pv2 < 0.05){
+          "< 0.05"
+        } else {
+          paste("=",round(pv2, 2))
+        }
+  ps <- substitute(italic(p)[beta[1]]~pval1*","~italic(p)[beta[2]]~pval2,
+                   list(pval1 = pv1,
+                        pval2 = pv2))
+  (p <- p + 
+      annotate("text", x = 0.4, y = 0.9, 
+               label = as.character(as.expression(eq1)), parse = T, size = 2.5)+
+      annotate("text", x = 0.4, y = 0.88, 
+               label = as.character(as.expression(fnr)), parse = T, size = 2.5) +
+      annotate("text", x = 0.4, y = 0.86, 
+               label = as.character(as.expression(ps)), parse = T, size = 2.5) 
+  )
+} else {
+  eq1 <- substitute(italic(y) == a - b %.% italic(x) + b2 %.% italic(x)^2,
+                    list(a = format(as.vector(coef(lin)[1]), digits = 2),
+                         b = format(as.vector(abs(coef(lin)[2])), digits = 2),
+                         b2 = format(as.vector(coef(lin)[3]), digits = 2)))
+  
+  pv2 <- summary(lin)$coefficients[3,4]
+  pv2 <- if(pv2 < 0.0001){
+    "< 0.0001"} else if(pv2 < 0.001){
+      "< 0.001"} else if(pv2 < 0.01){
+        "< 0.01"} else if(pv2 < 0.05){
+          "< 0.05"
+        } else {
+          paste("=",round(pv2, 2))
+        }
+  ps <- substitute(italic(p)[beta[1]]~pval1*","~italic(p)[beta[2]]~pval2,
+                   list(pval1 = pv1,
+                        pval2 = pv2))
+  
+  (p <- p + 
+      annotate("text", x = 0.4, y = 6.5, 
+               label = as.character(as.expression(eq1)), parse = T, size = 2.5)+
+      annotate("text", x = 0.4, y = 6.3, 
+               label = as.character(as.expression(fnr)), parse = T, size = 2.5) +
+      annotate("text", x = 0.4, y = 6.1, 
+               label = as.character(as.expression(ps)), parse = T, size = 2.5) 
+  )
+}
+
+#, abs(round(coef(lin)[2], 2)), "*x +",
+#round(coef(lin)[3], 2), "*x"^2*""
+
+list(original = z,
+     binned = means,
+     lin = lin,
+     coef = coef(lin),
+     fitted = plot.df,
+     plot = p)
+
+})
+
+(p <- ggarrange(lin.ls[[1]]$plot, lin.ls[[2]]$plot,
+                ncol = 2, common.legend = T, legend = "right"))
+
+(p <- annotate_figure(p, 
+                      bottom = text_grob("Distance in ordination space",
+                                         just = "centre")))
+ggsave
+
+##
+set.seed(3)
+t <- sample(1:nrow(pb.mat),10)
+submat <- pb.mat[t,]
+
+submat <- submat[,colSums(submat) > 0]
+
+meta <- data.frame(Sample = as.character(row.names(sample_df(dna))),
+                   sample_df(dna) %>% dplyr::select(sample.type.year, Season, Year, DnaType), 
+                   stringsAsFactors = F)
+meta <- meta[t,]
+
+# melt to calculate mean variance relationship
+melt.mat <- melt.data.table(
+  setDT(as.data.frame(pb.mat), keep.rownames = "Sample"),
+  id.vars = "Sample",
+  measure.vars = patterns("^OTU_"),
+  variable.name = "OTU",
+  value.name = "reads"
+)
+
+plot.df <- melt.mat[, .(mean = mean(reads, na.rm = T),
+                        variance = var(reads, na.rm = T)), by = .(OTU)]
+
+ggplot(plot.df, aes(x = log1p(mean), y = log(variance))) +
+  geom_point()
+
+# ASVs with high means also have high variances
+
+#ord.asv <- plot.df$ASV[order(plot.df$mean, decreasing = T)]
+#melt.mat$ASV <- factor(melt.mat$ASV, levels = ord.asv)
+#melt.mat <- melt.mat[meta, c("sample.type.year", "Season") := list(i.sample.type.year,
+#                                                               i.Season), on = .(Sample)]
+#ggplot(melt.mat, aes(x = ASV, y = log2(reads + 1), colour = sample.type.year)) +
+#  geom_point()
+
+
+# make mvabund object of community matrix
+dna.sp <- mvabund(pb.mat)
+dna.sp <- mvabund(submat)
+
+mod <- manyglm(dna.sp ~ meta$sample.type.year * meta$Season, family = "negative.binomial")
+# warning but is integer
+saveRDS(mod, "./Objects/manyglm.dna.negbinom.log.rds")
+
+# check residuals, it's not optimal, but compared to other families, there is less of a pattern
+png(filename="./Figures/General/manyglm_dna_residuals_binom_log.png")
+plot(mod)
+dev.off()
+
+# test for habitat type and season effect
+anova.mod <- anova(mod)
+saveRDS(anova.mod, "./Objects/manyglm.dna.negbinom.anova.rds")
+print("DONE")
+pb.mat <- decostand(pb.mat, "hellinger")
+pb.mori <- vegdist(pb.mat, method = "horn")
+is.euclid(pb.mori) # FALSE
+pb.mori <- sqrt(pb.mori) # make Euclidean
+is.euclid(pb.mori) # TRUE
+anova <- anova(mod)
+
+## Run bayesian ordination
+# test control options, for quick building. Not final
+mcmc.control. <- list(n.burnin = 10, 
+                      n.iteration = 400, 
+                      n.thin = 30, 
+                      seed = 3)
+
+fit.lvmbinom <- boral(y = pb.mat, 
+                      family = "negative.binomial", 
+                      num.lv = 2, 
+                      mcmc.control = mcmc.control.,
+                      row.eff = "fixed")
+
+####################################################################
+
+
+
+dissim.dr <- dissim.dnarna(ter, save.name = "All", output = T)
+
+dist.dr <- dist.dnarna(dna.pcoa[["df"]], save.name = "terr", output = T)
+#dist.dr <- dist.dnarna(dnarna.bray[["df"]], save.name = "All_2D", dimensions = 2)
+
+test <- merge(dissim.dr$original.df, dist.dr$indiv.df, by.x = "ID", by.y = "DR.names")
+#dist.dr$df[Axis == "Axis.2",]
+ggplot(test, aes(x = dist, y = distance.1D, fill = sample.type.year.x)) +
+  theme_bw() +
+  geom_point(shape = 21) +
+  scale_fill_manual(values = colvec) +
+  labs(x = "Pair-wise Bray-Curtis dissimilarity", y = "Pair-wise distance in ordination")
+
+p <- ggplot(test, aes(x = dist, y = distance.1D, fill = Season.x)) +
+  theme_bw() +
+  geom_point(shape = 21) +
+  labs(x = "Pair-wise Bray-Curtis dissimilarity", y = "Pair-wise distance in ordination")
+
+ggsave("./Figures/General/terr_distdissimcor.png", p)
+cor.test(test$dist, test$distance.1D)
