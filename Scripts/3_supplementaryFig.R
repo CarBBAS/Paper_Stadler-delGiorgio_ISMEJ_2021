@@ -1,46 +1,59 @@
-###-------------------------------------------------------###
-#-   Script for supplementary plots in the publication:   - #
-#-   xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx             - #
-###-------------------------------------------------------###
+#-- Script for the publication:
+#-- Title
+#-- Responsible author: Masumi Stadler
 
-# Script to create supplementary figures
-# Not included directly in R markdown, as data is too big to be directly knit with R markdown
+# This script is the last of a series of scripts that were used to analyse the data
+# used in the publication.
 
-#----------#
-# PACKAGES #
-#----------#
-library(phyloseq)
-library(tidyverse)
-library(data.table)
-library(ggarrange)
-library(ggpubr)
-library(vegan)
-library(ade4)
+# In this script we create additional supplementary figures
+# that are not included directly in R markdown for the Supplements or the previous scripts,
+# as data is too big to be directly knitted within R markdown
 
-#-----------#
-# FUNCTIONS #
-#-----------#
+###----------------###
+#-   Supplements   - #
+###----------------###
+
+# 1. R set-up ------------------------------------------------------------------------------
+### Packages -------------------------------------------------------------------------------
+pckgs <- list("phyloseq", # wrangling
+              "tidyverse", "data.table", # wrangling
+              "ggpubr", # plotting
+              "vegan", "ade4") # stats
+
+
+### Check if packages are installed, output packages not installed:
+(miss.pckgs <- unlist(pckgs)[!(unlist(pckgs) %in% installed.packages()[,"Package"])])
+#if(length(miss.pckgs) > 0) install.packages(miss.pckgs)
+# Many packages have to be installed through Bioconductor, please refer to the package websites
+
+### Load
+invisible(lapply(pckgs, library, character.only = T))
+rm(pckgs, miss.pckgs)
+
+
+### Functions -----------------------------------------------------------------------------
 source("./Functions/custom_fun.R")
 
-#-----------#
-# Read data #
-#-----------#
+# Set seed for session and reproducibility of permutations
+# (just for consistency, no random iteration in this script)
+set.seed(3)
 
+# 2. Read and prepare data ---------------------------------------------------------------
 
 # do we have several files per object? -> take newest version
 # ASV CSS transformed table
-asv.tab <- select_newest("./Output", "201520162017_fin_css_otu99_table_")
-asv.tab <- as.matrix(read.csv(
-  paste0("./Output/", asv.tab),
+otu.tab <- select_newest("./Output", "201520162017_fin_css_otu99_table_")
+otu.tab <- as.matrix(read.csv(
+  paste0("./Output/", otu.tab),
   sep = ";",
   dec = ".",
   row.names = 1,
   stringsAsFactors = F
 ))
-#asv.tab <- asv.tab[, 1:1000]
+#otu.tab <- otu.tab[, 1:1000]
 
-# row orders need to match between tax.tab and asv.tab
-asv.tab <- asv.tab[order(row.names(asv.tab)),]
+# row orders need to match between tax.tab and otu.tab
+otu.tab <- otu.tab[order(row.names(otu.tab)),]
 
 # Taxonomy table
 tax.tab <- select_newest("./Output", "201520162017_tax_otu99_table_")
@@ -52,7 +65,7 @@ tax.tab <-
     row.names = 1,
     stringsAsFactors = F
   ))
-# orders need to match between tax.tab and asv.tab
+# orders need to match between tax.tab and otu.tab
 tax.tab <- tax.tab[order(row.names(tax.tab)),]
 #tax.tab <- tax.tab[,1:1000]
 
@@ -91,12 +104,16 @@ met.df$DnaType <- factor(met.df$DnaType, levels = c("DNA","cDNA"),
                          labels = c("DNA","RNA"))
 
 # Construct phyloseq object
-pb <- phyloseq(otu_table(asv.tab, taxa_are_rows = F),
+pb <- phyloseq(otu_table(otu.tab, taxa_are_rows = F),
                sample_data(met.df),
                tax_table(tax.tab))
 
 #pb <- prune_taxa(!taxa_sums(pb) == 0, pb)
 pb <- prune_samples(!sample_sums(pb) == 0, pb)
+
+
+# create colour vector for later plotting
+# ensure consistent colours for all sample types
 
 # export factors for colouring
 sample.factors <- levels(met.df$sample.type.year)
@@ -116,11 +133,61 @@ colvec <- c("#FCFDBFFF", #"#FEC589FF", #Soil
             "orchid", #"#471063FF", #Reservoir, 
             "#050416FF") #Estuary)
 
-names(colvec) <- as.character(sample.factors)
+names(colvec) <- as.character(sample.factors) # assign names for later easy selection
 
-################################################################################################
+# set theme for plotting
+theme_set(theme_bw())
 
-# Fig. S2
+# Fig. S2 -------------------------------------------------------------------------------------
+
+alpha.df <- select_newest("./Output/", "alpha_div_otu99_summary_")
+alpha.df <- read.csv(paste0("./Output/", alpha.df), sep = ",", stringsAsFactors = F)
+
+# make to data table
+setDT(alpha.df)
+
+alpha.df$Data <- factor(alpha.df$Data, levels = c("css", "lib15000", "lib25000", "lib50000"),
+                          labels = c("CSS", "Rarefied: Lib15000", "Rarefied: Lib25000","Rarefied: Lib50000"))
+alpha.df$DnaType <- factor(alpha.df$DnaType, levels = c("DNA", "cDNA"),
+                             labels =  c("DNA", "RNA"))
+
+melt.alpha <- melt(alpha.df, id.vars = c("DR.names", "Data", "DnaType", "sample.type.year","Season"),
+                   measure.vars = c("Shannon","Simpson","Pielou","Chao1"),
+                   variable.name = "Diversity",
+                   value.name = "Index")
+
+
+# make plot with ggpubr to include pearson's correlation outputs directly in the plot
+(rar.box <- ggplot(melt.alpha, aes(x = DnaType, y = Index)) +
+  geom_boxplot(outlier.size = 0.5) +
+  facet_grid(Diversity ~ Data, scales = "free") +
+  labs(x = "Nucleic acid type", y = expression(paste(alpha," - Diversity"))))
+
+ggsave("./Figures/Final/alphadiv_rar_comp_boxplots.png", rar.box,
+       width = 15, height = 12, unit = "cm")
+
+cast.alpha <- melt.alpha %>%
+  group_by(DR.names, Data, Diversity, DnaType) %>%
+  summarise(Season = unique(Season),
+            Index = mean(Index, na.rm = T)) %>%
+  ungroup() %>%
+  pivot_wider(names_from = DnaType, values_from = Index)
+
+cast.alpha$Season <- factor(cast.alpha$Season, levels = c("spring", "summer", "autumn"),
+                           labels =  c("Spring", "Summer", "Autumn"))
+
+(rar.lin <- ggplot(cast.alpha,
+                  aes(x = RNA, y = DNA, fill = Season)) +
+  geom_point(shape = 21) +
+  facet_wrap(Diversity~Data, scales = "free") +
+  scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00"))
+) # colour-blind friendly
+
+ggsave("./Figures/Final/alphadiv_rar_comp_scatter.png", rar.lin,
+       width = 18, height = 15, unit = "cm")
+
+
+# Fig. S6 -------------------------------------------------------------------------------------
 # Abundance classification
 rel.df <- select_newest("./Objects", "201520162017_css_otu99_")
 rel.df <- readRDS(
@@ -136,8 +203,6 @@ means <- means[order(mean.css, decreasing = T)]
 means[, rank.abun := 1:.N, by = .(DnaType, sample.type.year)]
 means[, log.mean := log1p(mean.css), by = .(DnaType, sample.type.year)]
 
-#--------------------------------------------------------------------------------------------#
-#--------------------------------------------------------------------------------------------#
 # Get derivatives for an example and plot for supplementary material
 x <- means[sample.type.year == "Soilwater" & DnaType == "DNA"]
 
@@ -201,16 +266,14 @@ p <- ggarrange(raw, logged, deriv, ncol = 3, labels = "auto")
 ggsave("./Figures/Final/abundance_class_ex_otu99.png", p,
        width = 22, height = 9, unit = "cm")
 
-#######################################################################################################
 
-
-# Fig. S4
+# Fig. S7 -------------------------------------------------------------------------------------
 # Taxonomic composition
 # We want to show the taxonomic composition of our samples plus the abundance
 # As we have too many samples, best would probably be to calcualte the mean abundance for each group
 # Groups are: sample.type.year + DnaType + Season
 
-# melt ASV table
+# melt OTU table
 pb.df <- as.data.frame(otu_mat(pb)) # make data.frame
 setDT(pb.df, keep.rownames = "Sample") # make data.table
 
@@ -250,8 +313,8 @@ temp[order(mean, decreasing = T),]
 # calculate mean library size per category
 lib.size <- pb.df[, .(lib.mean = mean(LibrarySize, na.rm = T),
                       lib.sd = sd(LibrarySize, na.rm = T)),
-                  by = .(sample.type.year, DnaType)]
-lib.size[, ID := paste(DnaType, Season, sample.type.year, sep = "_")] # add plot ID
+                  by = .(sample.type.year, DnaType, Season)]
+lib.size[, ID := paste(DnaType, Season, sample.type.year,sep = "_")] # add plot ID
 
 # Overwrite IDs as factors to set a order for plotting
 mean.pb$ID <- factor(mean.pb$ID, 
@@ -428,10 +491,8 @@ combo  <- ggarrange(lib.bar, labelled.tax, nrow = 2,
 ggsave("./Figures/Final/Tax_LibSiz_Phyla_otus.png", combo,
        width = 300, height = 203, unit = "mm", dpi = 400)
 
-# 360, 205
-#####################################################################################################
 
-# Fig. S5
+# Fig. S8 -------------------------------------------------------------------------------------
 # Only terrestrial PCoA
 
 ter <- subset_samples(pb, sample.type.year == "Soil" |
@@ -457,15 +518,13 @@ is.euclid(pb.bray) # TRUE
 # make PCoA
 pb.bray.pcoa <- ape::pcoa(pb.bray)
 # plot with custom function
-dna.pcoa <- plot_bray(pb.bray.pcoa, .id = "DNA", colours = colvec, output = T)
+dna.pcoa <- plot_pcoa(pb.bray.pcoa, 
+                      physeq = ter, colours = colvec, output = T)
 
 ggsave("./Figures/General/terr_PCoA.png", dna.pcoa$plot,
        width = 12, height = 10, unit = "cm")
 
-
-#################################################################################
-
-# Fig. S6
+# Fig. S9 -------------------------------------------------------------------------------------
 # RNA PCoA
 
 # subset only RNA samples
@@ -490,12 +549,11 @@ is.euclid(pb.bray) # TRUE
 # make PCoA
 pb.bray.pcoa <- ape::pcoa(pb.bray)
 # plot with custom function
-rna.pcoa <- plot_bray(pb.bray.pcoa, .id = "DNA", colours = colvec, output = T)
+rna.pcoa <- plot_pcoa(pb.bray.pcoa, 
+                      physeq = rna, colours = colvec, output = T)
 
 p <- rna.pcoa$plot + guides(alpha = "none")
 
 # save
-ggsave(paste0("./Figures/Final/PCoA_log_RNA_SampleType.tiff"), p,
-       width = 12, height = 10, unit = "cm")
 ggsave(paste0("./Figures/Final/PCoA_log_RNA_SampleType.png"),  p,
        width = 12, height = 10, unit = "cm")
