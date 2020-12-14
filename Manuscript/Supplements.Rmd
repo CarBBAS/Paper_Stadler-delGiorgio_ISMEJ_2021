@@ -61,21 +61,28 @@ knitr::include_graphics("./Figures/LR_photo_collage.png")
 
 ### Figure S2: No substantial effect of data transformation methods on alpha-diversity estimations
 
+```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "70%"}
+knitr::include_graphics(c("../Figures/Final/alphadiv_rar_comp_boxplots.png"))
+``` 
 ```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "90%"}
-knitr::include_graphics(c("../Figures/Final/All_DNARNA_distance_alphadiv_comparison.png"))
+knitr::include_graphics(c("../Figures/Final/alphadiv_rar_comp_scatter.png"))
 ``` 
 
-Comparing the effect of used method on the relation between DNA alpha diversity indices and the distance between DNA and RNA of the same samples within PCoA space. Rows represent different alpha diversity indices: Shannon-Wiener index (H'), Simpson's index ($\lambda$), Pielou's evenness (J) and Chao1 richness estimator. CSS = cumulative sum scaling, all remaining three subsequent columns are rarefied datasets with the applied minimum library size threshold indicated after "Lib". 
+Comparing the effect of used method on the relation between DNA alpha diversity indices. Rows represent different alpha diversity indices: Shannon-Wiener index (H'), Simpson's index ($\lambda$), Pielou's evenness (J) and Chao1 richness estimator. CSS = cumulative sum scaling, all remaining three subsequent columns are rarefied datasets with the applied minimum library size threshold indicated after "Lib". 
 
 ### Figure S3: Distance along all PCoA axes equal pair-wise dissimilarity
 
 ```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "70%"}
 knitr::include_graphics(c("../Figures/Final/allaxesdist_dissim_cor.png"))
 ``` 
+As a proof of concept, the computed distance (e.g. m\textsubscript{BC}) extracts a proportion of the individual pair-wise dissimilarities, summation of the distances across all PCoA dimensions (n = 100%) equals the initial pair-wise Bray-Curtis dissimilarities, which is the input matrix into the PCoA. Thus, computing the pair-wise distance among a sub-selection of axes of the PCoA captures a proportion of the overall pair-wise dissimilarity that is explained by the variation and drivers of the selected axes.
 
-Distance between DNA and RNA pairs along all PCoA axes ($m_{BC}^{n}$) equal pair-wise dissimilarity ($D_{BC}$). Thus, computing the pair-wise distance among a sub-selection of axes of the PCoA captures a proportion of the overall pair-wise dissimilarity that is explained by the drivers of the selected axes.
+### Figure S4: Schematic representation of n-distance calculation
+```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "90%"}
+knitr::include_graphics(c("Figures/N-distance concept.png"))
+``` 
 
-### Figure S4: Statistical support for m\textsubscript{S}:m\textsubscript{BC} interpretations
+### Figure S5: Statistical support for m\textsubscript{S}:m\textsubscript{BC} interpretations
 ```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "90%"}
 knitr::include_graphics(c("../Figures/Final/ratio_krusk_tests.png"))
 ``` 
@@ -83,7 +90,7 @@ knitr::include_graphics(c("../Figures/Final/ratio_krusk_tests.png"))
 Samples were grouped into two distinct categories of m\textsubscript{S}:m\textsubscript{BC} being > 1 and < 1, respectively. No samples had a ratio = 1. Extreme outliers (values above the third quartile plus 3 times the inter-quartile range (IQR) or below the first quartile minus 3 times the IQR) were removed prior to the testing of ANOVA assumptions. For all three variables, normality assumptions were not fulfilled and thus a non-parametric Kruskal-Wallis test was conducted. Depicted are boxplots where the middle line represents the median, lower and upper hinges correspond to the 25th and 75th percentiles. Upper and lower whiskers expand to the largest and smallest value, respectively, but no further than 1.5 times the IQR from the hinge.
 
 
-### Figure S5: Classification of abundance groups
+### Figure S6: Classification of abundance groups
 ```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "90%"}
 knitr::include_graphics(c("../Figures/Final/abundance_class_ex_otu99.png"))
 ``` 
@@ -91,7 +98,7 @@ knitr::include_graphics(c("../Figures/Final/abundance_class_ex_otu99.png"))
 
 Classification of abundance groups based on derivative approximation of the log transformed rank abundance curve by habitat type, where a) represents the original rank abundance curve and b) the log transformed equivalent to derive points of maximum and minimum acceleration. The blue point represents the first minimum of the second derivative, red points are the first and second maxima of the second derivative. Pink, green and blue ranges visualise abundant, medium and rare classifications, respectively.
 
-### Figure S6: Taxonomic composition of habitat types
+### Figure S7: Taxonomic composition of habitat types
 
 ```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "100%"}
 knitr::include_graphics(c("../Figures/Final/Tax_LibSiz_Phyla_otus.png"))
@@ -99,7 +106,7 @@ knitr::include_graphics(c("../Figures/Final/Tax_LibSiz_Phyla_otus.png"))
 
 Given are averages of phyla found across habitat types. Upper panel shows average library sizes across habitat types. Error bars indicate the standard deviation from the mean.
 
-### Figure S7: No clear clustering within terrestrial samples
+### Figure S8: No clear clustering within terrestrial samples
 
 ```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "100%"}
 knitr::include_graphics("../Figures/General/terr_PCoA.png")
@@ -107,13 +114,20 @@ knitr::include_graphics("../Figures/General/terr_PCoA.png")
 
 PCoA analysis with square rooted Bray-Curtis dissimilarity on log\textsubscript{2}(x + 1) transformed community matrix with only terrestrial samples (n = 158, 13201 OTUs). Habitat types are distinguished by colour, seasons are indicated by shapes and nucleic acid type are visualised by differences in opacity.
 
-### Figure S8: Habitat type and seasonal separation of RNA
+### Figure S9: Habitat type and seasonal separation of RNA
 
 ```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "100%"}
 knitr::include_graphics("../Figures/Final/PCoA_log_RNA_SampleType.png")
 ```
 
 PCoA analysis with square rooted Bray-Curtis dissimilarity on log\textsubscript{2}(x + 1) transformed community matrix of all RNA samples (n = 200, 10036 OTUs). Habitat types are distinguished by colour and seasons are indicated by shapes.
+
+### Figure S10: Only summer indicates consistent relationship between DNA and RNA alpha-diversity
+```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "100%"}
+knitr::include_graphics("../Figures/Final/alpha.div.dna.rna.lm.png")
+```
+
+Linear regressions between $/alpha$ diversity indices of DNA and RNA. Regression lines are only given for significant models. Colours correspond to seasons, regression formulae and statistics are given in the respective seasonal colours, too.
 
 # Suppplementary Tables
 
