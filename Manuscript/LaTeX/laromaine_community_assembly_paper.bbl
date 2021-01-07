@@ -88,14 +88,6 @@ Crump, B.~C., Amaral-Zettler, L.~A., and Kling, G.~W. (2012).
   inoculation of microbes from soils.}
 \newblock {\em The ISME Journal}, 6(9):1629--1639.
 
-\bibitem[d'audiences publiques~sur l'environnement and {Canadian Environmental
-  Assessment Agency}, 2009]{HQreport2009}
-d'audiences publiques~sur l'environnement, B. and {Canadian Environmental
-  Assessment Agency} (2009).
-\newblock {Romaine Hydroelectric Complex Project: Investigation and Public
-  Hearing Report}.
-\newblock Technical report.
-
 \bibitem[Doherty et~al., 2017]{Doherty2017}
 Doherty, M., Yager, P.~L., Moran, M.~A., Coles, V.~J., Fortunato, C.~S.,
   Krusche, A.~V., Medeiros, P.~M., Payet, J.~P., Richey, J.~E., Satinsky,
@@ -117,6 +109,13 @@ Fierer, N., Bradford, M.~A., and Jackson, R.~B. (2007).
 Giovannoni, S.~J. and Vergin, K.~L. (2012).
 \newblock {Seasonality in ocean microbial communities}.
 \newblock {\em Science}, 335(6069):671--676.
+
+\bibitem[Graham et~al., 2017]{Graham2017a}
+Graham, E.~B., Crump, A.~R., Resch, C.~T., Fansler, S., Arntzen, E., Kennedy,
+  D.~W., Fredrickson, J.~K., and Stegen, J.~C. (2017).
+\newblock {Deterministic influences exceed dispersal effects on
+  hydrologically-connected microbiomes}.
+\newblock {\em Environmental Microbiology}, 19(4):1552--1567.
 
 \bibitem[Gweon et~al., 2020]{Gweon2020}
 Gweon, H.~S., Bowes, M.~J., Moorhouse, H.~L., Oliver, A.~E., Bailey, M.~J.,
@@ -169,6 +168,13 @@ Kassambara, A. (2020b).
 Konopka, A. (2009).
 \newblock {What is microbial community ecology ?}
 \newblock {\em The ISME Journal}, 3:1223--1230.
+
+\bibitem[Langenheder et~al., 2017]{Langenheder2017}
+Langenheder, S., Wang, J., Karjalainen, S.~M., Laamanen, T.~M., Tolonen, K.~T.,
+  Vilmi, A., and Heino, J. (2017).
+\newblock {Bacterial metacommunity organization in a highly connected aquatic
+  system}.
+\newblock {\em FEMS Microbiology Ecology}, 93(4):1--9.
 
 \bibitem[Legendre and Legendre, 1998]{Legendre1998}
 Legendre, P. and Legendre, L. (1998).

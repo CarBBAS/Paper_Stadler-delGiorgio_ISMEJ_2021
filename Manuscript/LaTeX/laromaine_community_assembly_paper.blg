@@ -3,48 +3,49 @@ Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
 The top-level auxiliary file: laromaine_community_assembly_paper.aux
 The style file: apalike.bst
 Database file #1: /media/shared/Documents/University/PhD/BibTEX/LR_miccom_paper.bib
+Warning--I didn't find a database entry for "Forlsund2014"
+Warning--I didn't find a database entry for "Wiskonski2020"
 Warning--can't use both author and editor fields in Borcard2011
 Warning--can't use both author and editor fields in Caumette2015
-Warning--empty institution in HQreport2009
-You've used 69 entries,
+You've used 70 entries,
             1935 wiz_defined-function locations,
-            904 strings with 18103 characters,
-and the built_in function-call counts, 30096 in all, are:
-= -- 2881
-> -- 1623
-< -- 35
-+ -- 575
-- -- 574
-* -- 2809
-:= -- 5366
-add.period$ -- 198
-call.type$ -- 69
-change.case$ -- 631
-chr.to.int$ -- 68
+            915 strings with 18512 characters,
+and the built_in function-call counts, 30911 in all, are:
+= -- 2953
+> -- 1691
+< -- 34
++ -- 601
+- -- 600
+* -- 2901
+:= -- 5508
+add.period$ -- 201
+call.type$ -- 70
+change.case$ -- 648
+chr.to.int$ -- 69
 cite$ -- 72
-duplicate$ -- 931
-empty$ -- 1845
-format.name$ -- 673
-if$ -- 5650
+duplicate$ -- 948
+empty$ -- 1885
+format.name$ -- 698
+if$ -- 5799
 int.to.chr$ -- 2
 int.to.str$ -- 0
-missing$ -- 61
-newline$ -- 338
-num.names$ -- 207
-pop$ -- 490
+missing$ -- 63
+newline$ -- 343
+num.names$ -- 210
+pop$ -- 505
 preamble$ -- 1
-purify$ -- 632
+purify$ -- 650
 quote$ -- 0
-skip$ -- 707
+skip$ -- 718
 stack$ -- 0
-substring$ -- 2074
-swap$ -- 67
+substring$ -- 2130
+swap$ -- 69
 text.length$ -- 1
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 408
-warning$ -- 3
-while$ -- 236
+type$ -- 414
+warning$ -- 2
+while$ -- 242
 width$ -- 0
-write$ -- 869
-(There were 3 warnings)
+write$ -- 883
+(There were 4 warnings)
