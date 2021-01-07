@@ -132,8 +132,7 @@ abbrev.p <- function(x){
         } else if(x <= 0.05){
           out <- c("< 0.05","*")
         } else {
-          out <- c(as.character(paste("=",round(x, 2)),"n.s.")
-          )
+          out <- c(as.character(paste("=",round(x, 2))),"n.s.")
         }
   return(out)
 }
@@ -183,13 +182,18 @@ localMinima <- function(x) {
 # Plotting #
 ############
 # Custom theme with smaller legends
-theme_cust <- function(base_theme = "bw", base_size = 11, half_line = base_size/2){
+theme_cust <- function(base_theme = "bw", base_size = 11, half_line = base_size/2,
+                       border = F){
   if(base_theme == "bw"){
     t <- theme_bw(base_size = base_size)
   }
   
   if(base_theme == "pubr"){
-    t <- theme_pubr(base_size = base_size)
+    if(border == T){
+      t <- theme_pubr(base_size = base_size, border = T)
+    } else {
+      t <- theme_pubr(base_size = base_size)
+    }
   }
   
   t %+replace% theme(legend.position = "right", 
@@ -247,18 +251,18 @@ plot_pcoa <- function(pcoa, physeq, plot.axes = c(1,2), axes = plot.axes,
         theme_cust() +
         geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
         geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
-        geom_point(aes(fill = sample.type.year, shape = Season, alpha = DnaType),
-                   size = 2.5) +
+        geom_point(aes(fill = sample.type.year, shape = Season, colour = DnaType, size = DnaType)) +
         coord_fixed(1) + # ensure aspect ratio
         scale_shape_manual(values = c(21,23,25)) +
-        scale_alpha_manual(values = c(1,0.7), name = "Nucleic Acid \nType") +
+        scale_colour_manual(values = c("black", "white"), name = "Nucleic Acid \nType") +
+        scale_size_manual(values = c(2.5, 2.6), name = "Nucleic Acid \nType") +
         labs(x = paste0("PC",  plot.axes[1]," [ ", pb.var[pb.var$Axes == plot.axes[1],"var"]," %]"), 
              y = paste0("PC",  plot.axes[2]," [ ", pb.var[pb.var$Axes == plot.axes[2],"var"]," %]")) +
         theme(panel.grid.major = element_blank(),
               panel.grid.minor = element_blank()) +
         guides(shape = guide_legend(order = 2, override.aes=list(size = 2)),
-               alpha = guide_legend(order = 3, override.aes=list(size = 2)), 
-               fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2)))
+               fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2)),
+               size = FALSE)
     
     if(!is.null(colours)){
       p <- p + scale_fill_manual(values = colvec, name = "Habitat Type")
@@ -424,10 +428,11 @@ scatter_panels <- function(data, labs = c(x,y)){
         x = sample.type.year, y = mean, fill = Season
       )) +
       theme_cust(base_theme = "pubr") +
+      geom_hline(yintercept = 0, linetype = "dashed", colour = "black") +
       geom_errorbar(aes(ymin = mean - stdev, ymax = mean + stdev, colour = Season),
                     position = position_dodge(0.7), width = 0) +
       geom_jitter(aes(fill = Season), shape = 21, 
-                  position = position_dodge(0.7), size = 2.5, alpha = 1) +
+                  position = position_dodge(0.7), size = 3, alpha = 1) +
       scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
       scale_colour_manual(values = c("#009E73", "#FFAA1D", "#D55E00")) +
       labs(x = labs[1], 
@@ -449,10 +454,11 @@ scatter_panels <- function(data, labs = c(x,y)){
         x = sample.type.year, y = mean, fill = Season
       )) +
       theme_cust(base_theme = "pubr") +
+      geom_hline(yintercept = 0, linetype = "dashed", colour = "black") +
       geom_errorbar(aes(ymin = mean - stdev, ymax = mean + stdev, colour = Season),
                     position = position_dodge(0.7), width = 0) +
       geom_jitter(aes(fill = Season), shape = 21, 
-                  position = position_dodge(0.7), size = 2.5) +
+                  position = position_dodge(0.7), size = 3) +
       scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
       scale_colour_manual(values = c("#009E73", "#FFAA1D", "#D55E00")) +
       labs(x = labs[1], 

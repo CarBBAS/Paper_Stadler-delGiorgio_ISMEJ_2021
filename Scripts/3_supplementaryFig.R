@@ -87,14 +87,14 @@ met.df$sample.type.year <- factor(met.df$sample.type.year, levels = c("Soil","Se
                                                                       "Soilwater","Hyporheicwater", 
                                                                       "Wellwater","Stream", "Tributary",
                                                                       "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
-                                                                      "Upriver", "Downriver","RO3", "RO2", "RO1","Deep",
+                                                                      "Upriver", "RO3", "RO2", "RO1","Deep", "Downriver",
                                                                       "Marine"),
                                   labels = c("Soil","Sediment",
                                              "Soilwater","Soilwater", 
                                              "Groundwater","Stream", "Tributary",
                                              "Riverine \nLakes", "Headwater \nPonds", "Lake", "Lake",
-                                             "Upriver","Downriver",
-                                             "Reservoirs","Reservoirs", "Reservoirs","Reservoirs",
+                                             "Upriver",
+                                             "Reservoirs","Reservoirs", "Reservoirs","Reservoirs", "Downriver",
                                              "Estuary"))
 
 met.df$Season <- factor(met.df$Season, levels = c("spring","summer","autumn"),
@@ -129,14 +129,88 @@ colvec <- c("#FCFDBFFF", #"#FEC589FF", #Soil
             "#7AD151FF", #Headwater Ponds,
             "#FDE725FF",# Lake, 
             "#1F9F88FF", # Upriver, 
-            "#375A8CFF", #Downriver,
             "orchid", #"#471063FF", #Reservoir, 
+            "#375A8CFF", #Downriver,
             "#050416FF") #Estuary)
 
 names(colvec) <- as.character(sample.factors) # assign names for later easy selection
 
 # set theme for plotting
 theme_set(theme_bw())
+
+# Rarefaction richness comparison -------------------------------------------------------------------
+# Do not run this code if you have a slow computer, or if you want to go quickly through the script
+# Read in intermediate data frame in line 214 onwards
+
+# read in rarefied datasets
+min_lib <- c(15000, 25000, 50000)
+
+# read in permuted rarefaction dataframe
+perm.rar <- select_newest("./Output",
+                          "perm.rar_lib_otu99_", by = min_lib)
+perm.rar <- c(perm.rar, select_newest("./Output", "201520162017_fin_css_otu99_table_")) # "201520162017_CSS_asvtab"
+
+alpha <- llply(as.list(perm.rar), function(x){
+  if(grepl(x, pattern = "fin_css") == T){
+    rar <- read.csv(paste0("./Output/", x), sep = ";", dec = ".", stringsAsFactors = F)
+    rar <- round(rar, 0)
+    data.table::setDT(rar, keep.rownames = "Sample")
+    rar <- setDF(rar)
+  } else {
+    rar <- read.csv(paste0("./Output/", x), sep = ";", stringsAsFactors = F)
+    data.table::setDT(rar)
+    # make mean column to count
+    rar[, iter.mean := round(iter.mean, 0)]
+    rar <- setDF(dcast(rar, Sample ~ OTU, value.var = "iter.mean"))
+  }
+  
+  
+  # shannon-wiener index (H')
+  # quantifies uncertainty associated with predicted identity of a new taxa
+  # given number of taxa and evenness in abundances of individuals within each taxa
+  # assumes the sample for site was collected randomly
+  # more sensitive to rare species, can be positive and negative, typically range from 1.5 to 3.5
+  
+  # simpson's index (λ)
+  # measure of dominance and as such weights towards the abundance of the most common taxa
+  # higher values represent higher diversity, ranges from 0 to 1
+  
+  # pielou's evenness (J) 
+  # compares actual diversity value (e.g. Shannon-Wiener) to the maximum possible diversity value
+  # when all species are equally common it is considered as the highest degree of evenness
+  # ranges from 0 and 1
+  # the more variation in abundances between different taxa within the community the lower is J
+  # highly dependent on sample size and highly sensitive to rare taxa
+  
+  # Chao 1 richness esimator
+  alpha <- plyr::ddply(rar, ~ Sample, function(z) {
+    data.frame(Shannon = vegan::diversity(z[,-1], index = "shannon"),
+               Simpson = vegan::diversity(z[,-1], index = "simpson"),
+               Pielou = vegan::diversity(z[,-1], index = "shannon") / log(sum(z[,-1] > 0)),
+               Chao1 = vegan::estimateR(z[,-1],)["S.chao1",])
+  })
+  
+  return(alpha)
+}, .parallel = T)
+
+names(alpha) <- c(paste0("lib", min_lib), "css")
+alpha.df <- bind_rows(alpha, .id = "Data")
+
+# combine with DR.names and meta data
+sumdf <- readRDS("./Objects/summary.meta.with.oldnames.rds")
+
+sumdf <- sumdf[,c("Sample","DR.names", "DnaType","Season","sample.type.year"), with = T]
+sumdf <- setDT(sumdf %>% distinct()) ; setDT(alpha.df)
+# merge
+alpha.df[sumdf, c("DR.names","Season","DnaType","sample.type.year") := list(i.DR.names,
+                                                                            i.Season,
+                                                                            i.DnaType), on = .(Sample)]
+
+write.table(alpha.df, paste0("./Output/alpha_div_otu99_summary_", Sys.Date(),".csv"), sep = ",", dec = ".", row.names = F)
+
+#-----------------------------------------------------------------------------------------------
+# Do not run above code again, takes time
+# read in processed data frame
 
 # Fig. S2 -------------------------------------------------------------------------------------
 
@@ -161,7 +235,9 @@ melt.alpha <- melt(alpha.df, id.vars = c("DR.names", "Data", "DnaType", "sample.
 (rar.box <- ggplot(melt.alpha, aes(x = DnaType, y = Index)) +
   geom_boxplot(outlier.size = 0.5) +
   facet_grid(Diversity ~ Data, scales = "free") +
-  labs(x = "Nucleic acid type", y = expression(paste(alpha," - Diversity"))))
+  labs(x = "Nucleic acid type", y = expression(paste(alpha," - Diversity")))+
+  theme(strip.background = element_rect(fill= "white"),
+        panel.grid = element_blank()))
 
 ggsave("./Figures/Final/alphadiv_rar_comp_boxplots.png", rar.box,
        width = 15, height = 12, unit = "cm")
@@ -180,12 +256,13 @@ cast.alpha$Season <- factor(cast.alpha$Season, levels = c("spring", "summer", "a
                   aes(x = RNA, y = DNA, fill = Season)) +
   geom_point(shape = 21) +
   facet_wrap(Diversity~Data, scales = "free") +
-  scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00"))
-) # colour-blind friendly
+  scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) +
+    theme(strip.background = element_rect(fill= "white"),
+          panel.grid = element_blank()))
+# colour-blind friendly
 
 ggsave("./Figures/Final/alphadiv_rar_comp_scatter.png", rar.lin,
        width = 18, height = 15, unit = "cm")
-
 
 # Fig. S6 -------------------------------------------------------------------------------------
 # Abundance classification
@@ -268,6 +345,58 @@ ggsave("./Figures/Final/abundance_class_ex_otu99.png", p,
 
 
 # Fig. S7 -------------------------------------------------------------------------------------
+abio <- met.df %>%
+  select(sample.type.year, Season, DR.names,
+         distance.from.mouth,DOC,TN,TP, chla, temp.water.ysi, do.conc.ysi, ph.ysi, bact.abundance) %>%
+  distinct()
+
+# make abundance log
+abio <- abio %>% mutate(bact.abundance = log(bact.abundance))
+
+setDT(abio)
+abio <- melt(abio, id.vars = c("sample.type.year", "Season","DR.names", "distance.from.mouth"),
+             measure.vars = c("DOC","TN","TP", "chla", "temp.water.ysi", "do.conc.ysi", "ph.ysi",
+                              "bact.abundance"), variable.name = "Parameter")
+
+# rename parameters
+abio$Parameter <- factor(abio$Parameter, levels = c("temp.water.ysi", "do.conc.ysi", "ph.ysi",
+                                                    "DOC", "TN", "TP",
+                                                    "chla", "bact.abundance"),
+                         labels = c("Temperature~('°C')",
+                                    "DO~(mgL^{-1})",
+                                    "pH",
+                                    "DOC~(mgL^{-1})",
+                                    "TN~(µgL^{-1})",
+                                    "TP~(µgL^{-1})",
+                                    "Chl~a~(µg^{-1})",
+                                    "Bact.~Abundance~(cells~mL^{-1})"))
+
+abio[,sample.type.year := as.character(sample.type.year)]
+abio[sample.type.year == "Riverine \nLakes", sample.type.year := "Riverine Lakes"]
+abio[sample.type.year == "Headwater \nPonds", sample.type.year := "Headwater Ponds"]
+
+abio$sample.type.year <- factor(abio$sample.type.year, levels = c("Soil", "Sediment",
+                                                                  "Soilwater", "Groundwater",
+                                                                  "Stream", "Tributary",
+                                                                  "Riverine Lakes", "Headwater Ponds",
+                                                                  "Lake",
+                                                                  "Upriver", "Reservoirs",
+                                                                  "Downriver", "Estuary"))
+
+(p <- ggplot(abio, aes(x = sample.type.year, y = value, fill = Season)) +
+  facet_wrap(~Parameter, scales = "free_y", labeller = label_parsed) +
+  scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
+  geom_boxplot(outlier.size = 0.5) +
+  theme(strip.background = element_rect(fill = "white"),
+        panel.grid = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(x = "Habitat type")
+)
+ggsave("./Figures/Final/abiotic_vars.png", p,
+       width = 25, height = 15, unit = "cm")
+
+# Fig. S7 -------------------------------------------------------------------------------------
 # Taxonomic composition
 # We want to show the taxonomic composition of our samples plus the abundance
 # As we have too many samples, best would probably be to calcualte the mean abundance for each group
@@ -275,6 +404,7 @@ ggsave("./Figures/Final/abundance_class_ex_otu99.png", p,
 
 # melt OTU table
 pb.df <- as.data.frame(otu_mat(pb)) # make data.frame
+
 setDT(pb.df, keep.rownames = "Sample") # make data.table
 
 # melt
@@ -557,3 +687,158 @@ p <- rna.pcoa$plot + guides(alpha = "none")
 # save
 ggsave(paste0("./Figures/Final/PCoA_log_RNA_SampleType.png"),  p,
        width = 12, height = 10, unit = "cm")
+
+# Fig. S10 -------------------------------------------------------------------------------------
+# DNA ~ RNA richness
+alpha.df <- select_newest("./Output/", "alpha_div_otu99_summary_")
+alpha.df <- read.csv(paste0("./Output/", alpha.df), sep = ",", stringsAsFactors = F)
+
+# make to data table
+setDT(alpha.df)
+
+# keep CSS results only
+temp <- alpha.df[DR.names %in% unique(alpha.df[DnaType == "cDNA",]$DR.names),][Data == "css",]
+
+# keep Shannon and Pielou, we're not very interested in the other alpha indices
+cast.alpha <- dcast(temp,
+                    DR.names + Season + sample.type.year ~ DnaType,
+                    value.var = c("Shannon", "Pielou"))
+
+# and melt
+melt.alpha <- melt(cast.alpha, id.vars = c("DR.names"),
+                   measure.vars = c("Shannon_DNA",
+                                    "Shannon_cDNA",
+                                    "Pielou_DNA",
+                                    "Pielou_cDNA"),
+                   value.name = "Index") %>%
+  separate(col = "variable", into = c("Diversity","DnaType"), sep = "_") %>%
+  drop_na() %>%
+  dcast(DR.names + Diversity ~ DnaType, value.var = "Index")
+
+melt.alpha[cast.alpha, c("sample.type.year", "Season") :=
+             list(i.sample.type.year, Season), on = .(DR.names)]
+
+# Visual inspection
+ggscatter(
+  melt.alpha, x = "cDNA", y = "DNA",
+  color = "Season", add = "reg.line"
+)+
+  facet_wrap("Diversity", scales = "free") +
+  stat_regline_equation(
+    aes(label =  paste(..eq.label.., ..rr.label.., sep = "~~~~"), color = Season)
+  )
+
+# the lack of correlation/dependency in all seasons except summer is interesting
+
+# calculate linear models for alpha diversity indices
+alpha.mod <- dlply(melt.alpha, ~ paste(Diversity, Season, sep = "_"), function(df) {
+  setDF(df)
+  lm(DNA ~ sqrt(cDNA), data = df, na.action = na.omit)
+})
+
+# check model assumptions
+# Homogeneity of variances
+(diagn.plots <- llply(alpha.mod, function(list){
+  par(mfrow=c(2,2))
+  plot(list)
+  p <- recordPlot()
+  plot.new()
+  return(p)
+}))
+
+# there is no point in getting assumptions right, as there is probably no relationship
+# in autumn and spring
+
+# extract P-value
+(val <- ldply(alpha.mod, anova))
+(val <- val[!is.na(val$`Pr(>F)`),]) # keep only the rows that have the P-value
+colnames(val)[c(1,6)] <- c("Div_Season","Pval") # rename P-value column
+
+# Pielou autumn significant, BUT assumptions not fulfilled.
+# Transformations are not helping.... We include it in the results but interpret with caution
+
+melt.alpha[, show := F][Diversity == "Pielou" & (Season == "summer" | Season == "autumn"), show := T]
+melt.alpha[Diversity == "Shannon" & Season == "summer", show := T]
+
+melt.alpha$Season <- factor(melt.alpha$Season, levels = c("spring","summer","autumn"),
+                            labels = c("Spring","Summer","Autumn"))
+melt.alpha$Diversity <- factor(melt.alpha$Diversity, levels = c("Shannon","Pielou"))
+
+(alpha.p <- ggplot() +
+    theme_pubr() +
+    geom_point(data = melt.alpha, aes(x = cDNA, y = DNA, fill = Season), shape = 21) +
+    scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
+    geom_smooth(data = melt.alpha[show == T,] %>% drop_na(), 
+                mapping = aes(x = cDNA, y = DNA,
+                              colour = Season), method = "lm", se = F) +
+    facet_wrap("Diversity", scales = "free") +
+    stat_poly_eq(formula = y ~ x,
+                 data = melt.alpha[show == T,] %>% drop_na(), 
+                 mapping = aes(x = cDNA, y = DNA,
+                               label = paste(..eq.label.., ..rr.label.., ..p.value.label.., sep = "*`,`~"),
+                               colour = Season), 
+                 parse = TRUE,
+                 label.x = "right", label.y = "bottom",
+                 vstep = 0.05, size = 2.5) +
+    labs(x = "RNA") +
+    guides(colour = "none") +
+    scale_colour_manual(values = c("gold", "#D55E00")) +
+    theme(strip.background = element_rect(fill= "white"),
+          panel.grid = element_blank()))
+
+
+ggsave("./Figures/Final/alpha.div.dna.rna.lm.png", alpha.p,
+       width = 15, height = 10, units = "cm")
+
+# Fig. S11 --------------------------------------------------------------------------------------------
+# Check richness along continuum
+
+# merge some sample types
+melt.alpha$sample.type.year <- factor(melt.alpha$sample.type.year, levels = c("Soil","Sediment",
+                                                                              "Soilwater","Hyporheicwater", 
+                                                                              "Wellwater","Stream", "Tributary",
+                                                                              "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
+                                                                              "Upriver", "RO3", "RO2", "RO1","Deep", "Downriver",
+                                                                              "Marine"),
+                                      labels = c("Soil","Sediment",
+                                                 "Soilwater","Soilwater", 
+                                                 "Groundwater","Stream", "Tributary",
+                                                 "Riverine \nLakes", "Headwater \nPonds", "Lake", "Lake",
+                                                 "Upriver",
+                                                 "Reservoirs","Reservoirs", "Reservoirs","Reservoirs","Downriver",
+                                                 "Estuary"))
+
+melt.alpha <- melt(melt.alpha, id.vars = c("sample.type.year","Season","Diversity","DR.names"),
+                   measure.vars = c("DNA","cDNA"), variable.name = "DnaType", value.name = "Values")
+
+melt.alpha$DnaType <- factor(melt.alpha$DnaType, levels = c("DNA","cDNA"),
+                             labels = c("DNA", "RNA"))
+
+
+(shan <- ggplot(melt.alpha[Diversity == "Shannon" & Season != "Autumn",],
+                aes(x = sample.type.year, y = Values, fill = sample.type.year)) +
+    geom_boxplot(outlier.size = 0.5) +
+    scale_fill_manual(name = "Habitat type", values = colvec) +
+    facet_wrap(DnaType~Season, scales = "free_y") +
+    labs(x = "Habitat type", y = "Shannon") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1),
+          strip.background = element_rect(fill= "white"),
+          panel.grid = element_blank(),
+          axis.title.x = element_blank()))
+
+(pie <- ggplot(melt.alpha[Diversity == "Pielou" & Season != "Autumn",],
+               aes(x = sample.type.year, y = Values, fill = sample.type.year)) +
+    geom_boxplot(outlier.size = 0.5) +
+    scale_fill_manual(name = "Habitat type", values = colvec) +
+    facet_wrap(DnaType~Season, scales = "free_y") +
+    labs(x = "Habitat type", y = "Pielou") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1),
+          strip.background = element_rect(fill= "white"),
+          panel.grid = element_blank()))
+
+(p <- ggarrange(shan, pie,
+                nrow = 2,  common.legend = T,
+                align = "hv"))
+
+ggsave("./Figures/Final/continuum_alpha.png", p,
+       width = 18, height = 23, units = "cm")
