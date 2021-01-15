@@ -188,28 +188,28 @@ theme_set(theme_bw())
 # PCoA was chosen for all ordinations for consistency
 
 # subset only DNA samples
-dna <- subset_samples(pb, DnaType == "DNA")
-
-# remove ASVs that do not appear in this dataset
-dna <- prune_taxa(taxa_sums(dna) != 0, dna)
-dna <- prune_samples(sample_sums(dna) != 0, dna) # remove samples with no reads
-
-# extract ASV matrix
-pb.mat <- otu_mat(dna) # convert phyloseq obj to matrix
-pb.mat <- log2(pb.mat + 1) # log transform, add 1 = for zeros
-
-# Try NMDS, no convergence, do not take patterns seriously
-# Just to see what main patterns are in only two axes
-#nmds <- ordinate(dna, "NMDS", "bray")
-#plot_ordination(dna, nmds, type="samples", color="sample.type.year", shape="Season") +
-#  scale_colour_manual(values = colvec)
-
-# PCoA with Bray-Curtis
-pb.bray <- vegdist(pb.mat, method = "bray")
-is.euclid(pb.bray) # FALSE
-pb.bray <- sqrt(pb.bray) # make Euclidean
-is.euclid(pb.bray) # TRUE
-# we need euclidean distance to compute the distance metrics later on
+  dna <- subset_samples(pb, DnaType == "DNA")
+  
+  # remove ASVs that do not appear in this dataset
+  dna <- prune_taxa(taxa_sums(dna) != 0, dna)
+  dna <- prune_samples(sample_sums(dna) != 0, dna) # remove samples with no reads
+  
+  # extract ASV matrix
+  pb.mat <- otu_mat(dna) # convert phyloseq obj to matrix
+  pb.mat <- decostand(pb.mat, "hellinger")
+  
+  # Try NMDS, no convergence, do not take patterns seriously
+  # Just to see what main patterns are in only two axes
+  #nmds <- ordinate(dna, "NMDS", "bray")
+  #plot_ordination(dna, nmds, type="samples", color="sample.type.year", shape="Season") +
+  #  scale_colour_manual(values = colvec)
+  
+  # PCoA with Bray-Curtis
+  pb.bray <- vegdist(pb.mat, method = "bray")
+  is.euclid(pb.bray) # FALSE
+  pb.bray <- sqrt(pb.bray) # make Euclidean
+  is.euclid(pb.bray) # TRUE
+# we need euclidean distance for the PERMANOVA later on
 
 ncol(pb.mat) # OTUs
 nrow(pb.mat) # Samples
@@ -237,7 +237,7 @@ zoom.terr <- ggplot(dna.pcoa$df, aes(x = Axis.1, y = Axis.2)) +
                aes(x = Axis.1, y = Axis.2, fill = Season, shape = sample.type.year), size = 3) +
     scale_fill_viridis_d(option = "cividis", name = "Season") +
     scale_shape_manual(values = c(21,23, 25), "Habitat type") +
-    coord_cartesian(ylim = c(-0.15, 0.1), xlim = c(-0.42, -0.22), expand = F) + 
+    coord_cartesian(ylim = c(-0.12, 0.08), xlim = c(-0.42, -0.218), expand = F) + 
     labs(x = paste("PC1"), 
          y = paste("PC2")) +
     theme(panel.grid.major = element_blank(),
@@ -245,7 +245,6 @@ zoom.terr <- ggplot(dna.pcoa$df, aes(x = Axis.1, y = Axis.2)) +
   guides(shape = guide_legend(order = 2, override.aes=list(size = 2)),
          alpha = guide_legend(order = 3, override.aes=list(size = 2)), 
          fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2)))
-
 
 # zoom into estuaries
 # different colouring by distance from mouth, shape is Season
@@ -260,7 +259,7 @@ zoom.est <- ggplot(dna.pcoa$df, aes(x = Axis.1, y = Axis.2)) +
   scale_fill_viridis_c(name = "Distance from \nmouth (km)", direction = -1) +
   scale_shape_manual(values = c(21,23,25)) +
   scale_alpha_manual(values = c(1,0.5), name = "Nucleic Acid \nType") +
-  coord_cartesian(ylim = c(-0.15, 0.25), xlim = c(-0.05, 0.3), expand = F) + # ensure aspect ratio
+  coord_cartesian(ylim = c(-0.15, 0.25), xlim = c(-0.12, 0.29), expand = F) + # ensure aspect ratio
   labs(x = paste("PC1"), 
        y = paste("PC2")) +
   theme(panel.grid.major = element_blank(),
@@ -289,12 +288,12 @@ zoom.river <- ggplot(dna.pcoa$df, aes(x = Axis.1, y = Axis.2)) +
                linetype = "dashed", colour = "grey50") +
   #stat_ellipse(data = subset(dna.pcoa$df, (sample.type.year == "Upriver" | sample.type.year == "Downriver")),
   #               aes(x = Axis.1, y = Axis.2, group = paste(Year,Season), linetype = as.character(Year))) +
-  annotate(geom = "text", x = c(0.28,0.28), y = c(0.255,0.12), label = c("2015", "2016"), 
+  annotate(geom = "text", x = c(0.285,0.285), y = c(0.255,0.12), label = c("2015", "2016"), 
            size = 3, colour = "grey50") +
   scale_fill_continuous(type = "viridis", name = "Distance from \nmouth (km)", direction = -1) +
   #scale_fill_viridis_b(name = "Distance from mouth", direction = -1) +
   scale_shape_manual(values = c(21,23), name = "Habitat Type") +
-  coord_cartesian(xlim = c(0, 0.32), ylim = c(-0.18,0.3), expand = F) + # ensure aspect ratio
+  coord_cartesian(xlim = c(0.03, 0.32), ylim = c(-0.2,0.3), expand = F) + # ensure aspect ratio
   labs(x = paste("PC1"), 
        y = paste("PC2")) +
   theme(panel.grid.major = element_blank(),
@@ -306,14 +305,14 @@ zoom.river <- ggplot(dna.pcoa$df, aes(x = Axis.1, y = Axis.2)) +
 
 # annotate collage boxes within main plot
 p <- p + 
-  annotate(geom = "rect", xmin = -0.42, ymin = - 0.15, 
-           xmax = -0.21, ymax = 0.1, fill = NA, colour = "grey50", linetype = "dashed", alpha = 0.8) +
-  annotate(geom = "rect", xmin = 0, xmax = 0.32,
-           ymin = - 0.13, ymax = 0.3, fill = NA, colour = "grey50", linetype = "dashed", alpha = 0.8) +
-  annotate(geom = "rect", xmin = -0.04, xmax = 0.28,
-           ymin = - 0.12, ymax = 0.22, fill = NA, colour = "grey50", linetype = "dashed", alpha = 0.8) +
-  annotate(geom = "text", x = c(-0.405,0.015,-0.025), 
-           y = c(0.085,0.285,0.2), label = c("b","c","d"), alpha = 0.8, colour = "grey50")
+  annotate(geom = "rect", xmin = -0.42, ymin = - 0.12, 
+           xmax = -0.21, ymax = 0.08, fill = NA, colour = "grey50", linetype = "dashed", alpha = 0.8) +
+  annotate(geom = "rect", xmin = 0.03, xmax = 0.32,
+           ymin = - 0.2, ymax = 0.3, fill = NA, colour = "grey50", linetype = "dashed", alpha = 0.8) +
+  annotate(geom = "rect", xmin = -0.1, xmax = 0.28,
+           ymin = - 0.12, ymax = 0.245, fill = NA, colour = "grey50", linetype = "dashed", alpha = 0.8) +
+  annotate(geom = "text", x = c(-0.405,0.045,-0.085), 
+           y = c(0.065,0.285,0.23), label = c("b","c","d"), alpha = 0.8, colour = "grey50")
 
 # combine all plots into one
 (collage <- ggarrange(p, 
@@ -322,14 +321,14 @@ p <- p +
 )
 
 # save
-ggsave(paste0("./Figures/Final/PCoA_log_DNA_SampleType.tiff"), p,
+ggsave(paste0("./Figures/Final/PCoA_hellin_DNA_SampleType.tiff"), p,
        width = 12, height = 10, unit = "cm")
-ggsave(paste0("./Figures/Final/PCoA_log_DNA_SampleType.png"),  p,
+ggsave(paste0("./Figures/Final/PCoA_hellin_DNA_SampleType.png"),  p,
        width = 12, height = 10, unit = "cm")
 
-ggsave(paste0("./Figures/Final/PCoA_log_DNA_collage.tiff"), collage,
+ggsave(paste0("./Figures/Final/PCoA_hellin_DNA_collage.tiff"), collage,
        width = 25, height = 15, unit = "cm")
-ggsave(paste0("./Figures/Final/PCoA_log_DNA_collage.png"),  collage,
+ggsave(paste0("./Figures/Final/PCoA_hellin_DNA_collage.png"),  collage,
        width = 25, height = 15, unit = "cm")
 
 
@@ -346,8 +345,8 @@ perm.mod <- adonis(pb.mat ~ sample.type.year + Season,
                    permutations = 9999, data = ord.df, sqrt.dist = T, method = "bray",
                    parallel = cl)
 #-- results
-# habitat = F[12] = 17.07, R^2 = 0.35083, p = 1e-04
-# season = F[2] = 11.09, R^2 = 0.03798, p = 1e-04
+# habitat = F[12] = 18.01, R^2 = 0.36321, p = 1e-04
+# season = F[2] = 11.014, R^2 = 0.03701, p = 1e-04
 # iterations = 9999
 
 # calculate multivariate dispersions
@@ -371,12 +370,22 @@ perm3 <- anova(mod3, permutations = 9999, pairwise = T, parallel = cl)
 # runs into errors with permutest, anova.cca is same function but runs without errors...
 
 #-- results
-# habitat alone = F[12] = 32.32, p = < 2.2e-16
-# season alone = F[2] = 42.77, p = < 2.2e-16
-# combined = F[27] = 17.81, p = < 2.2e-16
+# habitat alone = F[12] = 36.76, p = < 2.2e-16
+# season alone = F[2] = 40.62, p = < 2.2e-16
+# combined = F[27] = 18.62, p = < 2.2e-16
+
+# look at dispersion
+mod # habitats
+mod2 # seasons
 
 # individual comparisons (exploring differences in dispersion among groups)
-TukeyHSD(mod2)
+tuk <-TukeyHSD(mod)
+t <- data.frame(Groups = rownames(tuk$group),unlist(tuk$group))
+t <- t %>% separate(Groups, into = c("habitat","season","nucacid",
+                                     "habitat_y","season_y","nucacid_y"), sep = "_|-")
+row.names(t) <- NULL
+# all pair-wise comparisons that are significant
+t <- t[t$p.adj < 0.05,]
 
 ## Figure 2: DNA-RNA -----------------------------------------------------------------------------------
 # Q2: Are the DNA and RNA assemblages different?
@@ -388,6 +397,9 @@ pb <- prune_taxa(taxa_names(pb) %in% taxa_names(dna), pb)
 
 # extract species table with species in columns
 pb.mat <- otu_mat(pb)
+#pb.mat <- decostand(pb.mat, "hellinger")
+# creates strong horse-shoe
+
 # PCoA with Bray-Curtis
 pb.bray <- vegdist(pb.mat, method = "bray")
 is.euclid(pb.bray) # FALSE
@@ -497,7 +509,7 @@ perm4 <- anova(mod4, permutations = 9999, pairwise = T, parallel = cl)
 # nucleic acid type alone = F[1] = 1.6727, p = 0.1964
 # combined = F[48] = 10.921, p = < 2.2e-16
 
-tuk <-TukeyHSD(mod4)
+tuk <-TukeyHSD(mod)
 t <- data.frame(Groups = rownames(tuk$group),unlist(tuk$group))
 t <- t %>% separate(Groups, into = c("habitat","season","nucacid",
                                 "habitat_y","season_y","nucacid_y"), sep = "_|-")
@@ -809,12 +821,15 @@ plot.df <- sum.ls[[4]]
                       group = paste(sample.type.year, Season, sep ="_")), colour = "gray40", alpha = 0.5) +
     geom_errorbarh(aes(xmin = Bray - Bray.se, xmax = Bray + Bray.se,
                       group = paste(sample.type.year, Season, sep ="_")), colour = "gray40", alpha = 0.5) +
-  geom_point(aes(fill = Season, group = sample.type.year),
-             size = 3, shape = 21) +
+  geom_point(aes(fill = sample.type.year, shape = Season),
+             size = 3) +
+    scale_fill_manual(values = colvec, name = "Habitat Type") +
+    scale_shape_manual(values = c(21, 23, 25)) +
   labs(x = expression(paste(italic(m)["BC"])), y = expression(paste(italic(m)["S"]))) +
   annotate(geom = "text", x = 0.33, y = 0.37, label = "1:1", angle = 45) +
-  scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00"), name = "Season") +
-  guides(fill = FALSE))
+    guides(shape = guide_legend(order = 2, override.aes=list(size = 2)),
+           fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2)))
+  )
 #guides(shape = guide_legend(order = 2, override.aes=list(size = 2)),
 #       fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2))))
 
@@ -822,6 +837,11 @@ plot.df <- sum.ls[[4]]
 plot.df <- sum.ls[[3]][!is.nan(sum.ls[[3]]$mean),]
 # Rename level for plotting
 levels(plot.df$sample.type.year)[levels(plot.df$sample.type.year) == "Riverine \nLakes"] <- "Riv. Lakes"
+names(colvec)[7] <- "Riv. Lakes"
+
+# add limit points
+plot.df$stdev[is.na(plot.df$stdev)] <- 0
+plot.df$lim.points <- plot.df$mean + plot.df$stdev
 
 d <- scatter_panels(plot.df, labs = c("Habitat Type", 
                                       "Residuals"))
@@ -858,8 +878,8 @@ d <- scatter_panels(plot.df, labs = c("Habitat Type",
 
 # make a ratio legend
 resid.leg <-
-  get_legend(d$main + 
-  geom_text(aes(label = mean <= 0, size = mean <= 0), alpha = 0) +
+  get_legend(one.to.one + 
+  geom_text(aes(label = Bray <= 0.5, size = Bray <= 0.5), alpha = 0) +
   scale_size_manual(values = c(1,3),
                     name =  "Residuals",
                     labels = c("Mass effect","Selection")) +
@@ -907,31 +927,29 @@ resid.leg <-
 
 #(scat.plots <- ggarrange(left, right, ncol = 2, widths = c(2,1)))
 
-lim.point <- max(plot.df$mean + plot.df$stdev, na.rm = T)
-
 (conti <- ggarrange(one.to.one,
                    d$main +
-                     geom_rect(aes(xmin = -Inf, xmax = Inf, ymin = lim.point + 0.01,
-                                   ymax = lim.point + 0.03),
-                               fill = "gray90", colour = "gray90") +
-                     geom_text(aes(y = lim.point + 0.02, colour = Season, label = n), 
+                     #geom_rect(aes(xmin = -Inf, xmax = Inf, ymin = lim.point + 0.01,
+                    #               ymax = lim.point + 0.03),
+                    #           fill = "gray90", colour = "gray90") +
+                     geom_text(aes(y = lim.points + 0.03, group = Season, label = n), 
                                position = position_dodge(width=0.7),
-                               size = 2.5, show.legend = F) +
+                               size = 2.5, show.legend = F, colour = "gray40") +
                      lims(y = c(min(plot.df$mean - plot.df$stdev, na.rm = T),
-                                lim.point + 0.03)) +
+                                max(plot.df$mean + plot.df$stdev, na.rm = T) + 0.03)) +
                      theme(axis.title = element_text(size = 14),
                            axis.text = element_text(size = 10),
                            legend.text = element_text(size = 9),
                            legend.title = element_text(size = 10)),
                   d$side + 
-                    geom_rect(aes(xmin = -Inf, xmax = Inf, ymin = lim.point + 0.01,
-                                  ymax = lim.point + 0.03),
-                              fill = "gray90", colour = "gray90") +
-                    geom_text(aes(y = lim.point + 0.02, colour = Season, label = n), 
+                    #geom_rect(aes(xmin = -Inf, xmax = Inf, ymin = lim.point + 0.01,
+                    #              ymax = lim.point + 0.03),
+                    #          fill = "gray90", colour = "gray90") +
+                    geom_text(aes(y = lim.points + 0.03, group = Season, label = n), 
                               position = position_dodge(width=0.7),
-                              size = 2.5, show.legend = F) +
+                              size = 2.5, show.legend = F, colour = "gray40") +
                     lims(y = c(min(plot.df$mean - plot.df$stdev, na.rm = T),
-                               lim.point + 0.03)) +
+                               max(plot.df$mean + plot.df$stdev, na.rm = T) + 0.03)) +
                     theme(axis.title = element_text(size = 14),
                             axis.text = element_text(size = 10),
                           legend.text = element_text(size = 9),
@@ -941,7 +959,7 @@ lim.point <- max(plot.df$mean + plot.df$stdev, na.rm = T)
                   legend.grob = resid.leg, legend = "right"))
 
 ggsave("./Figures/Final/distBCS_residcontinuum.png", conti,
-       width =23, height = 8, units = "cm")
+       width =23, height = 9, units = "cm")
 
 
 (distdissm.col <- ggarrange(pw.sorbray, scat.plots, ncol = 2, #labels = c("a",""),
@@ -1048,6 +1066,13 @@ all.met[setDT(sample_df(pb) %>%
                 group_by(DR.names) %>% distinct()), c("sample.type.year","Season") := list(i.sample.type.year,
                                                                                            i.Season),
         on = .(DR.names)]
+
+# explore metrics
+all.met[, .(rich.diff = mean(rich.diff, na.rm = T)), by = .(sample.type.year, Season)]
+# all positive, meaning that DNA bigger than richness > RNA richness
+all.met[, .(shar.diff = mean(shar.diff, na.rm = T)), by = .(sample.type.year, Season)]
+# all positive, meaning that DNA > RNA abundance
+
 
 # quick plots
 ggplot(all.met, aes(x = resid.cat, y = n.shared)) +
@@ -1488,15 +1513,8 @@ cast.abun <- dcast(rel.df, DR.names + OTU ~ DnaType, value.var = "css.reads")
 cast.abun <- cast.abun[!is.na(DNA) & !is.na(cDNA),]
 cast.abun[, diff.abun := DNA - cDNA]
 
-dist.cast <- dcast(dist.75, DR.names + sample.type.year + Season ~ Metric, value.var = "dist")
-#dist.cast <- dcast(dist.3d, DR.names + sample.type.year + Season ~ Metric, value.var = "dist.3d")
-#dist.cast <- dcast(dist.1d[(Axis == "Axis.2" & Metric == "Bray") | (Axis == "Axis.3" & Metric == "Sorensen")
-#                             ,], DR.names + sample.type.year + Season ~ Metric, value.var = "dist")
-dist.cast <- dist.cast[!is.na(dist.cast$Bray),]
-dist.cast[, bcs.ratio := Sorensen / Bray]
-
-cast.abun[dist.cast, c("Bray", "Sorensen", "bcs.ratio", "sample.type.year","Season") :=
-            list(i.Bray, i.Sorensen, i.bcs.ratio, i.sample.type.year, i.Season), on = .(DR.names)]
+cast.abun[dist.resid, c("Bray", "Sorensen", "resid", "sample.type.year","Season") :=
+            list(i.Bray, i.Sorensen, i.resid, i.sample.type.year, i.Season), on = .(DR.names)]
 
 #cast.abun[dist.1d[Metric == "Bray" & Axis == "Axis.2",], c("dist.pc2") := list(i.dist), on = .(DR.names)]
 
@@ -1528,7 +1546,6 @@ cast.abun$ab.groups <- factor(cast.abun$ab.names, levels = c('moderate', 'rare',
 okabe.ito.sel <- c("#000000",
                    "#0072B2", "#009E73", "#CC79A7", "#56B4E9","#F0E442", "#E69F00")
 
-
 within.p <- ggplot(cast.abun, aes(x = Bray, y = log1p(abs(diff.abun)))) + #dist.pc2
   theme_pubr() +
   geom_point(colour = "grey80", alpha = 0.8, size = 0.5) +
@@ -1538,7 +1555,7 @@ within.p <- ggplot(cast.abun, aes(x = Bray, y = log1p(abs(diff.abun)))) + #dist.
            xmax = 1, ymax = 8, fill = NA, colour = "grey50", linetype = "dashed", alpha = 0.8) +
   theme(axis.text = element_text(size = 5), axis.title = element_text(size = 8))
 
-main <- ggplot(cast.abun,  aes(x = Bray, y = log1p(abs(diff.abun)))) + # dist.pc2
+(main <- ggplot(cast.abun,  aes(x = Bray, y = log1p(abs(diff.abun)))) + # dist.pc2
     theme_pubr() +
     geom_point(colour = "grey80", alpha = 0.2) +
     #geom_smooth(aes(group = ab.groups, colour = ab.groups, fill = ab.groups),
@@ -1552,8 +1569,8 @@ main <- ggplot(cast.abun,  aes(x = Bray, y = log1p(abs(diff.abun)))) + # dist.pc
     theme(panel.grid.major = element_blank(),
           panel.grid.minor = element_blank()) +
     #annotate(geom = "text", x = 0.5/2, y = 9, label = "DNA > RNA") +
-    annotation_custom(ggplotGrob(within.p), xmin = 0.2, xmax = 0.6, ymin = 6.7, ymax = 10) +
-    theme(legend.position = "right")
+    #annotation_custom(ggplotGrob(within.p), xmin = 0.2, xmax = 0.6, ymin = 6.7, ymax = 10) +
+    theme(legend.position = "right"))
 
 ggsave("./Figures/Final/abgroups_mBC_75.png", main,
        width = 14, height = 9 , units = "cm")
