@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2020.6.15)  21 DEC 2020 15:52
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2020.6.15)  15 JAN 2021 12:02
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -1201,12 +1201,6 @@ Underfull \hbox (badness 10000) in paragraph at lines 51--52
  []
 
 
-Overfull \hbox (9.43938pt too wide) in paragraph at lines 53--54
-[]\T1/phv/m/n/12 Running ti-tle (max 50 char): Mi-cro-bial com-mu-ni-ties along
- a bo-real terrestrial-
- []
-
-
 Underfull \hbox (badness 10000) in paragraph at lines 53--54
 
  []
@@ -1236,175 +1230,239 @@ Underfull \hbox (badness 10000) in paragraph at lines 62--63
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
 LaTeX Font Info:    Font shape `T1/phv/bx/n' in size <12> not available
-(Font)              Font shape `T1/phv/b/n' tried instead on input line 75.
-
-Package natbib Warning: Citation `Forlsund2014' on page 2 undefined on input li
-ne 76.
-
-[2]
-Overfull \hbox (1.33984pt too wide) in paragraph at lines 78--79
-\T1/phv/m/n/12 tems sep-a-rately (here-after ecosys-tem do-mains) ([]Shi-gyo et
- al.[], []2019[]; []Jones
+(Font)              Font shape `T1/phv/b/n' tried instead on input line 68.
+[2] [3]
+Overfull \hbox (0.75208pt too wide) in paragraph at lines 83--84
+[]\T1/phv/m/n/12 Death and dor-mancy$[]$ ques-tions the suit-abil-ity of DNA ap
+-proaches
  []
 
-[3] [4]
-
-Package natbib Warning: Citation `Wiskonski2020' on page 5 undefined on input l
-ine 82.
-
-[5] [6]
+[4] [5] [6]
 LaTeX Font Info:    Font shape `T1/phv/m/it' in size <12> not available
-(Font)              Font shape `T1/phv/m/sl' tried instead on input line 89.
+(Font)              Font shape `T1/phv/m/sl' tried instead on input line 90.
 
-Overfull \hbox (17.23239pt too wide) in paragraph at lines 90--91
+Overfull \hbox (17.23239pt too wide) in paragraph at lines 91--92
 \T1/phv/m/n/12 ples were taken along the Ro-maine river (Côte-Nord re-gion, Qué
 bec, Canada)
  []
 
-[7] [8] [9]
-Overfull \hbox (4.40622pt too wide) in paragraph at lines 106--107
-\T1/phv/m/n/12 or-di-na-tion space was com-puted across \T1/phv/m/sl/12 n\T1/ph
-v/m/n/12 -dimensional space ([]Tabak[], []2004[]): 
+[7]
+LaTeX Font Info:    Try loading font information for TS1+phv on input line 95.
+(/usr/share/texlive/texmf-dist/tex/latex/psnfss/ts1phv.fd
+File: ts1phv.fd 2001/06/04 scalable font definitions for TS1/phv.
+) [8]
+Overfull \hbox (3.90797pt too wide) in paragraph at lines 100--101
+\T1/phv/m/n/12 re-sent-ing 100% sim-i-lar-ity op-er-a-tional tax-o-nomic units 
+(OTUs) and chimeras
  []
 
-[10] [11]
-Underfull \hbox (badness 10000) in paragraph at lines 121--122
+[9]
+Overfull \hbox (1.88416pt too wide) in paragraph at lines 105--106
+\T1/phv/m/n/12 ef-fect$[]$. To cor-rect any neg-a-tive eigen-val-ues prob-lem-a
+tic for PER-MANOVA
+ []
+
+[10] [11] [12]
+Underfull \hbox (badness 10000) in paragraph at lines 124--125
 
  []
 
-[12] [13] [14] [15] [16] [17]
-LaTeX Font Info:    Try loading font information for T1+lmtt on input line 181.
+[13] [14] [15] [16] [17] [18]
+Overfull \hbox (2.35922pt too wide) in paragraph at lines 153--154
+\T1/phv/m/n/12 com-po-si-tional gra-di-ent fol-lowed the terrestrial-aquatic co
+n-tin-uum. Streams,
+ []
+
+[19] [20] [21] [22] [23]
+Overfull \hbox (4.26782pt too wide) in paragraph at lines 173--174
+\T1/phv/m/n/12 served abun-dance dif-fer-ences among DNA-RNA. It is note-wor-th
+y that along
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 173--174
+
+ []
+
+[24] [25]
+LaTeX Font Info:    Try loading font information for T1+lmtt on input line 180.
 
 (/usr/share/texmf/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
-Underfull \hbox (badness 10000) in paragraph at lines 181--182
+Underfull \hbox (badness 10000) in paragraph at lines 180--181
 
  []
 
-[18] [19] [20]
+
+Overfull \hbox (23.33603pt too wide) in paragraph at lines 186--187
+\T1/phv/m/n/12 anony-mous re-view-ers for con-struc-tive com-ments that im-prov
+ed the manuscript.
+ []
+
+[26] [27]
 (/media/shared/Documents/University/PhD/Analyses/Molecular/catchment_microbial_
-community/Manuscript/LaTeX/laromaine_community_assembly_paper.bbl [21] [22] [23
-] [24] [25] [26]) [27]
-Underfull \hbox (badness 10000) in paragraph at lines 196--207
+community/Manuscript/LaTeX/laromaine_community_assembly_paper.bbl
+LaTeX Font Info:    Try loading font information for T1+lmr on input line 13.
+(/usr/share/texmf/tex/latex/lm/t1lmr.fd
+File: t1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
+) [28] [29] [30]
+Underfull \hbox (badness 2285) in paragraph at lines 232--240
+\T1/phv/m/n/12 Mi-cro-bial di-ver-sity in arc-tic fresh-wa-ters is struc-tured 
+by in-oc-
+ []
+
+
+Underfull \hbox (badness 4621) in paragraph at lines 232--240
+\T1/phv/m/n/12 u-la-tion of mi-crobes from soils.  \T1/phv/m/sl/12 The ISME Jou
+r-nal\T1/phv/m/n/12 , 6(9):
+ []
+
+[31] [32]
+Underfull \hbox (badness 1983) in paragraph at lines 374--382
+\T1/phv/m/n/12 Ste-gen.  De-ter-min-is-tic in-flu-ences ex-ceed dis-per-sal ef-
+fects on
+ []
+
+[33]
+Underfull \hbox (badness 3623) in paragraph at lines 462--470
+[]\T1/phv/m/n/12 Marcel Mar-tin.  Cu-tadapt re-moves adapter se-quences from
+ []
+
+
+Underfull \hbox (badness 2726) in paragraph at lines 462--470
+\T1/phv/m/n/12 high-throughput se-quenc-ing reads.  \T1/phv/m/sl/12 EM-B-net.jo
+urnal\T1/phv/m/n/12 , 17(1):pp.
+ []
+
+
+Underfull \hbox (badness 6691) in paragraph at lines 462--470
+\T1/phv/m/n/12 10--12, 2013.  ISSN 2226-6089.  doi: $\T1/lmr/m/n/12 10 . 14806 
+/ ej . 17 . 1 .
+ []
+
+[34] [35]
+Underfull \hbox (badness 2591) in paragraph at lines 629--632
+[]\T1/phv/m/n/12 Matt Dowle and Arun Srini-vasan.  data.table: Ex-ten-sion of
+ []
+
+
+Underfull \hbox (badness 1412) in paragraph at lines 654--657
+[]\T1/phv/m/n/12 Elio Campitelli.  ggnews-cale: Mul-ti-ple Fill and Colour Scal
+es
+ []
+
+[36] [37] [38]) [39]
+LaTeX Font Info:    Font shape `T1/phv/bx/n' in size <8> not available
+(Font)              Font shape `T1/phv/b/n' tried instead on input line 201.
+
+Underfull \hbox (badness 10000) in paragraph at lines 195--204
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 196--207
+Underfull \hbox (badness 10000) in paragraph at lines 195--204
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 196--207
+Underfull \hbox (badness 10000) in paragraph at lines 195--204
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 196--207
+Underfull \hbox (badness 10000) in paragraph at lines 195--204
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 196--207
+Underfull \hbox (badness 10000) in paragraph at lines 195--204
 
  []
 
-
-Underfull \hbox (badness 10000) in paragraph at lines 196--207
-
- []
-
-[28]
-LaTeX Font Info:    Try loading font information for TS1+phv on input line 237.
-
-(/usr/share/texlive/texmf-dist/tex/latex/psnfss/ts1phv.fd
-File: ts1phv.fd 2001/06/04 scalable font definitions for TS1/phv.
-) [29]
-<../Figures/LR_miccom_paper_threemaps.png, id=387, 408.61458pt x 490.27968pt>
-File: ../Figures/LR_miccom_paper_threemaps.png Graphic file (type png)
-<use ../Figures/LR_miccom_paper_threemaps.png>
-Package pdftex.def Info: ../Figures/LR_miccom_paper_threemaps.png  used on inpu
-t line 246.
+[40] [41] [42]
+<../Figures/LR_miccom_paper_threemaps_abc.png, id=477, 408.61458pt x 490.27968p
+t>
+File: ../Figures/LR_miccom_paper_threemaps_abc.png Graphic file (type png)
+<use ../Figures/LR_miccom_paper_threemaps_abc.png>
+Package pdftex.def Info: ../Figures/LR_miccom_paper_threemaps_abc.png  used on 
+input line 245.
 (pdftex.def)             Requested size: 341.43306pt x 409.68506pt.
-<../../Figures/Final/PCoA_log_DNA_collage.png, id=389, 711.1368pt x 426.6339pt>
-
-File: ../../Figures/Final/PCoA_log_DNA_collage.png Graphic file (type png)
-<use ../../Figures/Final/PCoA_log_DNA_collage.png>
-Package pdftex.def Info: ../../Figures/Final/PCoA_log_DNA_collage.png  used on 
-input line 253.
+<../../Figures/Final/PCoA_hellin_DNA_collage.png, id=479, 711.1368pt x 426.6339
+pt>
+File: ../../Figures/Final/PCoA_hellin_DNA_collage.png Graphic file (type png)
+<use ../../Figures/Final/PCoA_hellin_DNA_collage.png>
+Package pdftex.def Info: ../../Figures/Final/PCoA_hellin_DNA_collage.png  used 
+on input line 252.
 (pdftex.def)             Requested size: 455.24408pt x 273.11636pt.
 
-Overfull \hbox (65.24408pt too wide) in paragraph at lines 253--254
+Overfull \hbox (65.24408pt too wide) in paragraph at lines 252--253
  [][] 
  []
 
-<../../Figures/Final/PCoA_all_SampleType.png, id=390, 569.0058pt x 312.9291pt>
+<../../Figures/Final/PCoA_all_SampleType.png, id=480, 569.0058pt x 312.9291pt>
 File: ../../Figures/Final/PCoA_all_SampleType.png Graphic file (type png)
 <use ../../Figures/Final/PCoA_all_SampleType.png>
 Package pdftex.def Info: ../../Figures/Final/PCoA_all_SampleType.png  used on i
-nput line 260.
+nput line 259.
 (pdftex.def)             Requested size: 483.69684pt x 266.01007pt.
 
-Overfull \hbox (93.69684pt too wide) in paragraph at lines 260--261
+Overfull \hbox (93.69684pt too wide) in paragraph at lines 259--260
  [][] 
  []
 
-<../../Figures/Final/distBC_distratio_scat.png, id=391, 426.6339pt x 284.5029pt
->
-File: ../../Figures/Final/distBC_distratio_scat.png Graphic file (type png)
-<use ../../Figures/Final/distBC_distratio_scat.png>
-Package pdftex.def Info: ../../Figures/Final/distBC_distratio_scat.png  used on
- input line 267.
-(pdftex.def)             Requested size: 426.79134pt x 284.61072pt.
+<../../Figures/Final/distBCS_residcontinuum.png, id=481, 654.2844pt x 255.8358p
+t>
+File: ../../Figures/Final/distBCS_residcontinuum.png Graphic file (type png)
+<use ../../Figures/Final/distBCS_residcontinuum.png>
+Package pdftex.def Info: ../../Figures/Final/distBCS_residcontinuum.png  used o
+n input line 266.
+(pdftex.def)             Requested size: 426.79134pt x 166.88075pt.
 
-Overfull \hbox (36.79134pt too wide) in paragraph at lines 267--268
+Overfull \hbox (36.79134pt too wide) in paragraph at lines 266--267
  [][] 
  []
 
-<../../Figures/Final/abgroups_rollmean_violin.png, id=392, 711.1368pt x 312.929
+<../../Figures/Final/abgroups_rollmean_violin.png, id=482, 711.1368pt x 312.929
 1pt>
 File: ../../Figures/Final/abgroups_rollmean_violin.png Graphic file (type png)
 <use ../../Figures/Final/abgroups_rollmean_violin.png>
 Package pdftex.def Info: ../../Figures/Final/abgroups_rollmean_violin.png  used
- on input line 274.
+ on input line 273.
 (pdftex.def)             Requested size: 426.79134pt x 187.80664pt.
 
-Overfull \hbox (36.79134pt too wide) in paragraph at lines 274--275
+Overfull \hbox (36.79134pt too wide) in paragraph at lines 273--274
  [][] 
  []
 
-
-Package natbib Warning: There were undefined citations.
-
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 280.
-[30] [31 <../Figures/LR_miccom_paper_threemaps.png>] [32 <../../Figures/Final/P
-CoA_log_DNA_collage.png (PNG copy)>] [33 <../../Figures/Final/PCoA_all_SampleTy
-pe.png (PNG copy)>] [34 <../../Figures/Final/distBC_distratio_scat.png (PNG cop
-y)>] [35 <../../Figures/Final/abgroups_rollmean_violin.png (PNG copy)>]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 280.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 279.
+[43 <../Figures/LR_miccom_paper_threemaps_abc.png>] [44 <../../Figures/Final/PC
+oA_hellin_DNA_collage.png (PNG copy)>] [45 <../../Figures/Final/PCoA_all_Sample
+Type.png (PNG copy)>] [46 <../../Figures/Final/distBCS_residcontinuum.png (PNG 
+copy)>] [47 <../../Figures/Final/abgroups_rollmean_violin.png (PNG copy)>]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 279.
 
 (/media/shared/Documents/University/PhD/Analyses/Molecular/catchment_microbial_
 community/Manuscript/LaTeX/laromaine_community_assembly_paper.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 280.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 280.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 279.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 279.
 Package rerunfilecheck Info: File `laromaine_community_assembly_paper.out' has 
 not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 280.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 279.
  ) 
 Here is how much of TeX's memory you used:
- 19612 strings out of 494805
- 373615 string characters out of 6178000
- 415513 words of memory out of 5000000
- 22638 multiletter control sequences out of 15000+600000
- 563624 words of font info for 50 fonts, out of 8000000 for 9000
+ 19757 strings out of 494805
+ 376278 string characters out of 6178000
+ 416931 words of memory out of 5000000
+ 22741 multiletter control sequences out of 15000+600000
+ 569666 words of font info for 54 fonts, out of 8000000 for 9000
  81 hyphenation exceptions out of 8191
- 36i,19n,39p,10385b,953s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 36i,19n,39p,10385b,1006s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texmf/fonts/enc/dvips/lm/lm-ec.enc}{/usr/share/texmf/fonts/enc/dv
-ips/lm/lm-rm.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm-mathsy.enc}{/usr/share
-/texmf/fonts/enc/dvips/lm/lm-mathex.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm
--mathit.enc}{/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/sh
+ips/lm/lm-rm.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm-mathex.enc}{/usr/share
+/texmf/fonts/enc/dvips/lm/lm-mathit.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm
+-mathsy.enc}{/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/sh
 are/texmf/fonts/type1/public/lm/lmex10.pfb></usr/share/texmf/fonts/type1/public
 /lm/lmmi12.pfb></usr/share/texmf/fonts/type1/public/lm/lmmi8.pfb></usr/share/te
 xmf/fonts/type1/public/lm/lmr12.pfb></usr/share/texmf/fonts/type1/public/lm/lmr
@@ -1412,11 +1470,11 @@ xmf/fonts/type1/public/lm/lmr12.pfb></usr/share/texmf/fonts/type1/public/lm/lmr
 s/type1/public/lm/lmtt12.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/hel
 vetic/uhvb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/helvetic/uhvr8a
 .pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/helvetic/uhvro8a.pfb>
-Output written on laromaine_community_assembly_paper.pdf (35 pages, 6438685 byt
+Output written on laromaine_community_assembly_paper.pdf (47 pages, 6409521 byt
 es).
 PDF statistics:
- 490 PDF objects out of 1000 (max. 8388607)
- 432 compressed objects within 5 object streams
- 112 named destinations out of 1000 (max. 500000)
+ 585 PDF objects out of 1000 (max. 8388607)
+ 514 compressed objects within 6 object streams
+ 149 named destinations out of 1000 (max. 500000)
  26 words of extra memory for PDF output out of 10000 (max. 10000000)
 
