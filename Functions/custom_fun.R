@@ -425,16 +425,19 @@ scatter_panels <- function(data, labs = c(x,y)){
   (
     main <-
       ggplot(data[data$panels == "main",], aes(
-        x = sample.type.year, y = mean, fill = Season
+        x = sample.type.year, y = mean,
       )) +
       theme_cust(base_theme = "pubr") +
       geom_hline(yintercept = 0, linetype = "dashed", colour = "black") +
-      geom_errorbar(aes(ymin = mean - stdev, ymax = mean + stdev, colour = Season),
-                    position = position_dodge(0.7), width = 0) +
-      geom_jitter(aes(fill = Season), shape = 21, 
+      geom_errorbar(aes(ymin = mean - stdev, ymax = mean + stdev,
+                        group = Season),
+                    position = position_dodge(0.7), width = 0, colour = "gray40") +
+      geom_jitter(aes( fill = sample.type.year, shape = Season), 
                   position = position_dodge(0.7), size = 3, alpha = 1) +
-      scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
-      scale_colour_manual(values = c("#009E73", "#FFAA1D", "#D55E00")) +
+      scale_fill_manual(values = colvec, name = "Habitat Type") +
+      scale_shape_manual(values = c(21, 23, 25)) +
+      #scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
+      #scale_colour_manual(values = c("#009E73", "#FFAA1D", "#D55E00")) +
       labs(x = labs[1], 
            y = labs[2]) +
       lims(y = c(min(data$mean - data$stdev, na.rm = T),
@@ -444,23 +447,27 @@ scatter_panels <- function(data, labs = c(x,y)){
         axis.text = element_text(size = 8),
         axis.title.x = element_blank(),
         axis.title = element_text(size = 10)
-      )
+      ) +
+      guides(shape = guide_legend(order = 2, override.aes=list(size = 2)),
+             fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2)))
   )
   
   # side panel
   (
     side <-
       ggplot(data[data$panels == "side",], aes(
-        x = sample.type.year, y = mean, fill = Season
+        x = sample.type.year, y = mean,
       )) +
       theme_cust(base_theme = "pubr") +
       geom_hline(yintercept = 0, linetype = "dashed", colour = "black") +
-      geom_errorbar(aes(ymin = mean - stdev, ymax = mean + stdev, colour = Season),
-                    position = position_dodge(0.7), width = 0) +
-      geom_jitter(aes(fill = Season), shape = 21, 
-                  position = position_dodge(0.7), size = 3) +
-      scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
-      scale_colour_manual(values = c("#009E73", "#FFAA1D", "#D55E00")) +
+      geom_errorbar(aes(ymin = mean - stdev, ymax = mean + stdev, group = Season),
+                    position = position_dodge(0.7), width = 0, colour = "gray40") +
+      geom_jitter(aes( fill = sample.type.year, shape = Season), 
+                  position = position_dodge(0.7), size = 3, alpha = 1) +
+      scale_fill_manual(values = colvec, name = "Habitat Type") +
+      scale_shape_manual(values = c(21, 23, 25)) +
+      #scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
+      #scale_colour_manual(values = c("#009E73", "#FFAA1D", "#D55E00")) +
       labs(x = labs[1], 
            y = labs[2]) +
       lims(y = c(min(data$mean - data$stdev, na.rm = T),
