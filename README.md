@@ -20,7 +20,7 @@ xxx
 ---
 
 ## Data availability:
-Raw sequences are available at [database]().
+Raw sequences are available on the public NCBI Sequence Read Archive (SRA) under the accession number SRxxxxx part of the BioProject PRJNA69302.
 
 ---
 
@@ -30,19 +30,9 @@ This unique setting allows us to investigate how microbial communities respond t
 Furthermore, we have sampled a continuum from soil, soilwater, streams, river, reservoirs until the estuary.
 By covering a large spatial and ecological gradient we are able to decipher how microbial communities move and respond along a landscape.
 
-### Our main objectives are:
-
-*
-*
-
-### Our main findings are:
-
-*
-*
-
 ---
 
 ## Funding
 
-This study is part of the program of the Carbon Biogeochemistry in Boreal Aquatic Systems (CarBBAS) Industrial Research Chair, co-funded by the Natural Science and Engineering Research Council of Canada (NSERC) and Hydro-Quebec. (#Number?)
+This study is part of the program of the Carbon Biogeochemistry in Boreal Aquatic Systems (CarBBAS) Industrial Research Chair, co-funded by the Natural Science and Engineering Research Council of Canada (NSERC) and Hydro-Québec.
 
