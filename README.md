@@ -2,9 +2,9 @@
 
 ---
 
-### Microbial community assembly within a watershed (Title of paper) :microbe::national_park:
+### Reactive bacterioplankton reveal assembly dynamics along a boreal terrestrial-aquatic continuum :microbe::national_park:
 
-Authored by: Masumi Stadler and Paul del Giorgio
+Authored by: Masumi Stadler and Paul A. del Giorgio
 
 Affiliation: Groupe de Recherche Interuniversitaire en Limnologie (GRIL), Département des Sciences Biologiques, Université du Québec à Montréal, Montréal, QC, Canada
 
