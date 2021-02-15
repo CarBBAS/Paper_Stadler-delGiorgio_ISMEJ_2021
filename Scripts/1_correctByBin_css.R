@@ -17,14 +17,12 @@
 
 # Second, we split the data set into ID groups (Year, Season, DnaType, ASV) and evaluate whether
 # there is an actual observation or if that particular ASV is absent in that ID group.
-# To do this, we will split the x-axis which is catchment.area into bins. If within a bin,
-# there are several samples but only one actual observation then we will remove the observation
-# if the number of reads is below 10. This function consumes a lot of memory and CPU power,
-# thus we only execute the bin_qual_control() function on the actually present IDs.
+# If within a bin, there are several samples but only one actual observation then
+# we will remove the observation if the number of reads is below 10
 
-# Third, we will transform the corrected counts with metgenomeSeq to CSS ().
+# Third, we will transform the corrected counts with metgenomeSeq to CSS reads.
 
-# Finally, we calculate the relative abundances based on the css read numbers for completeness.
+# Finally, we calculate the relative abundances based on the CSS read numbers for completeness.
 
 # 1. R set-up ------------------------------------------------------------------------------
 ### Packages -------------------------------------------------------------------------------
@@ -118,7 +116,6 @@ pb <- filter_taxa(pb, function(x)
 # Add another column of library size to meta data
 sample_data(pb)$LibrarySize <- sample_sums(pb)
 
-# Subset to data set that focuses on PR -> RO2
 # Subset only shallow samples
 pb <- subset_samples(pb, SeqDepth == "Shallow")
 
@@ -220,6 +217,40 @@ nrow(tax.df[rownames(tax.df) %in% sum.reads[OTU %in% as.character(notindna) & su
 sumdf <- sumdf[!(OTU %in% notindna),]
 length(notindna)
 # removing 3353 OTUs
+
+# How many taxa only appear in RNA per sample?
+temp <- sumdf[OTU == "OTU_1" & DnaType == "cDNA", ]
+t<-temp[!duplicated(DR.names),]$DR.names
+
+temp <- sumdf[DR.names %in% t,]
+temp <- temp[, .(mean = mean(reads, na.rm = T)), by = .(OTU, DnaType, DR.names)]
+
+rna.obs <- dcast(temp, DR.names + OTU ~ DnaType, value.var = "mean")
+rna.obs[DNA > 0 | cDNA > 0, n.all := .N, .(DR.names)]
+tt <- rna.obs[cDNA >= 1 & DNA == 0,]
+
+rnaonly <- tt[, .(n = .N,
+                  n.all = unique(n.all)), .(DR.names)]
+rnaonly <- rnaonly[,prop := n * 100 / n.all]
+# quite some...
+
+comp.seq <- function (str1, str2) {
+  tmp = cbind (strsplit(as.character(str1), ""), strsplit(as.character(str2), ""))
+  t(apply (tmp, 1, function(x){x[[1]]==x[[2]]}))
+}
+# nucleotide difference... different OTUs
+otu1 <- "TACGTAGGGTGCGAGCGTTAATCGGAATTACTGGGCGTAAAGCGTGCGCAGGCGGTTATACAAGACAGGCGTGAAATCCCCGGGCTTAACCTGGGAATGGCGCCTGTGACTGTATAGCTAGAGTGTGTCAGAGGGGGGTAGAATTCCACGTGTAGCAGTGAAATGCGTAGATATGTGGAGGAATACCAATGGCGAAGGCAGCCCCCTGGGATAACACTGACGCTCATGCACGAAAGCGTGGGGAGCAAACAGG"
+otu2 <- "TACGTAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGTGCGCAGGCGGTTATACAAGACAGGCGTGAAATCCCCGGGCTTAACCTGGGAATGGCGCCTGTGACTGTATAGCTAGAGTGTGTCAGAGGGGGGTAGAATTCCACGTGTAGCAGTGAAATGCGTAGATATGTGGAGGAATACCAATGGCGAAGGCAGCCCCCTGGGATAACACTGACGCTCATGCACGAAAGCGTGGGGAGCAAACAGG"
+otu3 <- "GACGAACCGTGCAAACGTTATTCGGAATCACTGGGCTTAAAGGGCGCGTAGGCGGGTGATCAAGTCAATGGTGAAATCCTCCAGCTTAACTGGAGAAGTGCCTTTGATACTGATTGTCTAGAGGGAGGTAGGGGCATGTGGAACTTCAGGTGGAGCGGTGAAATGCGTAGATATCTGAAGGAACGCCAGTGGCGAAAGCGATGTGCTGGACCTCTTCTGACGCTGAGGCGCGAAAGCTAGGGGATCAAACGGG"
+# just one nucleotide difference
+which(comp.seq(otu1, otu2) == F)
+which(comp.seq(otu2, otu3) == F)
+tax.df <- setDT(data.frame(tax.df), keep.rownames = "OTU")
+tax.df[!is.na(genus), n := .N, .(genus)]
+tax.df[is.na(genus) & !is.na(family), n := .N, .(family)]
+only.in.rna <- unique(tt$OTU)
+View(tax.df[OTU %in% only.in.rna,])
+
 
 #combine back with some meta Data and sample names
 # add ID column for parallel computing
