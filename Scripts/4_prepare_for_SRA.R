@@ -1,25 +1,37 @@
-library(tidyverse)
-library(data.table)
-
-sample.names <- data.frame(stringsAsFactors = F)
-
-for(i in 2015:2017){
-  file.names <- dir(paste0("../Raw/",i), pattern = "*fastq.gz")
-  t <- strsplit(file.names, "_", fixed = T)
-  names <- sapply(t, "[[", 1)
-  fr <- sapply(t, '[[', 2)
-  #names <- unique(names)
-  oneyear <- data.frame(SeqNames = names, ext = fr, Year = i, stringsAsFactors = F)
-  sample.names <- rbind(sample.names, oneyear)
-}
+  library(tidyverse)
+  library(data.table)
+  
+  sample.names <- data.frame(stringsAsFactors = F)
+  
+  for(i in 2015:2017){
+    file.names <- dir(paste0("../Raw/",i), pattern = "*fastq.gz")
+    t <- strsplit(file.names, "_", fixed = T)
+    names <- sapply(t, "[[", 1)
+    fr <- sapply(t, '[[', 2)
+    #names <- unique(names)
+    oneyear <- data.frame(SeqNames = names, ext = fr, Year = i, stringsAsFactors = F)
+    sample.names <- rbind(sample.names, oneyear)
+  }
 
 # copied files
-copied <- list.files("./Raw/Upload")
-cp <- data.frame(sample = sapply(strsplit(copied, "_"), "[[",1),
-                 ext = sapply(strsplit(copied, "_"), "[[",2))
+#copied <- list.files("./Raw/Upload")
+#cp <- data.frame(sample = sapply(strsplit(copied, "_"), "[[",1),
+#                 ext = sapply(strsplit(copied, "_"), "[[",2))
+  
+
+cp <- data.frame(stringsAsFactors = F)
+for(i in 2015:2017){
+  files <- list.files(path = paste0("./Raw/Upload/",i))
+  tmp <- data.frame(sample = sapply(strsplit(files, "_"), "[[", 1),
+                    ext = sapply(strsplit(files, "_"), "[[", 2))
+  cp <- rbind(cp, tmp)
+}
+
+nrow(cp) == nrow(sample.names)
 
 # read in sequence legend
 leg <- read.csv("../Meta/seq_sample_legend.csv", sep = ",", dec = ".", stringsAsFactors = F)
+nrow(leg) == nrow(cp)/2
 
 sample.names[!sample.names$SeqNames %in% leg$SeqPlateNames,]
 leg[!leg$SeqPlateNames %in% sample.names$SeqNames,]
@@ -36,6 +48,7 @@ sample.names$SeqNames[sample.names$Year == 2016] <- gsub("[-]", ".", sample.name
 
 # do all sequence names match?
 sample.names[!sample.names$SeqNames %in% leg$SeqPlateNames,]
+leg[!leg$SeqPlateNames %in% sample.names$SeqNames,]
 
 sample.names$fullname <- paste(sample.names$SeqNames, sample.names$ext, sep = "_")
 #for merging
@@ -191,16 +204,43 @@ out[, replicate := 1]
 out[grep(".2D", out$sample_name, fixed = T), replicate := 2]
 
 # Depth
+depths <- read.csv("hypolim_depths.csv", sep = ",", stringsAsFactors = F)
 out[grep("90m", out$sample_name), isolation_source := "Reservoir_Hypolimnion"]
 out[grep("60m", out$sample_name), isolation_source := "Reservoir_Hypolimnion"]
 out[sample_name == "RO211160mD", sample_name := "RO211190mD"]
-out[, Depth_m := 0.5]
+out[, Sampling_Depth_m := 0.5]
+out[depths, Sampling_Depth_m := i.sampling_depth, on = .(sample_name)]
 
 
-write.table(out, "./Raw/SRA.out.table_final.csv", sep = ",", row.names = F)
+#write.table(out, "./Raw/SRA.out.table_final.csv", sep = ",", row.names = F)
+out<- read.csv("./Raw/SRA.out.table_final.csv", sep = ",", stringsAsFactors = F)
+# Meta data
+library(readxl)
+sra.meta <- read_xlsx("./Raw/SRA_metadata.xlsx", sheet = 2)
 
-out <- read.csv("./Raw/SRA.out.table_final.csv", sep = ",")
+# must are:
+# "sample_name"        "library_ID"         "title"             
+# "library_strategy"   "library_source"     "library_selection" 
+# "library_layout"     "platform"           "instrument_model"  
+# "design_description" "filetype"           "filename"
 
-hand <- left_join(hand, sra.out %>% select(sample_name, sample_description))
-View(t[t$sample_description == "DNA",])
-  
+fwd <- list.files("./Raw/Upload/", pattern = "*R1.fastq.gz")
+rvs <- list.files("./Raw/Upload/", pattern = "*R2.fastq.gz")
+
+View(data.frame(c(fwd,1), rvs))
+
+sra.meta <- data.frame(sample_name = out$sample_name,
+           library_ID = out$sample_name,
+           title = "MiSeq sequencing of 16S rRNA (V4 region) of bacterial community",
+           library_strategy = "AMPLICON",
+           library_source = "METAGENOMIC",
+           library_selection = "PCR",
+           library_layout = "PAIRED-END",
+           platform = "ILLUMINA",
+           instrument_model = "Illumina MiSeq",
+           design_description = "Sequencing conducted by Genome Quebec",
+           filetype = "fastq",
+           filename = fwd,
+           filename2 = rvs)
+
+sra.meta[, sample_name := out$sample_name]
