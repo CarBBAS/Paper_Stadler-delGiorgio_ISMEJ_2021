@@ -219,7 +219,7 @@ pb.bray.pcoa <- ape::pcoa(pb.bray) # 372 registers
 dna.pcoa <- plot_pcoa(pb.bray.pcoa, physeq = dna, colours = colvec, output = T)
 
 # main PCoA
-p <- dna.pcoa$plot + guides(alpha = "none")
+p <- dna.pcoa$plot + guides(colour = "none")
 
 # zoom into terrestrial part
 # different colouring by Season, habitat type as shape
