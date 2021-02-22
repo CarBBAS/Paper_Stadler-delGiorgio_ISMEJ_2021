@@ -1,49 +1,48 @@
-This is BibTeX, Version 0.99d (TeX Live 2017/Debian)
-Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
+This is BibTeX, Version 0.99d (TeX Live 2019/Debian)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: laromaine_community_assembly_paper.aux
-The style file: unsrtnat.bst
+The style file: apalike.bst
 Database file #1: /media/shared/Documents/University/PhD/BibTEX/LR_miccom_paper.bib
-Warning--can't use both author and editor fields in Caumette2015
 Warning--can't use both author and editor fields in Borcard2011
-You've used 95 entries,
-            2481 wiz_defined-function locations,
-            1320 strings with 29112 characters,
-and the built_in function-call counts, 43254 in all, are:
-= -- 3667
-> -- 2775
-< -- 41
-+ -- 1034
-- -- 842
-* -- 3914
-:= -- 7283
-add.period$ -- 448
-call.type$ -- 95
-change.case$ -- 188
-chr.to.int$ -- 93
-cite$ -- 97
-duplicate$ -- 1774
-empty$ -- 3464
-format.name$ -- 977
-if$ -- 8892
-int.to.chr$ -- 3
-int.to.str$ -- 96
-missing$ -- 88
-newline$ -- 644
-num.names$ -- 287
-pop$ -- 576
+You've used 88 entries,
+            1935 wiz_defined-function locations,
+            1026 strings with 23321 characters,
+and the built_in function-call counts, 39643 in all, are:
+= -- 3795
+> -- 2181
+< -- 38
++ -- 775
+- -- 772
+* -- 3724
+:= -- 7039
+add.period$ -- 256
+call.type$ -- 88
+change.case$ -- 824
+chr.to.int$ -- 85
+cite$ -- 89
+duplicate$ -- 1210
+empty$ -- 2420
+format.name$ -- 900
+if$ -- 7459
+int.to.chr$ -- 4
+int.to.str$ -- 0
+missing$ -- 80
+newline$ -- 433
+num.names$ -- 266
+pop$ -- 644
 preamble$ -- 1
-purify$ -- 95
+purify$ -- 825
 quote$ -- 0
-skip$ -- 1028
+skip$ -- 909
 stack$ -- 0
-substring$ -- 2085
-swap$ -- 210
+substring$ -- 2776
+swap$ -- 93
 text.length$ -- 2
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 656
-warning$ -- 2
-while$ -- 340
+type$ -- 524
+warning$ -- 1
+while$ -- 312
 width$ -- 0
-write$ -- 1557
-(There were 2 warnings)
+write$ -- 1118
+(There was 1 warning)

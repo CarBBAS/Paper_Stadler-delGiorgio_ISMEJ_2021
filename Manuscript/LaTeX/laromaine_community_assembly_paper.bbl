@@ -1,845 +1,548 @@
-\begin{thebibliography}{95}
-\providecommand{\natexlab}[1]{#1}
-\providecommand{\url}[1]{\texttt{#1}}
-\expandafter\ifx\csname urlstyle\endcsname\relax
-  \providecommand{\doi}[1]{doi: #1}\else
-  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+\begin{thebibliography}{}
 
-\bibitem[Caumette et~al.(2015)Caumette, Bertrand, and Normand]{Caumette2015}
-Pierre Caumette, Jean-Claude Bertrand, and Philippe Normand.
-\newblock \emph{{Some Historical Elements of Microbial Ecology}}.
-\newblock Springer Science and Business Media, Dordrecht, 2015.
-\newblock ISBN 978-94-017-9118-2.
-\newblock \doi{10.1007/978-94-017-9118-2_2}.
+\bibitem[Aanderud et~al., 2016]{Aanderud2016}
+Aanderud, Z.~T., Vert, J.~C., Lennon, J.~T., Magnusson, T.~W., Breakwell,
+  D.~P., and Harker, A.~R. (2016).
+\newblock {Bacterial dormancy is more prevalent in freshwater than hypersaline
+  lakes}.
+\newblock {\em Frontiers in Microbiology}, 7:853.
 
-\bibitem[Thompson et~al.(2017)Thompson, Sanders, McDonald, Amir, Ladau, Locey,
-  Prill, Tripathi, Gibbons, Ackermann, Navas-Molina, Janssen, Kopylova,
-  V{\'{a}}zquez-Baeza, Gonz{\'{a}}lez, Morton, Mirarab, Xu, Jiang, Haroon,
-  Kanbar, Zhu, Song, Kosciolek, Bokulich, Lefler, Brislawn, Humphrey, Owens,
-  Hampton-Marcell, Berg-Lyons, McKenzie, Fierer, Fuhrman, Clauset, Stevens,
-  Shade, Pollard, Goodwin, Jansson, Gilbert, Knight, and {The Earth Microbiome
-  Project Consortium}]{Thompson2017}
-Luke~R. Thompson, Jon~G. Sanders, Daniel McDonald, Amnon Amir, Joshua Ladau,
-  Kenneth~J. Locey, Robert~J. Prill, Anupriya Tripathi, Sean~M. Gibbons, Gail
-  Ackermann, Jose~A. Navas-Molina, Stefan Janssen, Evguenia Kopylova, Yoshiki
-  V{\'{a}}zquez-Baeza, Antonio Gonz{\'{a}}lez, James~T. Morton, Siavash
-  Mirarab, Zhenjiang~Zech Xu, Lingjing Jiang, Mohamed~F. Haroon, Jad Kanbar,
-  Qiyun Zhu, Se~Jin Song, Tomasz Kosciolek, Nicholas~A. Bokulich, Joshua
-  Lefler, Colin~J. Brislawn, Gregory Humphrey, Sarah~M. Owens, Jarrad
-  Hampton-Marcell, Donna Berg-Lyons, Valerie McKenzie, Noah Fierer, Jed~A.
-  Fuhrman, Aaron Clauset, Rick~L. Stevens, Ashley Shade, Katherine~S. Pollard,
-  Kelly~D. Goodwin, Janet~K. Jansson, Jack~A. Gilbert, Rob Knight, and {The
-  Earth Microbiome Project Consortium}.
-\newblock {A communal catalogue reveals Earth's multiscale microbial
+\bibitem[Adams et~al., 2014]{Adams2014}
+Adams, H.~E., Crump, B.~C., and Kling, G.~W. (2014).
+\newblock {Metacommunity dynamics of bacteria in an arctic lake: The impact of
+  species sorting and mass effects on bacterial production and biogeography}.
+\newblock {\em Frontiers in Microbiology}, 5:82.
+
+\bibitem[Anderson and Walsh, 2013]{Anderson2013}
+Anderson, M.~J. and Walsh, D.~C. (2013).
+\newblock {Anderson and Walsh (2013) PERMANOVA, ANOSIM, and the Mantel test in
+  the face of heterogeneous dispersions- What null hypothesis are you .pdf}.
+\newblock {\em Ecological Monograph}, 83(4):557--574.
+
+\bibitem[Besemer et~al., 2013]{Besemer2013}
+Besemer, K., Singer, G., Quince, C., Bertuzzo, E., Sloan, W., and Battin, T.~J.
+  (2013).
+\newblock {Headwaters are critical reservoirs of microbial diversity for
+  fluvial networks}.
+\newblock {\em Proceedings of the Royal Society B}, 280:20131760.
+
+\bibitem[Borcard et~al., 2011]{Borcard2011}
+Borcard, D., Gillet, F., and Legendre, P. (2011).
+\newblock {\em {Numerical Ecology with R}}.
+\newblock Springer, New York.
+
+\bibitem[Bouvier and del Giorgio, 2002]{Bouvier2002}
+Bouvier, T.~C. and del Giorgio, P.~A. (2002).
+\newblock {Compositional changes in free-living bacterial communities along a
+  salinity gradient in two temperate estuaries}.
+\newblock {\em Limnology and Oceanogaphy}, 47(2):453--470.
+
+\bibitem[Bowsher et~al., 2019]{Bowsher2019}
+Bowsher, A.~W., Kearns, P.~J., and Shade, A. (2019).
+\newblock {16S rRNA/rRNA Gene Ratios and Cell Activity Staining Reveal
+  Consistent Patterns of Microbial Activity in Plant-Associated Soil}.
+\newblock {\em mSystems}, 4(2):e00003--19.
+
+\bibitem[Bray and Curtis, 1957]{Bray1957}
+Bray, J.~R. and Curtis, J.~T. (1957).
+\newblock {An Ordination of the Upland Forest Communities of Southern
+  Wisconsin}.
+\newblock {\em Ecological Monographs}, 27(4):325--349.
+
+\bibitem[Callahan et~al., 2017]{Callahan2017}
+Callahan, B.~J., McMurdie, P.~J., and Holmes, S.~P. (2017).
+\newblock {Exact sequence variants should replace operational taxonomic units
+  in marker-gene data analysis}.
+\newblock {\em The ISME Journal}, 11:2639--2643.
+
+\bibitem[Campbell and Kirchman, 2013]{Campbell2013}
+Campbell, B.~J. and Kirchman, D.~L. (2013).
+\newblock {Bacterial diversity, community structure and potential growth rates
+  along an estuarine salinity gradient}.
+\newblock {\em The ISME Journal}, 7:210--220.
+
+\bibitem[Campbell et~al., 2011]{Campbell2011}
+Campbell, B.~J., Yu, L., Heidelberg, J.~F., and Kirchman, D.~L. (2011).
+\newblock {Activity of abundant and rare bacteria in a coastal ocean}.
+\newblock {\em Proceedings of the National Academy of Sciences},
+  108(31):12776--12781.
+
+\bibitem[Campitelli, 2020]{Campitelli2020}
+Campitelli, E. (2020).
+\newblock {ggnewscale: Multiple Fill and Colour Scales in 'ggplot2'}.
+
+\bibitem[Carrara et~al., 2013]{Carrara2013}
+Carrara, F., Rinaldo, A., Giometto, A., and Altermatt, F. (2013).
+\newblock {Complex Interaction of Dendritic Connectivity and Hierarchical Patch
+  Size on Biodiversity in River-Like Landscapes}.
+\newblock {\em The American Naturalist}, 183(1):13--25.
+
+\bibitem[Cole, 1999]{Cole1999}
+Cole, J.~J. (1999).
+\newblock {Aquatic microbiology for ecosystem scientists: New and recycled
+  paradigms in ecological microbiology}.
+\newblock {\em Ecosystems}, 2:215--225.
+
+\bibitem[Crump et~al., 2012]{Crump2012}
+Crump, B.~C., Amaral-Zettler, L.~A., and Kling, G.~W. (2012).
+\newblock {Microbial diversity in arctic freshwaters is structured by
+  inoculation of microbes from soils.}
+\newblock {\em The ISME Journal}, 6:1629--1639.
+
+\bibitem[Crump et~al., 2004]{Crump2004}
+Crump, B.~C., Hopkinson, C.~S., Sogin, M.~L., and Hobbie, J.~E. (2004).
+\newblock {Microbial Biogeography along an Estuarine Salinity Gradient:
+  Combined Influences of Bacterial Growth and Residence Time}.
+\newblock {\em Applied and Environmental Microbiology}, 70(3):1494--1505.
+
+\bibitem[Crump et~al., 2003]{Crump2003}
+Crump, B.~C., Kling, G.~W., Bahr, M., and Hobbie, J.~E. (2003).
+\newblock {Bacterioplankton Community Shifts in an Arctic Lake Correlate with
+  Seasonal Changes in Organic Matter Source}.
+\newblock {\em Applied and environmental microbiology}, 69(4):2253--2268.
+
+\bibitem[de~Melo et~al., 2019]{deMelo2019}
+de~Melo, M.~L., Bertilsson, S., Amaral, J. H.~F., Barbosa, P.~M., Forsberg,
+  B.~R., and Sarmento, H. (2019).
+\newblock {Flood pulse regulation of bacterioplankton community composition in
+  an Amazonian floodplain lake}.
+\newblock {\em Freshwater Biology}, 64(1):108--120.
+
+\bibitem[Doherty et~al., 2017]{Doherty2017}
+Doherty, M., Yager, P.~L., Moran, M.~A., Coles, V.~J., Fortunato, C.~S.,
+  Krusche, A.~V., Medeiros, P.~M., Payet, J.~P., Richey, J.~E., Satinsky,
+  B.~M., Sawakuchi, H.~O., Ward, N.~D., Crump, B.~C., and Seymour, J.~R.
+  (2017).
+\newblock {Bacterial Biogeography across the Amazon River-Ocean Continuum}.
+\newblock {\em Frontiers in Microbiology}.
+
+\bibitem[Dowle and Srinivasan, 2019]{Dowle2019}
+Dowle, M. and Srinivasan, A. (2019).
+\newblock {data.table: Extension of `data.frame`}.
+
+\bibitem[Fukami, 2004]{Fukami2004}
+Fukami, T. (2004).
+\newblock {Assembly history interacts with ecosystem size to influence species
   diversity}.
-\newblock \emph{Nature}, 551\penalty0 (7681):\penalty0 457--463, 2017.
-\newblock ISSN 14764687.
-\newblock \doi{10.1038/nature24621}.
+\newblock {\em Ecology}, 85(12):3234--3242.
 
-\bibitem[Louca et~al.(2019)Louca, Mazel, Doebeli, and Parfrey]{Louca2019}
-Stilianos Louca, Florent Mazel, Michael Doebeli, and Laura~Wegener Parfrey.
-\newblock {A census-based estimate of Earth's bacterial and archaeal
-  diversity}.
-\newblock \emph{PLoS biology}, 17\penalty0 (2):\penalty0 e3000106, 2019.
-\newblock ISSN 15457885.
-\newblock \doi{10.1371/journal.pbio.3000106}.
+\bibitem[Fukami, 2015]{Fukami2015a}
+Fukami, T. (2015).
+\newblock {Historical Contingency in Community Assembly: Integrating Niches ,
+  Species Pools , and Priority Effects}.
+\newblock {\em Annual Review of Ecology, Evolution, and Systematics}, 46:1--23.
 
-\bibitem[Shade(2017)]{Shade2017a}
-Ashley Shade.
-\newblock {Diversity is the question, not the answer}.
-\newblock \emph{ISME Journal}, 11:\penalty0 1--6, 2017.
-\newblock ISSN 17517370.
-\newblock \doi{10.1038/ismej.2016.118}.
-\newblock URL \url{http://dx.doi.org/10.1038/ismej.2016.118}.
+\bibitem[Gweon et~al., 2020]{Gweon2020}
+Gweon, H.~S., Bowes, M.~J., Moorhouse, H.~L., Oliver, A.~E., Bailey, M.~J.,
+  Acreman, M.~C., and Read, D.~S. (2020).
+\newblock {Contrasting community assembly processes structure lotic bacteria
+  metacommunities along the river continuum}.
+\newblock {\em Environmental Microbiology}.
 
-\bibitem[Shade(2018)]{Shade2018}
-Ashley Shade.
-\newblock {Understanding Microbiome Stability in a Changing World}.
-\newblock \emph{mSystems}, 3\penalty0 (e00157-17):\penalty0 1--4, 2018.
-\newblock ISSN 2379-5077.
-\newblock \doi{10.1128/mSystems.00157-17}.
-\newblock URL
-  \url{http://msystems.asm.org/lookup/doi/10.1128/mSystems.00157-17}.
-
-\bibitem[Shigyo et~al.(2019)Shigyo, Umeki, and Hirao]{Shigyo2019}
-Nobuhiko Shigyo, Kiyoshi Umeki, and Toshihide Hirao.
-\newblock {Seasonal dynamics of soil fungal and bacterial communities in
-  cool-temperate montane forests}.
-\newblock \emph{Frontiers in Microbiology}, 10\penalty0 (AUG):\penalty0 1--14,
-  2019.
-\newblock ISSN 1664302X.
-\newblock \doi{10.3389/fmicb.2019.01944}.
-
-\bibitem[Jones et~al.(2012)Jones, Cadkin, Newton, and McMahon]{Jones2012}
-Stuart~E Jones, Tracey~A Cadkin, Ryan~J Newton, and Katherine~D McMahon.
-\newblock {Spatial and temporal scales of aquatic bacterial beta diversity}.
-\newblock \emph{Frontiers in Microbiology}, 3\penalty0 (318):\penalty0 1--10,
-  2012.
-\newblock \doi{10.3389/fmicb.2012.00318}.
-
-\bibitem[Hassell et~al.(2018)Hassell, Tinker, Moore, and Ottesen]{Hassell2018}
-Norman Hassell, Kara~A. Tinker, Thomas Moore, and Elizabeth~A. Ottesen.
+\bibitem[Hassell et~al., 2018]{Hassell2018}
+Hassell, N., Tinker, K.~A., Moore, T., and Ottesen, E.~A. (2018).
 \newblock {Temporal and spatial dynamics in microbial community composition
   within a temperate stream network}.
-\newblock \emph{Environmental Microbiology}, 20\penalty0 (10):\penalty0
-  3560--3572, 2018.
-\newblock ISSN 14622920.
-\newblock \doi{10.1111/1462-2920.14311}.
+\newblock {\em Environmental Microbiology}, 20(10):3560--3572.
 
-\bibitem[Giovannoni and Vergin(2012)]{Giovannoni2012}
-Stephen~J. Giovannoni and Kevin~L. Vergin.
-\newblock {Seasonality in ocean microbial communities}.
-\newblock \emph{Science}, 335\penalty0 (6069):\penalty0 671--676, 2012.
-\newblock ISSN 10959203.
-\newblock \doi{10.1126/science.1198078}.
-
-\bibitem[Logue and Lindstr{\"{o}}m(2008)]{Logue2008}
-J{\"{u}}rg~Brendan Logue and Eva~S Lindstr{\"{o}}m.
-\newblock {Biogeography of bacterioplankton in inland waters}.
-\newblock \emph{Freshwater Reviews}, 1:\penalty0 99--114, 2008.
-\newblock \doi{10.1608/FRJ-1.1.9}.
-
-\bibitem[Leibold et~al.(2004)Leibold, Holyoak, Mouquet, Amarasekare, Chase,
-  Hoopes, Holt, Shurin, Law, Tilman, Loreau, and Gonzalez]{Leibold2004a}
-M.~A. Leibold, M.~Holyoak, N.~Mouquet, P.~Amarasekare, J.~M. Chase, M.~F.
-  Hoopes, R.~D. Holt, J.~B. Shurin, R.~Law, D.~Tilman, M.~Loreau, and
-  A.~Gonzalez.
-\newblock {The metacommunity concept: A framework for multi-scale community
-  ecology}.
-\newblock \emph{Ecology Letters}, 7\penalty0 (7):\penalty0 601--613, 2004.
-\newblock ISSN 1461023X.
-\newblock \doi{10.1111/j.1461-0248.2004.00608.x}.
-
-\bibitem[Mansour et~al.(2018)Mansour, Heppell, Ryo, and Rillig]{Mansour2018}
-India Mansour, Catherine~M. Heppell, Masahiro Ryo, and Matthias~C. Rillig.
-\newblock {Application of the microbial community coalescence concept to
-  riverine networks}.
-\newblock \emph{Biological Reviews}, 93:\penalty0 1832--1845, 2018.
-\newblock ISSN 1469185X.
-\newblock \doi{10.1111/brv.12422}.
-
-\bibitem[Nemergut et~al.(2011)Nemergut, Costello, Hamady, Lozupone, Jiang,
-  Schmidt, Fierer, Townsend, Cleveland, Stanish, and Knight]{Nemergut2011}
-Diana~R. Nemergut, Elizabeth~K. Costello, Micah Hamady, Catherine Lozupone, Lin
-  Jiang, Steven~K. Schmidt, Noah Fierer, Alan~R. Townsend, Cory~C. Cleveland,
-  Lee Stanish, and Rob Knight.
-\newblock {Global patterns in the biogeography of bacterial taxa}.
-\newblock \emph{Environmental Microbiology}, 13\penalty0 (1):\penalty0
-  135--144, 2011.
-\newblock ISSN 14622912.
-\newblock \doi{10.1111/j.1462-2920.2010.02315.x}.
-
-\bibitem[Shade et~al.(2013)Shade, {Gregory Caporaso}, Handelsman, Knight, and
-  Fierer]{Shade2013}
-Ashley Shade, J.~{Gregory Caporaso}, Jo~Handelsman, Rob Knight, and Noah
-  Fierer.
-\newblock {A meta-analysis of changes in bacterial and archaeal communities
-  with time}.
-\newblock \emph{ISME Journal}, 7\penalty0 (8):\penalty0 1493--1506, 2013.
-\newblock ISSN 17517362.
-\newblock \doi{10.1038/ismej.2013.54}.
-\newblock URL \url{http://dx.doi.org/10.1038/ismej.2013.54}.
-
-\bibitem[Ruiz-Gonz{\'{a}}lez et~al.(2015{\natexlab{a}})Ruiz-Gonz{\'{a}}lez,
-  Ni{\~{n}}o-Garc{\'{i}}a, and del Giorgio]{Ruiz-Gonzalez2015}
-Clara Ruiz-Gonz{\'{a}}lez, Juan~Pablo Ni{\~{n}}o-Garc{\'{i}}a, and Paul~A del
-  Giorgio.
-\newblock {Terrestrial origin of bacterial communities in complex boreal
-  freshwater networks}.
-\newblock \emph{Ecology Letters}, 18:\penalty0 1198--1206, 2015{\natexlab{a}}.
-\newblock \doi{10.1111/ele.12499}.
-
-\bibitem[Hauptmann et~al.(2016)Hauptmann, Markussen, Stibal, Olsen, Elberling,
-  B{\ae}lum, Sicheritz-Pont{\'{e}}n, and Jacobsen]{Hauptmann2016}
-Aviaja~L. Hauptmann, Thor~N. Markussen, Marek Stibal, Nikoline~S. Olsen,
-  Bo~Elberling, Jacob B{\ae}lum, Thomas Sicheritz-Pont{\'{e}}n, and Carsten~S.
-  Jacobsen.
+\bibitem[Hauptmann et~al., 2016]{Hauptmann2016}
+Hauptmann, A.~L., Markussen, T.~N., Stibal, M., Olsen, N.~S., Elberling, B.,
+  B{\ae}lum, J., Sicheritz-Pont{\'{e}}n, T., and Jacobsen, C.~S. (2016).
 \newblock {Upstream freshwater and terrestrial sources are differentially
   reflected in the bacterial community structure along a small Arctic river and
   its estuary}.
-\newblock \emph{Frontiers in Microbiology}, 7\penalty0 (1474):\penalty0 1--16,
-  2016.
-\newblock ISSN 1664302X.
-\newblock \doi{10.3389/fmicb.2016.01474}.
+\newblock {\em Frontiers in Microbiology}, 7(1474):1--16.
 
-\bibitem[Doherty et~al.(2017)Doherty, Yager, Moran, Coles, Fortunato, Krusche,
-  Medeiros, Payet, Richey, Satinsky, Sawakuchi, Ward, Crump, and
-  Seymour]{Doherty2017}
-Mary Doherty, Patricia~L Yager, Mary~Ann Moran, Victoria~J Coles, Caroline~S
-  Fortunato, Alex~V Krusche, Patricia~M Medeiros, J{\'{e}}r{\^{o}}me~P Payet,
-  Jeffrey~E Richey, Brandon~M Satinsky, Henrique~O Sawakuchi, Nicholas~D Ward,
-  Byron~C Crump, and Justin~Robert Seymour.
-\newblock {Bacterial Biogeography across the Amazon River-Ocean Continuum}.
-\newblock \emph{Frontiers in Microbiology}, 2017.
-\newblock \doi{10.3389/fmicb.2017.00882}.
-
-\bibitem[Gweon et~al.(2020)Gweon, Bowes, Moorhouse, Oliver, Bailey, Acreman,
-  and Read]{Gweon2020}
-Hyun~S. Gweon, Michael~J. Bowes, Heather~L. Moorhouse, Anna~E. Oliver, Mark~J.
-  Bailey, Michael~C. Acreman, and Daniel~S. Read.
-\newblock {Contrasting community assembly processes structure lotic bacteria
-  metacommunities along the river continuum}.
-\newblock \emph{Environmental Microbiology}, 2020.
-\newblock ISSN 1462-2912.
-\newblock \doi{10.1111/1462-2920.15337}.
-
-\bibitem[Hanson et~al.(2012)Hanson, Fuhrman, Horner-Devine, and
-  Martiny]{Hanson2012}
-China~A Hanson, Jed~A Fuhrman, M~Claire Horner-Devine, and Jennifer B~H
-  Martiny.
-\newblock {Beyond biogeographic patterns: processes shaping the microbial
-  landscape}.
-\newblock \emph{Nature Reviews Microbiology}, 10:\penalty0 497--506, 2012.
-\newblock ISSN 1740-1526.
-\newblock \doi{10.1038/nrmicro2795}.
-\newblock URL \url{http://dx.doi.org/10.1038/nrmicro2795}.
-
-\bibitem[Ward and Stanford(1983)]{Ward1983}
-James~V Ward and Jack~A Stanford.
-\newblock {The Serial Discontinuity Concept of Lotic Ecosystems}.
-\newblock In T.~D. {Fontaine III} and S.~M. Bartell, editors, \emph{Dynamics of
-  Lotic Ecosystems}, pages 29--42. Ann Arbor Science, Ann Arbor, 1983.
-\newblock ISBN 9780250406128.
-
-\bibitem[Logue and Lindstr{\"{o}}m(2010)]{Logue2010}
-J{\"{u}}rg~B Logue and Eva~S Lindstr{\"{o}}m.
-\newblock {Species sorting affects bacterioplankton community composition as
-  determined by 16S rDNA and 16S rRNA fingerprints}.
-\newblock \emph{The ISME Journal}, 4:\penalty0 729--738, 2010.
-\newblock \doi{10.1038/ismej.2009.156}.
-
-\bibitem[Catal{\'{a}}n et~al.(2016)Catal{\'{a}}n, Marc{\'{e}}, Kothawala, and
-  Tranvik]{Catalan2016a}
-N{\'{u}}ria Catal{\'{a}}n, Rafael Marc{\'{e}}, Dolly~N. Kothawala, and Lars~J.
-  Tranvik.
-\newblock {Organic carbon decomposition rates controlled by water retention
-  time across inland waters}.
-\newblock \emph{Nature Geoscience}, 9\penalty0 (May):\penalty0 1--7, 2016.
-\newblock ISSN 1752-0894.
-\newblock \doi{10.1038/ngeo2720}.
-\newblock URL \url{http://dx.doi.org/10.1038/ngeo2720}.
-
-\bibitem[Ni{\~{n}}o-Garc{\'{i}}a et~al.(2016)Ni{\~{n}}o-Garc{\'{i}}a,
-  Ruiz-Gonz{\'{a}}lez, and del Giorgio]{Nino-Garcia2016}
-Juan~Pablo Ni{\~{n}}o-Garc{\'{i}}a, Clara Ruiz-Gonz{\'{a}}lez, and Paul~A del
-  Giorgio.
-\newblock {Interactions between hydrology and water chemistry shape
-  bacterioplankton biogeography across boreal freshwater networks}.
-\newblock \emph{The ISME Journal}, 10:\penalty0 1755--1766, 2016.
-\newblock \doi{10.1038/ismej.2015.226}.
-
-\bibitem[Crump et~al.(2012)Crump, Amaral-Zettler, and Kling]{Crump2012}
-Byron~C Crump, Linda~A Amaral-Zettler, and George~W Kling.
-\newblock {Microbial diversity in arctic freshwaters is structured by
-  inoculation of microbes from soils.}
-\newblock \emph{The ISME Journal}, 6\penalty0 (9):\penalty0 1629--1639, 2012.
-\newblock ISSN 1751-7370.
-\newblock \doi{10.1038/ismej.2012.9}.
-\newblock URL
-  \url{http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=3498914&tool=pmcentrez&rendertype=abstract}.
-
-\bibitem[Besemer et~al.(2013)Besemer, Singer, Quince, Bertuzzo, Sloan, and
-  Battin]{Besemer2013}
-Katharina Besemer, Gabriel Singer, Christopher Quince, Enrico Bertuzzo, William
-  Sloan, and Tom~J Battin.
-\newblock {Headwaters are critical reservoirs of microbial diversity for
-  fluvial networks}.
-\newblock \emph{Proceedings of the Royal Society B}, 280:\penalty0 20131760,
-  2013.
-\newblock \doi{http://dx.doi.org/10.1098/rspb.2013.1760}.
-
-\bibitem[Wisnoski et~al.(2020)Wisnoski, Muscarella, Larsen, Peralta, and
-  Lennon]{Wisnoski2020}
-Nathan~I. Wisnoski, Mario~E. Muscarella, Megan~L. Larsen, Ariane~L. Peralta,
-  and Jay~T. Lennon.
-\newblock {Metabolic insight into bacterial community assembly across ecosystem
-  boundaries}.
-\newblock \emph{Ecology}, 101\penalty0 (4):\penalty0 e02968, 2020.
-\newblock ISSN 00129658.
-\newblock \doi{10.1002/ecy.2968}.
-
-\bibitem[Comte et~al.(2017)Comte, Berga, Severin, Logue, and
-  Lindstr{\"{o}}m]{Comte2017}
-J{\'{e}}r{\^{o}}me Comte, Merc{\`{e}} Berga, Ina Severin, J{\"{u}}rg~Brendan
-  Logue, and Eva~S. Lindstr{\"{o}}m.
-\newblock {Contribution of different bacterial dispersal sources to lakes:
-  Population and community effects in different seasons}.
-\newblock \emph{Environmental Microbiology}, 19\penalty0 (6):\penalty0
-  2391--2404, 2017.
-\newblock ISSN 14622920.
-\newblock \doi{10.1111/1462-2920.13749}.
-
-\bibitem[Fierer et~al.(2007)Fierer, Bradford, and Jackson]{Fierer2007}
-Noah Fierer, Mark~A Bradford, and Robert~B Jackson.
-\newblock {Toward an Ecological Classification of Soil Bacteria}.
-\newblock \emph{Ecology}, 88\penalty0 (6):\penalty0 1354--1364, 2007.
-
-\bibitem[Cole(1999)]{Cole1999}
-Jonathan~J. Cole.
-\newblock {Aquatic microbiology for ecosystem scientists: New and recycled
-  paradigms in ecological microbiology}.
-\newblock \emph{Ecosystems}, 2:\penalty0 215--225, 1999.
-\newblock ISSN 14329840.
-\newblock \doi{10.1007/s100219900069}.
-
-\bibitem[Jones and Lennon(2010)]{Jones2010}
-S.~E. Jones and J.~T. Lennon.
+\bibitem[Jones and Lennon, 2010]{Jones2010}
+Jones, S.~E. and Lennon, J.~T. (2010).
 \newblock {Dormancy contributes to the maintenance of microbial diversity}.
-\newblock \emph{Proceedings of the National Academy of Sciences}, 107\penalty0
-  (13):\penalty0 5881--5886, 2010.
-\newblock ISSN 0027-8424.
-\newblock \doi{10.1073/pnas.0912765107}.
-\newblock URL \url{http://www.pnas.org/cgi/doi/10.1073/pnas.0912765107}.
+\newblock {\em Proceedings of the National Academy of Sciences},
+  107(13):5881--5886.
 
-\bibitem[Konopka(2009)]{Konopka2009}
-Allan Konopka.
-\newblock {What is microbial community ecology ?}
-\newblock \emph{The ISME Journal}, 3:\penalty0 1223--1230, 2009.
-\newblock \doi{10.1038/ismej.2009.88}.
-
-\bibitem[Campbell and Kirchman(2013)]{Campbell2013}
-Barbara~J Campbell and David~L Kirchman.
-\newblock {Bacterial diversity, community structure and potential growth rates
-  along an estuarine salinity gradient}.
-\newblock \emph{The ISME Journal}, 7\penalty0 (1):\penalty0 210--220, 2013.
-\newblock ISSN 1751-7362.
-\newblock \doi{10.1038/ismej.2012.93}.
-\newblock URL \url{http://www.nature.com/doifinder/10.1038/ismej.2012.93}.
-
-\bibitem[Osterholz et~al.(2016)Osterholz, Singer, Wemheuer, Daniel, Simon,
-  Niggemann, and Dittmar]{Osterholz2016}
-Helena Osterholz, Gabriel Singer, Bernd Wemheuer, Rolf Daniel, Meinhard Simon,
-  Jutta Niggemann, and Thorsten Dittmar.
-\newblock {Deciphering associations between dissolved organic molecules and
-  bacterial communities in a pelagic marine system}.
-\newblock \emph{The ISME Journal}, 10:\penalty0 1717--1730, 2016.
-\newblock ISSN 1751-7362.
-\newblock \doi{10.1038/ismej.2015.231}.
-\newblock URL \url{http://dx.doi.org/10.1038/ismej.2015.231}.
-
-\bibitem[Blazewicz et~al.(2013)Blazewicz, Barnard, Daly, and
-  Firestone]{Blazewicz2013}
-Steven~J Blazewicz, Romain~L Barnard, Rebecca~A Daly, and Mary~K Firestone.
-\newblock {Evaluating rRNA as an indicator of microbial activity in
-  environmental communities : limitations and uses}.
-\newblock \emph{The ISME Journal}, 7:\penalty0 2061--2068, 2013.
-\newblock ISSN 1751-7362.
-\newblock \doi{10.1038/ismej.2013.102}.
-\newblock URL \url{http://dx.doi.org/10.1038/ismej.2013.102}.
-
-\bibitem[Vellend(2010)]{Vellend2010}
-Mark Vellend.
-\newblock {Conceptual synthesis in community ecology}.
-\newblock \emph{The Quarterly Review of Biology}, 85\penalty0 (2):\penalty0
-  183--206, 2010.
-
-\bibitem[Zhou and Ning(2017)]{Zhou2017}
-Jizhong Zhou and Daliang Ning.
-\newblock {Stochastic Community Assembly: Does It Matter in Microbial Ecology?}
-\newblock \emph{Microbial and Molecular Biology Reviews}, 81\penalty0
-  (4):\penalty0 1--32, 2017.
-
-\bibitem[Stegen et~al.(2013)Stegen, Lin, Fredrickson, Chen, Kennedy, Murray,
-  Rockhold, and Konopka]{Stegen2013a}
-James~C Stegen, Xueju Lin, Jim~K Fredrickson, Xingyuan Chen, David~W Kennedy,
-  Christopher~J Murray, Mark~L Rockhold, and Allan Konopka.
-\newblock {Quantifying community assembly processes and identifying features
-  that impose them}.
-\newblock \emph{The ISME Journal}, 7:\penalty0 2069--2079, 2013.
-\newblock ISSN 1751-7362.
-\newblock \doi{10.1038/ismej.2013.93}.
-\newblock URL \url{http://dx.doi.org/10.1038/ismej.2013.93}.
-
-\bibitem[Stegen et~al.(2015)Stegen, Lin, Fredrickson, and Konopka]{Stegen2015a}
-James~C Stegen, Xueju Lin, Jim~K Fredrickson, and Allan~E Konopka.
-\newblock {Estimating and mapping ecological processes influencing microbial
-  community assembly}.
-\newblock \emph{Frontiers in Microbiology}, 6\penalty0 (370):\penalty0 1--15,
-  2015.
-\newblock \doi{10.3389/fmicb.2015.00370}.
-
-\bibitem[Langenheder et~al.(2017)Langenheder, Wang, Karjalainen, Laamanen,
-  Tolonen, Vilmi, and Heino]{Langenheder2017}
-Silke Langenheder, Jianjun Wang, Satu~Maaria Karjalainen, Tiina~M. Laamanen,
-  Kimmo~T. Tolonen, Annika Vilmi, and Jani Heino.
-\newblock {Bacterial metacommunity organization in a highly connected aquatic
-  system}.
-\newblock \emph{FEMS Microbiology Ecology}, 93\penalty0 (4):\penalty0 1--9,
-  2017.
-\newblock ISSN 15746941.
-\newblock \doi{10.1093/femsec/fiw225}.
-
-\bibitem[Graham et~al.(2017)Graham, Crump, Resch, Fansler, Arntzen, Kennedy,
-  Fredrickson, and Stegen]{Graham2017a}
-Emily~B. Graham, Alex~R. Crump, Charles~T. Resch, Sarah Fansler, Evan Arntzen,
-  David~W. Kennedy, Jim~K. Fredrickson, and James~C. Stegen.
-\newblock {Deterministic influences exceed dispersal effects on
-  hydrologically-connected microbiomes}.
-\newblock \emph{Environmental Microbiology}, 19\penalty0 (4):\penalty0
-  1552--1567, 2017.
-\newblock ISSN 14622920.
-\newblock \doi{10.1111/1462-2920.13720}.
-
-\bibitem[Losos(2008)]{Losos2008}
-Jonathan~B. Losos.
-\newblock {Phylogenetic niche conservatism, phylogenetic signal and the
-  relationship between phylogenetic relatedness and ecological similarity among
-  species}.
-\newblock \emph{Ecology Letters}, 11\penalty0 (10):\penalty0 995--1003, 2008.
-\newblock ISSN 1461023X.
-\newblock \doi{10.1111/j.1461-0248.2008.01229.x}.
-
-\bibitem[Warren et~al.(2008)Warren, Glor, and Turelli]{Warren2008}
-Dan~L. Warren, Richard~E. Glor, and Michael Turelli.
-\newblock {Environmental niche equivalency versus conservatism: Quantitative
-  approaches to niche evolution}.
-\newblock \emph{Evolution}, 62\penalty0 (11):\penalty0 2868--2883, 2008.
-\newblock ISSN 00143820.
-\newblock \doi{10.1111/j.1558-5646.2008.00482.x}.
-
-\bibitem[Achtman and Wagner(2008)]{Achtman2008}
-Mark Achtman and Michael Wagner.
-\newblock {Microbial diversity and the genetic nature of microbial species}.
-\newblock \emph{Nature Reviews Microbiology}, 6\penalty0 (6):\penalty0
-  431--440, 2008.
-\newblock ISSN 17401526.
-\newblock \doi{10.1038/nrmicro1872}.
-
-\bibitem[Thomas and Nielsen(2005)]{Thomas2005}
-Christopher~M. Thomas and Kaare~M. Nielsen.
-\newblock {Mechanisms of, and barriers to, horizontal gene transfer between
-  bacteria}.
-\newblock \emph{Nature Reviews Microbiology}, 3\penalty0 (9):\penalty0
-  711--721, 2005.
-\newblock ISSN 17401526.
-\newblock \doi{10.1038/nrmicro1234}.
-
-\bibitem[Martiny et~al.(2015)Martiny, Jones, Lennon, and Martiny]{Martiny2015}
-Jennifer B~H Martiny, Stuart~E Jones, Jay~T Lennon, and Adam~C Martiny.
-\newblock {Microbiomes in light of traits: A phylogenetic perspective}.
-\newblock \emph{Science}, 350\penalty0 (6261):\penalty0 aac9323, 2015.
-\newblock ISSN 10959203.
-\newblock \doi{10.1126/science.aac9323}.
-
-\bibitem[Martiny et~al.(2013)Martiny, Treseder, and Pusch]{Martiny2013a}
-Adam~C Martiny, Kathleen Treseder, and Gordon Pusch.
-\newblock {Phylogenetic conservatism of functional traits in microorganisms}.
-\newblock \emph{The ISME Journal}, 7:\penalty0 830--838, 2013.
-\newblock ISSN 1751-7362.
-\newblock \doi{10.1038/ismej.2012.160}.
-\newblock URL \url{http://dx.doi.org/10.1038/ismej.2012.160}.
-
-\bibitem[Forslund et~al.(2014)Forslund, Sunagawa, Coelho, and
-  Bork]{Forslund2014}
-Kristoffer Forslund, Shinichi Sunagawa, Luis~P. Coelho, and Peer Bork.
-\newblock {Metagenomic insights into the human gut resistome and the forces
-  that shape it}.
-\newblock \emph{BioEssays}, 36\penalty0 (3):\penalty0 316--329, 2014.
-\newblock ISSN 02659247.
-\newblock \doi{10.1002/bies.201300143}.
-
-\bibitem[Ackermann(2015)]{Ackermann2015}
-Martin Ackermann.
-\newblock {A functional perspective on phenotypic heterogeneity in
-  microorganisms}.
-\newblock \emph{Nature Reviews Microbiology}, 13\penalty0 (8):\penalty0
-  497--508, 2015.
-\newblock ISSN 17401534.
-\newblock \doi{10.1038/nrmicro3491}.
-\newblock URL \url{http://dx.doi.org/10.1038/nrmicro3491}.
-
-\bibitem[Chase et~al.(2018)Chase, Gomez-Lunar, Lopez, Li, Allison, Martiny, and
-  Martiny]{Chase2018}
-Alexander~B. Chase, Zulema Gomez-Lunar, Alberto~E. Lopez, Junhui Li, Steven~D.
-  Allison, Adam~C. Martiny, and Jennifer~B.H. Martiny.
-\newblock {Emergence of soil bacterial ecotypes along a climate gradient}.
-\newblock \emph{Environmental Microbiology}, 20\penalty0 (11):\penalty0
-  4112--4126, 2018.
-\newblock ISSN 14622920.
-\newblock \doi{10.1111/1462-2920.14405}.
-
-\bibitem[Martin(2013)]{Martin2013}
-Marcel Martin.
-\newblock {Cutadapt removes adapter sequences from high-throughput sequencing
-  reads}.
-\newblock \emph{EMBnet.journal}, 17\penalty0 (1):\penalty0 pp. 10--12, 2013.
-\newblock ISSN 2226-6089.
-\newblock \doi{10.14806/ej.17.1.200}.
-\newblock URL
-  \url{http://journal.embnet.org/index.php/embnetjournal/article/view/200/479}.
-
-\bibitem[Callahan et~al.(2017)Callahan, McMurdie, and Holmes]{Callahan2017}
-Benjamin~J. Callahan, Paul~J. McMurdie, and Susan~P. Holmes.
-\newblock {Exact sequence variants should replace operational taxonomic units
-  in marker-gene data analysis}.
-\newblock \emph{ISME Journal}, 11\penalty0 (12):\penalty0 2639--2643, 2017.
-\newblock ISSN 17517370.
-\newblock \doi{10.1038/ismej.2017.119}.
-\newblock URL \url{http://dx.doi.org/10.1038/ismej.2017.119}.
-
-\bibitem[Wright(2016)]{Wright2016}
-Erik~S Wright.
-\newblock {Using DECIPHER v2.0 to Analyze Big Biological Sequence Data in R}.
-\newblock \emph{The R Journal}, 8\penalty0 (1):\penalty0 352--359, 2016.
-\newblock ISSN 2073-4859.
-\newblock \doi{V12242009}.
-
-\bibitem[Murali et~al.(2018)Murali, Bhargava, and Wright]{Murali2018}
-Adithya Murali, Aniruddha Bhargava, and Erik~S. Wright.
-\newblock {IDTAXA: A novel approach for accurate taxonomic classification of
-  microbiome sequences}.
-\newblock \emph{Microbiome}, 6\penalty0 (1):\penalty0 1--14, 2018.
-\newblock ISSN 20492618.
-\newblock \doi{10.1186/s40168-018-0521-5}.
-
-\bibitem[Pruesse et~al.(2007)Pruesse, Quast, Knittel, Fuchs, Ludwig, Peplies,
-  and Gl{\"{o}}ckner]{Pruesse2007}
-Elmar Pruesse, Christian Quast, Katrin Knittel, Bernhard~M Fuchs, Wolfgang
-  Ludwig, J{\"{o}}rg Peplies, and Fank~Oliver Gl{\"{o}}ckner.
-\newblock {SILVA: a comprehensive online resource for quality checked and
-  aligned ribosomal RNA sequence data compatible with ARB}.
-\newblock \emph{Nucleic Acids Research}, 35\penalty0 (21):\penalty0 7188--7196,
-  2007.
-\newblock ISSN 03051048.
-\newblock \doi{10.1093/nar/gkm864}.
-
-\bibitem[V{\v{e}}trovsk{\'{y}} and Baldrian(2013)]{Vetrovsky2013}
-Tom{\'{a}}{\v{s}} V{\v{e}}trovsk{\'{y}} and Petr Baldrian.
-\newblock {The Variability of the 16S rRNA Gene in Bacterial Genomes and Its
-  Consequences for Bacterial Community Analyses}.
-\newblock \emph{PLoS ONE}, 8\penalty0 (2):\penalty0 1--10, 2013.
-\newblock ISSN 19326203.
-\newblock \doi{10.1371/journal.pone.0057923}.
-
-\bibitem[Paulson et~al.(2013)Paulson, {Colin Stine}, Bravo, and
-  Pop]{Paulson2013}
-Joseph~N. Paulson, O.~{Colin Stine}, H{\'{e}}ctor~Corrada Bravo, and Mihai Pop.
-\newblock {Differential abundance analysis for microbial marker-gene surveys}.
-\newblock \emph{Nature Methods}, 10\penalty0 (12):\penalty0 1200--1202, 2013.
-\newblock ISSN 15487091.
-\newblock \doi{10.1038/nmeth.2658}.
-
-\bibitem[Bray and Curtis(1957)]{Bray1957}
-J.~Roger Bray and J.~T. Curtis.
-\newblock {An Ordination of the Upland Forest Communities of Southern
-  Wisconsin}.
-\newblock \emph{Ecological Monographs}, 27\penalty0 (4):\penalty0 325--349,
-  1957.
-\newblock \doi{10.2307/1942268}.
-
-\bibitem[Legendre and Legendre(1998)]{Legendre1998}
-Pierre Legendre and Louis Legendre.
-\newblock \emph{{Numerical Ecology}}.
-\newblock Elsevier, Amsterdam, 2nd edition, 1998.
-
-\bibitem[Paradis and Schliep(2018)]{Paradis2018}
-E~Paradis and K~Schliep.
-\newblock {ape 5.0: an environment for modern phylogenetics and evolutionary
-  analyses in R}.
-\newblock \emph{Bioinformatics}, 35\penalty0 (526-528), 2018.
-
-\bibitem[Legendre and Gallagher(2001)]{Legendre2001}
-Pierre Legendre and Eugene~D. Gallagher.
-\newblock {Ecologically meaningful transformations for ordination of species
-  data}.
-\newblock \emph{Oecologia}, 129\penalty0 (2):\penalty0 271--280, 2001.
-\newblock ISSN 00298549.
-\newblock \doi{10.1007/s004420100716}.
-
-\bibitem[Borcard et~al.(2011)Borcard, Gillet, and Legendre]{Borcard2011}
-Daniel Borcard, Francois Gillet, and Pierre Legendre.
-\newblock \emph{{Numerical Ecology with R}}.
-\newblock Springer, New York, 2011.
-\newblock ISBN 9781441979759.
-\newblock \doi{10.1007/978-1-4419-7976-6}.
-
-\bibitem[Anderson and Walsh(2013)]{Anderson2013}
-Marti~J. Anderson and Daniel~C.I. Walsh.
-\newblock {Anderson and Walsh (2013) PERMANOVA, ANOSIM, and the Mantel test in
-  the face of heterogeneous dispersions- What null hypothesis are you .pdf}.
-\newblock \emph{Ecological Monograph}, 83\penalty0 (4):\penalty0 557--574,
-  2013.
-\newblock \doi{10.1890}.
-\newblock URL \url{http://www.esajournals.org/doi/abs/10.1890/12-2010.1}.
-
-\bibitem[Oksanen et~al.(2019)Oksanen, Blanchet, Friendly, Kindt, Legendre,
-  McGlinn, Minchin, O'Hara, Simpson, Solymos, Stevens, Szoecs, and
-  Wagner]{Oksanen2017}
-Jari Oksanen, F.~Guillaume Blanchet, Michael Friendly, Roeland Kindt, Pierre
-  Legendre, Dan McGlinn, Peter~R. Minchin, R.~B. O'Hara, Gavin~L Simpson, Peter
-  Solymos, M~Henry~H Stevens, Eduard Szoecs, and Helene Wagner.
-\newblock {vegan: Community Ecology Package}, 2019.
-\newblock URL \url{https://cran.r-project.org/package=vegan}.
-
-\bibitem[Tabak(2004)]{Tabak2004}
-John Tabak.
-\newblock {Differential Geometry}.
-\newblock In \emph{Geometry: The language of Space and Form}, page 150. Facts
-  on File, Inc, New York, 2004.
-\newblock ISBN 9780816068760.
-
-\bibitem[S{\o}rensen(1948)]{Sorensen1948}
-Thorvald S{\o}rensen.
-\newblock {A method of establishing groups of equal amplitude in plant
-  sociology based on similarity of species content, and its application to
-  analysis of the vegetation on Danish commons}.
-\newblock \emph{Biologiske Skrifter Kongelige Danske Videnskabernes Selskab},
-  5:\penalty0 1--34, 1948.
-\newblock ISSN 00155551.
-\newblock \doi{10.1007/BF02852438}.
-
-\bibitem[Shade et~al.(2014)Shade, Jones, Caporaso, Handelsman, Knight, Fierer,
-  and Gilbert]{Shade2014}
-Ashley Shade, Stuart~E Jones, J~Gregory Caporaso, Jo~Handelsman, Rob Knight,
-  Noah Fierer, and A~Gilbert.
-\newblock {Conditionally Rare Taxa Disproportionately Contribute to Temporal
-  Changes in Microbial Diversity}.
-\newblock \emph{mBio}, 5\penalty0 (4):\penalty0 e01371--14, 2014.
-\newblock \doi{10.1128/mBio.01371-14.Editor}.
-
-\bibitem[McMurdie and Holmes(2013)]{McMurdie2013}
-Paul~J. McMurdie and Susan Holmes.
-\newblock {phyloseq: An R package for reproducible interactive analysis and
-  graphics of microbiome census data}.
-\newblock \emph{PLoS ONE}, 8\penalty0 (4):\penalty0 e61217, 2013.
-
-\bibitem[Wickham et~al.(2019)Wickham, Averick, Bryan, Chang, McGowan,
-  Fran{\c{c}}ois, Grolemund, Hayes, Henry, Hester, Kuhn, Pedersen, Miller,
-  Bache, M{\"{u}}ller, Ooms, Robinson, Seidel, Spinu, Takahashi, Vaughan,
-  Wilke, Woo, and Yutani]{Wickham2019}
-Hadley Wickham, Mara Averick, Jennifer Bryan, Winston Chang, Lucy~D'Agostino
-  McGowan, Romain Fran{\c{c}}ois, Garrett Grolemund, Alex Hayes, Lionel Henry,
-  Jim Hester, Max Kuhn, Thomas~Lin Pedersen, Evan Miller, Stephan~Milton Bache,
-  Kirill M{\"{u}}ller, Jeroen Ooms, David Robinson, Dana~Paige Seidel, Vitalie
-  Spinu, Kohske Takahashi, Davis Vaughan, Claus Wilke, Kara Woo, and Hiroaki
-  Yutani.
-\newblock {Welcome to the tidyverse}.
-\newblock \emph{Journal of Open Source Software}, 4\penalty0 (43):\penalty0
-  1686, 2019.
-\newblock \doi{10.21105/joss.01686}.
-
-\bibitem[Wickham(2011)]{Wickham2011}
-Hadley Wickham.
-\newblock {The Split-Apply-Combine Strategy for Data Analysis}.
-\newblock \emph{Journal of Statistical Software}, 40\penalty0 (1):\penalty0
-  1--29, 2011.
-\newblock URL \url{http://www.jstatsoft.org/v40/i01/}.
-
-\bibitem[Dowle and Srinivasan(2019)]{Dowle2019}
-Matt Dowle and Arun Srinivasan.
-\newblock {data.table: Extension of `data.frame`}, 2019.
-\newblock URL \url{https://cran.r-project.org/package=data.table}.
-
-\bibitem[{Revolution Analytics} and Weston(2019)]{Analytics2019}
-{Revolution Analytics} and Steve Weston.
-\newblock {doMC: Foreach Parallel Adaptor for 'parallel'}, 2019.
-\newblock URL \url{https://cran.r-project.org/package=doMC}.
-
-\bibitem[{R Core Team}(2020)]{RCoreTeam2017}
-{R Core Team}.
-\newblock {R: A language and environment for statistical computing}, 2020.
-\newblock URL \url{https://www.r-project.org/}.
-
-\bibitem[Wickham(2016)]{Wickham2016}
-H~Wickham.
-\newblock {ggplot2: Elegant Graphics for Data Analysis}, 2016.
-\newblock URL \url{https://ggplot2.tidyverse.org}.
-
-\bibitem[Kassambara(2020{\natexlab{a}})]{Kassambara2018}
-A~Kassambara.
-\newblock {ggpubr: 'ggplot2' Based Publication Ready Plots},
-  2020{\natexlab{a}}.
-
-\bibitem[Campitelli(2020)]{Campitelli2020}
-Elio Campitelli.
-\newblock {ggnewscale: Multiple Fill and Colour Scales in 'ggplot2'}, 2020.
-\newblock URL \url{https://cran.r-project.org/package=ggnewscale}.
-
-\bibitem[Wilke(2019)]{Wilke2019}
-Claus~O. Wilke.
-\newblock {cowplot: Streamlined Plot Theme and Plot Annotations for 'ggplot2'},
-  2019.
-\newblock URL \url{https://cran.r-project.org/package=cowplot}.
-
-\bibitem[Kassambara(2020{\natexlab{b}})]{Kassambara2020}
-Alboukadel Kassambara.
-\newblock {rstatix: Pipe-Friendly Framework for Basic Statistical Tests},
-  2020{\natexlab{b}}.
-\newblock URL \url{https://cran.r-project.org/package=rstatix}.
-
-\bibitem[{RStudio Team}(2020)]{RStudioTeam2016}
-{RStudio Team}.
-\newblock {RStudio: Integrated Development for R}, 2020.
-\newblock URL \url{http://www.rstudio.com/}.
-
-\bibitem[Carrara et~al.(2013)Carrara, Rinaldo, Giometto, and
-  Altermatt]{Carrara2013}
-Francesco Carrara, Andrea Rinaldo, Andrea Giometto, and Florian Altermatt.
-\newblock {Complex Interaction of Dendritic Connectivity and Hierarchical Patch
-  Size on Biodiversity in River-Like Landscapes}.
-\newblock \emph{The American Naturalist}, 183\penalty0 (1):\penalty0 13--25,
-  2013.
-\newblock ISSN 0003-0147.
-\newblock \doi{10.1086/674009}.
-
-\bibitem[Rasche et~al.(2011)Rasche, Knapp, Kaiser, Koranda, Kitzler,
-  Zechmeister-Boltenstern, Richter, and Sessitsch]{Rasche2011c}
-Frank Rasche, Daniela Knapp, Christina Kaiser, Marianne Koranda, Barbara
-  Kitzler, Sophie Zechmeister-Boltenstern, Andreas Richter, and Angela
-  Sessitsch.
-\newblock {Seasonality and resource availability control bacterial and archaeal
-  communities in soils of a temperate beech forest}.
-\newblock \emph{ISME Journal}, 5:\penalty0 389--402, 2011.
-\newblock ISSN 17517362.
-\newblock \doi{10.1038/ismej.2010.138}.
-\newblock URL \url{http://dx.doi.org/10.1038/ismej.2010.138}.
-
-\bibitem[Kaiser et~al.(2010)Kaiser, Koranda, Kitzler, Fuchslueger, Schnecker,
-  Schweiger, Rasche, Zechmeister-Boltenstern, Sessitsch, and
-  Richter]{Kaiser2010c}
-Christina Kaiser, Marianne Koranda, Barbara Kitzler, Lucia Fuchslueger,
-  J{\"{o}}rg Schnecker, Peter Schweiger, Frank Rasche, Sophie
-  Zechmeister-Boltenstern, Angela Sessitsch, and Andreas Richter.
+\bibitem[Kaiser et~al., 2010]{Kaiser2010c}
+Kaiser, C., Koranda, M., Kitzler, B., Fuchslueger, L., Schnecker, J.,
+  Schweiger, P., Rasche, F., Zechmeister-Boltenstern, S., Sessitsch, A., and
+  Richter, A. (2010).
 \newblock {Belowground carbon allocation by trees drives seasonal patterns of
   extracellular enzyme activities by altering microbial community composition
   in a beech forest soil}.
-\newblock \emph{New Phytologist}, 187\penalty0 (3):\penalty0 843--858, 2010.
-\newblock ISSN 0028646X.
-\newblock \doi{10.1111/j.1469-8137.2010.03321.x}.
+\newblock {\em New Phytologist}, 187(3):843--858.
 
-\bibitem[Crump et~al.(2003)Crump, Kling, Bahr, and Hobbie]{Crump2003}
-Byron~C Crump, George~W Kling, Michele Bahr, and John~E Hobbie.
-\newblock {Bacterioplankton Community Shifts in an Arctic Lake Correlate with
-  Seasonal Changes in Organic Matter Source}.
-\newblock \emph{Applied and environmental microbiology}, 69\penalty0
-  (4):\penalty0 2253--2268, 2003.
-\newblock ISSN 00992240.
-\newblock \doi{10.1128/AEM.69.4.2253}.
-
-\bibitem[Kara et~al.(2013)Kara, Hanson, Hu, Winslow, and McMahon]{Kara2013}
-Emily~L. Kara, Paul~C. Hanson, Yu~Hen Hu, Luke Winslow, and Katherine~D.
-  McMahon.
+\bibitem[Kara et~al., 2013]{Kara2013}
+Kara, E.~L., Hanson, P.~C., Hu, Y.~H., Winslow, L., and McMahon, K.~D. (2013).
 \newblock {A decade of seasonal dynamics and co-occurrences within freshwater
   bacterioplankton communities from eutrophic Lake Mendota, WI, USA}.
-\newblock \emph{ISME Journal}, 7\penalty0 (3):\penalty0 680--684, 2013.
-\newblock ISSN 17517362.
-\newblock \doi{10.1038/ismej.2012.118}.
-\newblock URL \url{http://dx.doi.org/10.1038/ismej.2012.118}.
+\newblock {\em The ISME Journal}, 7:680--684.
 
-\bibitem[Ni{\~{n}}o-Garc{\'{i}}a et~al.(2017)Ni{\~{n}}o-Garc{\'{i}}a,
-  Ruiz-Gonzalez, del Giorgio, Ruiz-Gonz{\'{a}}lez, and del
-  Giorgio]{Nino-Garcia2017a}
-Juan~Pablo Ni{\~{n}}o-Garc{\'{i}}a, Clara Ruiz-Gonzalez, Paul~A. del Giorgio,
-  Clara Ruiz-Gonz{\'{a}}lez, and Paul~A. del Giorgio.
+\bibitem[Kassambara, 2020a]{Kassambara2018}
+Kassambara, A. (2020a).
+\newblock {ggpubr: 'ggplot2' Based Publication Ready Plots}.
+
+\bibitem[Kassambara, 2020b]{Kassambara2020}
+Kassambara, A. (2020b).
+\newblock {rstatix: Pipe-Friendly Framework for Basic Statistical Tests}.
+
+\bibitem[Langenheder et~al., 2017]{Langenheder2017}
+Langenheder, S., Wang, J., Karjalainen, S.~M., Laamanen, T.~M., Tolonen, K.~T.,
+  Vilmi, A., and Heino, J. (2017).
+\newblock {Bacterial metacommunity organization in a highly connected aquatic
+  system}.
+\newblock {\em FEMS Microbiology Ecology}, 93(4):1--9.
+
+\bibitem[Legendre and Gallagher, 2001]{Legendre2001}
+Legendre, P. and Gallagher, E.~D. (2001).
+\newblock {Ecologically meaningful transformations for ordination of species
+  data}.
+\newblock {\em Oecologia}, 129(2):271--280.
+
+\bibitem[Legendre and Legendre, 1998]{Legendre1998}
+Legendre, P. and Legendre, L. (1998).
+\newblock {\em {Numerical Ecology}}.
+\newblock Elsevier, Amsterdam, 2nd edition.
+
+\bibitem[Leibold et~al., 2004]{Leibold2004a}
+Leibold, M.~A., Holyoak, M., Mouquet, N., Amarasekare, P., Chase, J.~M.,
+  Hoopes, M.~F., Holt, R.~D., Shurin, J.~B., Law, R., Tilman, D., Loreau, M.,
+  and Gonzalez, A. (2004).
+\newblock {The metacommunity concept: A framework for multi-scale community
+  ecology}.
+\newblock {\em Ecology Letters}, 7(7):601--613.
+
+\bibitem[Lennon and Jones, 2011]{Lennon2011}
+Lennon, J.~T. and Jones, S.~E. (2011).
+\newblock {Microbial seed banks: the ecological and evolutionary implications
+  of dormancy}.
+\newblock {\em Nature Reviews Microbiology}, 9:119--130.
+
+\bibitem[Logue and Lindstr{\"{o}}m, 2010]{Logue2010}
+Logue, J.~B. and Lindstr{\"{o}}m, E.~S. (2010).
+\newblock {Species sorting affects bacterioplankton community composition as
+  determined by 16S rDNA and 16S rRNA fingerprints}.
+\newblock {\em The ISME Journal}, 4:729--738.
+
+\bibitem[Magurran and Henderson, 2003]{Magurran2003}
+Magurran, A.~E. and Henderson, P.~A. (2003).
+\newblock {Explaining the excess of rare species in natural species abundance
+  distributions}.
+\newblock {\em Nature}, 422(6933):714--716.
+
+\bibitem[Mansour et~al., 2018]{Mansour2018}
+Mansour, I., Heppell, C.~M., Ryo, M., and Rillig, M.~C. (2018).
+\newblock {Application of the microbial community coalescence concept to
+  riverine networks}.
+\newblock {\em Biological Reviews}, 93:1832--1845.
+
+\bibitem[Martin, 2013]{Martin2013}
+Martin, M. (2013).
+\newblock {Cutadapt removes adapter sequences from high-throughput sequencing
+  reads}.
+\newblock {\em EMBnet.journal}, 17(1):pp. 10--12.
+
+\bibitem[McGill et~al., 2007]{McGill2007}
+McGill, B.~J., Etienne, R.~S., Gray, J.~S., Alonso, D., Anderson, M.~J.,
+  Benecha, H.~K., Dornelas, M., Enquist, B.~J., Green, J.~L., He, F., Hurlbert,
+  A.~H., Magurran, A.~E., Marquet, P.~A., Maurer, B.~A., Ostling, A., Soykan,
+  C.~U., Ugland, K.~I., and White, E.~P. (2007).
+\newblock {Species abundance distributions: Moving beyond single prediction
+  theories to integration within an ecological framework}.
+\newblock {\em Ecology Letters}, 10(10):995--1015.
+
+\bibitem[McMurdie and Holmes, 2013]{McMurdie2013}
+McMurdie, P.~J. and Holmes, S. (2013).
+\newblock {phyloseq: An R package for reproducible interactive analysis and
+  graphics of microbiome census data}.
+\newblock {\em PLoS ONE}, 8(4):e61217.
+
+\bibitem[Monard et~al., 2016]{Monard2016a}
+Monard, C., Gantner, S., Bertilsson, S., Hallin, S., and Stenlid, J. (2016).
+\newblock {Habitat generalists and specialists in microbial communities across
+  a terrestrial-freshwater gradient}.
+\newblock {\em Scientific Reports}, 6:37719.
+
+\bibitem[Murali et~al., 2018]{Murali2018}
+Murali, A., Bhargava, A., and Wright, E.~S. (2018).
+\newblock {IDTAXA: A novel approach for accurate taxonomic classification of
+  microbiome sequences}.
+\newblock {\em Microbiome}, 6(1):1--14.
+
+\bibitem[Nakadai et~al., 2020]{Nakadai2020}
+Nakadai, R., Okazaki, Y., and Matsuoka, S. (2020).
+\newblock {Describing macroecological patterns in microbes: Approaches for
+  comparative analyses of operational taxonomic unit read number distribution
+  with a case study of global oceanic bacteria}.
+\newblock {\em Environmental DNA}, 2:535--543.
+
+\bibitem[Nemergut et~al., 2011]{Nemergut2011}
+Nemergut, D.~R., Costello, E.~K., Hamady, M., Lozupone, C., Jiang, L., Schmidt,
+  S.~K., Fierer, N., Townsend, A.~R., Cleveland, C.~C., Stanish, L., and
+  Knight, R. (2011).
+\newblock {Global patterns in the biogeography of bacterial taxa}.
+\newblock {\em Environmental Microbiology}, 13(1):135--144.
+
+\bibitem[Ni{\~{n}}o-Garc{\'{i}}a et~al., 2016a]{Nino-Garcia2016}
+Ni{\~{n}}o-Garc{\'{i}}a, J.~P., Ruiz-Gonz{\'{a}}lez, C., and del Giorgio, P.~A.
+  (2016a).
+\newblock {Interactions between hydrology and water chemistry shape
+  bacterioplankton biogeography across boreal freshwater networks}.
+\newblock {\em The ISME Journal}, 10:1755--1766.
+
+\bibitem[Ni{\~{n}}o-Garc{\'{i}}a et~al., 2016b]{Nino-Garcia2016b}
+Ni{\~{n}}o-Garc{\'{i}}a, J.~P., Ruiz-Gonz{\'{a}}lez, C., and del Giorgio, P.~A.
+  (2016b).
+\newblock {Landscape-scale spatial abundance distributions discriminate core
+  from random components of boreal lake bacterioplankton}.
+\newblock {\em Ecology Letters}, 19(12):1506--1515.
+
+\bibitem[Ni{\~{n}}o-Garc{\'{i}}a et~al., 2017]{Nino-Garcia2017a}
+Ni{\~{n}}o-Garc{\'{i}}a, J.~P., Ruiz-Gonzalez, C., del Giorgio, P.~A.,
+  Ruiz-Gonz{\'{a}}lez, C., and del Giorgio, P.~A. (2017).
 \newblock {Exploring the Ecological Coherence between the Spatial and Temporal
   Patterns of Bacterioplankton in Boreal Lakes}.
-\newblock \emph{Frontiers in Microbiology}, 8\penalty0 (APR):\penalty0 1--12,
-  2017.
-\newblock ISSN 1664302X.
-\newblock \doi{10.3389/fmicb.2017.00636}.
+\newblock {\em Frontiers in Microbiology}, 8(APR):1--12.
 
-\bibitem[Ruiz-Gonz{\'{a}}lez et~al.(2013)Ruiz-Gonz{\'{a}}lez, Proia, Ferrera,
-  Gasol, and Sabater]{Ruiz-Gonzalez2013}
-Clara Ruiz-Gonz{\'{a}}lez, Lorenzo Proia, Isabel Ferrera, Josep~M. Gasol, and
-  Sergi Sabater.
-\newblock {Effects of large river dam regulation on bacterioplankton community
-  structure}.
-\newblock \emph{FEMS Microbiology Ecology}, 84\penalty0 (2):\penalty0 316--331,
-  2013.
-\newblock ISSN 01686496.
-\newblock \doi{10.1111/1574-6941.12063}.
+\bibitem[Oksanen et~al., 2019]{Oksanen2017}
+Oksanen, J., Blanchet, F.~G., Friendly, M., Kindt, R., Legendre, P., McGlinn,
+  D., Minchin, P.~R., O'Hara, R.~B., Simpson, G.~L., Solymos, P., Stevens, M.
+  H.~H., Szoecs, E., and Wagner, H. (2019).
+\newblock {vegan: Community Ecology Package}.
 
-\bibitem[Ruiz-Gonz{\'{a}}lez et~al.(2015{\natexlab{b}})Ruiz-Gonz{\'{a}}lez,
-  Salazar, Logares, Proia, Gasol, and Sabater]{Ruiz-Gonzalez2015a}
-Clara Ruiz-Gonz{\'{a}}lez, Guillem Salazar, Ramiro Logares, Lorenzo Proia,
-  Josep~M. Gasol, and Sergi Sabater.
-\newblock {Weak coherence in abundance patterns between bacterial classes and
-  their constituent OTUs along a regulated river}.
-\newblock \emph{Frontiers in Microbiology}, 6\penalty0 (NOV):\penalty0 1--13,
-  2015{\natexlab{b}}.
-\newblock ISSN 1664302X.
-\newblock \doi{10.3389/fmicb.2015.01293}.
+\bibitem[Osterholz et~al., 2016]{Osterholz2016}
+Osterholz, H., Singer, G., Wemheuer, B., Daniel, R., Simon, M., Niggemann, J.,
+  and Dittmar, T. (2016).
+\newblock {Deciphering associations between dissolved organic molecules and
+  bacterial communities in a pelagic marine system}.
+\newblock {\em The ISME Journal}, 10:1717--1730.
 
-\bibitem[Reis et~al.(2020)Reis, Ruiz-Gonz{\'{a}}lez, Crevecoeur, Soued, and
-  Prairie]{Reis2020}
-Paula~C.J. Reis, Clara Ruiz-Gonz{\'{a}}lez, Sophie Crevecoeur, Cynthia Soued,
-  and Yves~T. Prairie.
+\bibitem[Pandit et~al., 2009]{Pandit2009}
+Pandit, S.~N., Kolasa, J., and Cottenie, K. (2009).
+\newblock {Contrasts between habitat generalists and specialists: An empirical
+  extension to the basic metacommunity framework}.
+\newblock {\em Ecology}, 90(8):2253--2262.
+
+\bibitem[Paradis and Schliep, 2018]{Paradis2018}
+Paradis, E. and Schliep, K. (2018).
+\newblock {ape 5.0: an environment for modern phylogenetics and evolutionary
+  analyses in R}.
+\newblock {\em Bioinformatics}, 35(526-528).
+
+\bibitem[Paulson et~al., 2013]{Paulson2013}
+Paulson, J.~N., {Colin Stine}, O., Bravo, H.~C., and Pop, M. (2013).
+\newblock {Differential abundance analysis for microbial marker-gene surveys}.
+\newblock {\em Nature Methods}, 10(12):1200--1202.
+
+\bibitem[Peter et~al., 2018]{Peter2018}
+Peter, H., Jeppesen, E., {De Meester}, L., and Sommaruga, R. (2018).
+\newblock {Changes in bacterioplankton community structure during early lake
+  ontogeny resulting from the retreat of the Greenland Ice Sheet}.
+\newblock {\em The ISME Journal}, 12:544--555.
+
+\bibitem[Pruesse et~al., 2007]{Pruesse2007}
+Pruesse, E., Quast, C., Knittel, K., Fuchs, B.~M., Ludwig, W., Peplies, J., and
+  Gl{\"{o}}ckner, F.~O. (2007).
+\newblock {SILVA: a comprehensive online resource for quality checked and
+  aligned ribosomal RNA sequence data compatible with ARB}.
+\newblock {\em Nucleic Acids Research}, 35(21):7188--7196.
+
+\bibitem[{R Core Team}, 2020]{RCoreTeam2017}
+{R Core Team} (2020).
+\newblock {R: A language and environment for statistical computing}.
+
+\bibitem[Rasche et~al., 2011]{Rasche2011c}
+Rasche, F., Knapp, D., Kaiser, C., Koranda, M., Kitzler, B.,
+  Zechmeister-Boltenstern, S., Richter, A., and Sessitsch, A. (2011).
+\newblock {Seasonality and resource availability control bacterial and archaeal
+  communities in soils of a temperate beech forest}.
+\newblock {\em The ISME Journal}, 5:389--402.
+
+\bibitem[Read et~al., 2015]{Read2015}
+Read, D.~S., Gweon, H.~S., Bowes, M.~J., Newbold, L.~K., Field, D., Bailey,
+  M.~J., and Griffiths, R.~I. (2015).
+\newblock {Catchment-scale biogeography of riverine bacterioplankton}.
+\newblock {\em The ISME Journal}, 9:516--526.
+
+\bibitem[Reis et~al., 2020]{Reis2020}
+Reis, P.~C., Ruiz-Gonz{\'{a}}lez, C., Crevecoeur, S., Soued, C., and Prairie,
+  Y.~T. (2020).
 \newblock {Rapid shifts in methanotrophic bacterial communities mitigate
   methane emissions from a tropical hydropower reservoir and its downstream
   river}.
-\newblock \emph{Science of the Total Environment}, 748:\penalty0 141374, 2020.
-\newblock ISSN 18791026.
-\newblock \doi{10.1016/j.scitotenv.2020.141374}.
-\newblock URL \url{https://doi.org/10.1016/j.scitotenv.2020.141374}.
+\newblock {\em Science of the Total Environment}, 748:141374.
 
-\bibitem[Bouvier and del Giorgio(2002)]{Bouvier2002}
-Thierry~C. Bouvier and Paul~A. del Giorgio.
-\newblock {Compositional changes in free-living bacterial communities along a
-  salinity gradient in two temperate estuaries}.
-\newblock \emph{Limnology and Oceanogaphy}, 47\penalty0 (2):\penalty0 453--470,
-  2002.
+\bibitem[{Revolution Analytics} and Weston, 2019]{Analytics2019}
+{Revolution Analytics} and Weston, S. (2019).
+\newblock {doMC: Foreach Parallel Adaptor for 'parallel'}.
 
-\bibitem[Crump et~al.(2004)Crump, Hopkinson, Sogin, and Hobbie]{Crump2004}
-Byron~C. Crump, Charles~S. Hopkinson, Mitchell~L. Sogin, and John~E. Hobbie.
-\newblock {Microbial Biogeography along an Estuarine Salinity Gradient:
-  Combined Influences of Bacterial Growth and Residence Time}.
-\newblock \emph{Applied and Environmental Microbiology}, 70\penalty0
-  (3):\penalty0 1494--1505, 2004.
-\newblock ISSN 00992240.
-\newblock \doi{10.1128/AEM.70.3.1494-1505.2004}.
+\bibitem[{RStudio Team}, 2020]{RStudioTeam2016}
+{RStudio Team} (2020).
+\newblock {RStudio: Integrated Development for R}.
 
-\bibitem[Read et~al.(2015)Read, Gweon, Bowes, Newbold, Field, Bailey, and
-  Griffiths]{Read2015}
-Daniel~S Read, Hyun~S Gweon, Michael~J Bowes, Lindsay~K Newbold, Dawn Field,
-  Mark~J Bailey, and Robert~I Griffiths.
-\newblock {Catchment-scale biogeography of riverine bacterioplankton}.
-\newblock \emph{The ISME Journal}, 9:\penalty0 516--526, 2015.
-\newblock ISSN 1751-7362.
-\newblock \doi{10.1038/ismej.2014.166}.
-\newblock URL \url{http://dx.doi.org/10.1038/ismej.2014.166}.
+\bibitem[Ruiz-Gonz{\'{a}}lez et~al., 2015a]{Ruiz-Gonzalez2015}
+Ruiz-Gonz{\'{a}}lez, C., Ni{\~{n}}o-Garc{\'{i}}a, J.~P., and del Giorgio, P.~A.
+  (2015a).
+\newblock {Terrestrial origin of bacterial communities in complex boreal
+  freshwater networks}.
+\newblock {\em Ecology Letters}, 18:1198--1206.
 
-\bibitem[Yu et~al.(2014)Yu, Yang, Amalfitano, Yu, and Liu]{Yu2014}
-Zheng Yu, Jun Yang, Stefano Amalfitano, Xiaoqing Yu, and Lemian Liu.
+\bibitem[Ruiz-Gonz{\'{a}}lez et~al., 2013]{Ruiz-Gonzalez2013}
+Ruiz-Gonz{\'{a}}lez, C., Proia, L., Ferrera, I., Gasol, J.~M., and Sabater, S.
+  (2013).
+\newblock {Effects of large river dam regulation on bacterioplankton community
+  structure}.
+\newblock {\em FEMS Microbiology Ecology}, 84(2):316--331.
+
+\bibitem[Ruiz-Gonz{\'{a}}lez et~al., 2015b]{Ruiz-Gonzalez2015a}
+Ruiz-Gonz{\'{a}}lez, C., Salazar, G., Logares, R., Proia, L., Gasol, J.~M., and
+  Sabater, S. (2015b).
+\newblock {Weak coherence in abundance patterns between bacterial classes and
+  their constituent OTUs along a regulated river}.
+\newblock {\em Frontiers in Microbiology}, 6(NOV):1--13.
+
+\bibitem[Savio et~al., 2015]{Savio2015a}
+Savio, D., Sinclair, L., Ijaz, U.~Z., Parajka, J., Reischer, G.~H., Stadler,
+  P., Blaschke, A.~P., Bl{\"{o}}schl, G., Mach, R.~L., Kirschner, A. K.~T.,
+  Farnleitner, A.~H., and Eiler, A. (2015).
+\newblock {Bacterial diversity along a 2600 km river continuum}.
+\newblock {\em Environmental Microbiology}, 17(12):4994--5007.
+
+\bibitem[Shade and Gilbert, 2015]{Shade2015b}
+Shade, A. and Gilbert, J.~A. (2015).
+\newblock {Temporal patterns of rarity provide a more complete view of
+  microbial diversity}.
+\newblock {\em Trends in Microbiology}, 23(6):335--340.
+
+\bibitem[Shade et~al., 2013]{Shade2013}
+Shade, A., {Gregory Caporaso}, J., Handelsman, J., Knight, R., and Fierer, N.
+  (2013).
+\newblock {A meta-analysis of changes in bacterial and archaeal communities
+  with time}.
+\newblock {\em The ISME Journal}, 7:1493--1506.
+
+\bibitem[Shade et~al., 2014]{Shade2014}
+Shade, A., Jones, S.~E., Caporaso, J.~G., Handelsman, J., Knight, R., Fierer,
+  N., and Gilbert, A. (2014).
+\newblock {Conditionally Rare Taxa Disproportionately Contribute to Temporal
+  Changes in Microbial Diversity}.
+\newblock {\em mBio}, 5(4):e01371--14.
+
+\bibitem[Shigyo et~al., 2019]{Shigyo2019}
+Shigyo, N., Umeki, K., and Hirao, T. (2019).
+\newblock {Seasonal dynamics of soil fungal and bacterial communities in
+  cool-temperate montane forests}.
+\newblock {\em Frontiers in Microbiology}, 10(AUG):1--14.
+
+\bibitem[S{\o}rensen, 1948]{Sorensen1948}
+S{\o}rensen, T. (1948).
+\newblock {A method of establishing groups of equal amplitude in plant
+  sociology based on similarity of species content, and its application to
+  analysis of the vegetation on Danish commons}.
+\newblock {\em Biologiske Skrifter Kongelige Danske Videnskabernes Selskab},
+  5:1--34.
+
+\bibitem[Stegen et~al., 2013]{Stegen2013a}
+Stegen, J.~C., Lin, X., Fredrickson, J.~K., Chen, X., Kennedy, D.~W., Murray,
+  C.~J., Rockhold, M.~L., and Konopka, A. (2013).
+\newblock {Quantifying community assembly processes and identifying features
+  that impose them}.
+\newblock {\em The ISME Journal}, 7:2069--2079.
+
+\bibitem[Sz{\'{e}}kely et~al., 2013]{Szekely2013}
+Sz{\'{e}}kely, A.~J., Berga, M., and Langenheder, S. (2013).
+\newblock {Mechanisms determining the fate of dispersed bacterial communities
+  in new environments}.
+\newblock {\em The ISME Journal}, 7:61--71.
+
+\bibitem[Tabak, 2004]{Tabak2004}
+Tabak, J. (2004).
+\newblock {Differential Geometry}.
+\newblock In {\em Geometry: The language of Space and Form}, page 150. Facts on
+  File, Inc, New York.
+
+\bibitem[Vass and Langenheder, 2017]{Vass2017}
+Vass, M. and Langenheder, S. (2017).
+\newblock {The legacy of the past: Effects of historical processes on microbial
+  metacommunities}.
+\newblock {\em Aquatic Microbial Ecology}, 79:13--19.
+
+\bibitem[Vellend, 2010]{Vellend2010}
+Vellend, M. (2010).
+\newblock {Conceptual synthesis in community ecology}.
+\newblock {\em The Quarterly Review of Biology}, 85(2):183--206.
+
+\bibitem[V{\v{e}}trovsk{\'{y}} and Baldrian, 2013]{Vetrovsky2013}
+V{\v{e}}trovsk{\'{y}}, T. and Baldrian, P. (2013).
+\newblock {The Variability of the 16S rRNA Gene in Bacterial Genomes and Its
+  Consequences for Bacterial Community Analyses}.
+\newblock {\em PLoS ONE}, 8(2):1--10.
+
+\bibitem[Ward and Stanford, 1983]{Ward1983}
+Ward, J.~V. and Stanford, J.~A. (1983).
+\newblock {The Serial Discontinuity Concept of Lotic Ecosystems}.
+\newblock In {Fontaine III}, T.~D. and Bartell, S.~M., editors, {\em Dynamics
+  of Lotic Ecosystems}, pages 29--42. Ann Arbor Science, Ann Arbor.
+
+\bibitem[Wickham, 2011]{Wickham2011}
+Wickham, H. (2011).
+\newblock {The Split-Apply-Combine Strategy for Data Analysis}.
+\newblock {\em Journal of Statistical Software}, 40(1):1--29.
+
+\bibitem[Wickham, 2016]{Wickham2016}
+Wickham, H. (2016).
+\newblock {ggplot2: Elegant Graphics for Data Analysis}.
+
+\bibitem[Wickham et~al., 2019]{Wickham2019}
+Wickham, H., Averick, M., Bryan, J., Chang, W., McGowan, L.~D., Fran{\c{c}}ois,
+  R., Grolemund, G., Hayes, A., Henry, L., Hester, J., Kuhn, M., Pedersen,
+  T.~L., Miller, E., Bache, S.~M., M{\"{u}}ller, K., Ooms, J., Robinson, D.,
+  Seidel, D.~P., Spinu, V., Takahashi, K., Vaughan, D., Wilke, C., Woo, K., and
+  Yutani, H. (2019).
+\newblock {Welcome to the tidyverse}.
+\newblock {\em Journal of Open Source Software}, 4(43):1686.
+
+\bibitem[Widder et~al., 2014]{Widder2014}
+Widder, S., Besemer, K., Singer, G.~A., Ceola, S., Bertuzzo, E., Quince, C.,
+  Sloan, W.~T., Rinaldo, A., and Battin, T.~J. (2014).
+\newblock {Fluvial network organization imprints on microbial co-occurrence
+  networks}.
+\newblock {\em Proceedings of the National Academy of Sciences},
+  111(35):12799--12804.
+
+\bibitem[Wilke, 2019]{Wilke2019}
+Wilke, C.~O. (2019).
+\newblock {cowplot: Streamlined Plot Theme and Plot Annotations for 'ggplot2'}.
+
+\bibitem[Winter et~al., 2007]{Winter2007}
+Winter, C., Hein, T., Kavka, G., Mach, R.~L., and Farnleitner, A.~H. (2007).
+\newblock {Longitudinal changes in the bacterial community composition of the
+  Danube River: A whole-river approach}.
+\newblock {\em Applied and Environmental Microbiology}, 73(2):421--431.
+
+\bibitem[Wisnoski and Lennon, 2020]{Wisnoski2020a}
+Wisnoski, N.~I. and Lennon, J.~T. (2020).
+\newblock {Microbial community assembly in a multi-layer dendritic
+  metacommunity}.
+\newblock {\em Oecologia}.
+
+\bibitem[Wisnoski et~al., 2020]{Wisnoski2020}
+Wisnoski, N.~I., Muscarella, M.~E., Larsen, M.~L., Peralta, A.~L., and Lennon,
+  J.~T. (2020).
+\newblock {Metabolic insight into bacterial community assembly across ecosystem
+  boundaries}.
+\newblock {\em Ecology}, 101(4):e02968.
+
+\bibitem[Wright, 2016]{Wright2016}
+Wright, E.~S. (2016).
+\newblock {Using DECIPHER v2.0 to Analyze Big Biological Sequence Data in R}.
+\newblock {\em The R Journal}, 8(1):352--359.
+
+\bibitem[Yu et~al., 2014]{Yu2014}
+Yu, Z., Yang, J., Amalfitano, S., Yu, X., and Liu, L. (2014).
 \newblock {Effects of water stratification and mixing on microbial community
   structure in a subtropical deep reservoir}.
-\newblock \emph{Scientific Reports}, 4:\penalty0 5821, 2014.
-\newblock ISSN 20452322.
-\newblock \doi{10.1038/srep05821}.
+\newblock {\em Scientific Reports}, 4:5821.
 
-\bibitem[Campbell et~al.(2011)Campbell, Yu, Heidelberg, and
-  Kirchman]{Campbell2011}
-B.~J. Campbell, L.~Yu, J.~F. Heidelberg, and D.~L. Kirchman.
-\newblock {Activity of abundant and rare bacteria in a coastal ocean}.
-\newblock \emph{Proceedings of the National Academy of Sciences}, 108\penalty0
-  (31):\penalty0 12776--12781, 2011.
-\newblock ISSN 0027-8424.
-\newblock \doi{10.1073/pnas.1101405108}.
-\newblock URL \url{http://www.pnas.org/cgi/doi/10.1073/pnas.1101405108}.
-
-\bibitem[Pandit et~al.(2009)Pandit, Kolasa, and Cottenie]{Pandit2009}
-Shubha~N. Pandit, Jurek Kolasa, and Karl Cottenie.
-\newblock {Contrasts between habitat generalists and specialists: An empirical
-  extension to the basic metacommunity framework}.
-\newblock \emph{Ecology}, 90\penalty0 (8):\penalty0 2253--2262, 2009.
-\newblock ISSN 00129658.
-\newblock \doi{10.1890/08-0851.1}.
-
-\bibitem[Monard et~al.(2016)Monard, Gantner, Bertilsson, Hallin, and
-  Stenlid]{Monard2016a}
-C~Monard, S~Gantner, S~Bertilsson, S~Hallin, and J~Stenlid.
-\newblock {Habitat generalists and specialists in microbial communities across
-  a terrestrial-freshwater gradient}.
-\newblock \emph{Scientific Reports}, 6:\penalty0 37719, 2016.
-\newblock \doi{10.1038/srep37719}.
-\newblock URL \url{http://dx.doi.org/10.1038/srep37719}.
-
-\bibitem[Lennon and Jones(2011)]{Lennon2011}
-Jay~T Lennon and Stuart~E Jones.
-\newblock {Microbial seed banks: the ecological and evolutionary implications
-  of dormancy}.
-\newblock \emph{Nature Reviews Microbiology}, 9:\penalty0 119--130, 2011.
-\newblock ISSN 1740-1526.
-\newblock \doi{10.1038/nrmicro2504}.
-\newblock URL \url{http://dx.doi.org/10.1038/nrmicro2504}.
+\bibitem[Zhou and Ning, 2017]{Zhou2017}
+Zhou, J. and Ning, D. (2017).
+\newblock {Stochastic Community Assembly: Does It Matter in Microbial Ecology?}
+\newblock {\em Microbial and Molecular Biology Reviews}, 81(4):1--32.
 
 \end{thebibliography}
