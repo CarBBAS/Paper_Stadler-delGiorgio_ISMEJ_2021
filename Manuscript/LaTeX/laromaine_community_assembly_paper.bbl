@@ -13,23 +13,12 @@ Adams, H.~E., Crump, B.~C., and Kling, G.~W. (2014).
   species sorting and mass effects on bacterial production and biogeography}.
 \newblock {\em Frontiers in Microbiology}, 5:82.
 
-\bibitem[Anderson and Walsh, 2013]{Anderson2013}
-Anderson, M.~J. and Walsh, D.~C. (2013).
-\newblock {Anderson and Walsh (2013) PERMANOVA, ANOSIM, and the Mantel test in
-  the face of heterogeneous dispersions- What null hypothesis are you .pdf}.
-\newblock {\em Ecological Monograph}, 83(4):557--574.
-
 \bibitem[Besemer et~al., 2013]{Besemer2013}
 Besemer, K., Singer, G., Quince, C., Bertuzzo, E., Sloan, W., and Battin, T.~J.
   (2013).
 \newblock {Headwaters are critical reservoirs of microbial diversity for
   fluvial networks}.
 \newblock {\em Proceedings of the Royal Society B}, 280:20131760.
-
-\bibitem[Borcard et~al., 2011]{Borcard2011}
-Borcard, D., Gillet, F., and Legendre, P. (2011).
-\newblock {\em {Numerical Ecology with R}}.
-\newblock Springer, New York.
 
 \bibitem[Bouvier and del Giorgio, 2002]{Bouvier2002}
 Bouvier, T.~C. and del Giorgio, P.~A. (2002).
@@ -49,6 +38,12 @@ Bray, J.~R. and Curtis, J.~T. (1957).
   Wisconsin}.
 \newblock {\em Ecological Monographs}, 27(4):325--349.
 
+\bibitem[Caillon et~al., 2021]{Caillon2021}
+Caillon, F., Besemer, K., Peduzzi, P., and Schelker, J. (2021).
+\newblock {Soil microbial inoculation during flood events shapes headwater
+  stream microbial communities and diversity}.
+\newblock {\em Microbial Ecology}.
+
 \bibitem[Callahan et~al., 2017]{Callahan2017}
 Callahan, B.~J., McMurdie, P.~J., and Holmes, S.~P. (2017).
 \newblock {Exact sequence variants should replace operational taxonomic units
@@ -66,10 +61,6 @@ Campbell, B.~J., Yu, L., Heidelberg, J.~F., and Kirchman, D.~L. (2011).
 \newblock {Activity of abundant and rare bacteria in a coastal ocean}.
 \newblock {\em Proceedings of the National Academy of Sciences},
   108(31):12776--12781.
-
-\bibitem[Campitelli, 2020]{Campitelli2020}
-Campitelli, E. (2020).
-\newblock {ggnewscale: Multiple Fill and Colour Scales in 'ggplot2'}.
 
 \bibitem[Carrara et~al., 2013]{Carrara2013}
 Carrara, F., Rinaldo, A., Giometto, A., and Altermatt, F. (2013).
@@ -115,10 +106,6 @@ Doherty, M., Yager, P.~L., Moran, M.~A., Coles, V.~J., Fortunato, C.~S.,
   (2017).
 \newblock {Bacterial Biogeography across the Amazon River-Ocean Continuum}.
 \newblock {\em Frontiers in Microbiology}.
-
-\bibitem[Dowle and Srinivasan, 2019]{Dowle2019}
-Dowle, M. and Srinivasan, A. (2019).
-\newblock {data.table: Extension of `data.frame`}.
 
 \bibitem[Fukami, 2004]{Fukami2004}
 Fukami, T. (2004).
@@ -174,26 +161,12 @@ Kara, E.~L., Hanson, P.~C., Hu, Y.~H., Winslow, L., and McMahon, K.~D. (2013).
   bacterioplankton communities from eutrophic Lake Mendota, WI, USA}.
 \newblock {\em The ISME Journal}, 7:680--684.
 
-\bibitem[Kassambara, 2020a]{Kassambara2018}
-Kassambara, A. (2020a).
-\newblock {ggpubr: 'ggplot2' Based Publication Ready Plots}.
-
-\bibitem[Kassambara, 2020b]{Kassambara2020}
-Kassambara, A. (2020b).
-\newblock {rstatix: Pipe-Friendly Framework for Basic Statistical Tests}.
-
 \bibitem[Langenheder et~al., 2017]{Langenheder2017}
 Langenheder, S., Wang, J., Karjalainen, S.~M., Laamanen, T.~M., Tolonen, K.~T.,
   Vilmi, A., and Heino, J. (2017).
 \newblock {Bacterial metacommunity organization in a highly connected aquatic
   system}.
 \newblock {\em FEMS Microbiology Ecology}, 93(4):1--9.
-
-\bibitem[Legendre and Gallagher, 2001]{Legendre2001}
-Legendre, P. and Gallagher, E.~D. (2001).
-\newblock {Ecologically meaningful transformations for ordination of species
-  data}.
-\newblock {\em Oecologia}, 129(2):271--280.
 
 \bibitem[Legendre and Legendre, 1998]{Legendre1998}
 Legendre, P. and Legendre, L. (1998).
@@ -246,12 +219,6 @@ McGill, B.~J., Etienne, R.~S., Gray, J.~S., Alonso, D., Anderson, M.~J.,
 \newblock {Species abundance distributions: Moving beyond single prediction
   theories to integration within an ecological framework}.
 \newblock {\em Ecology Letters}, 10(10):995--1015.
-
-\bibitem[McMurdie and Holmes, 2013]{McMurdie2013}
-McMurdie, P.~J. and Holmes, S. (2013).
-\newblock {phyloseq: An R package for reproducible interactive analysis and
-  graphics of microbiome census data}.
-\newblock {\em PLoS ONE}, 8(4):e61217.
 
 \bibitem[Monard et~al., 2016]{Monard2016a}
 Monard, C., Gantner, S., Bertilsson, S., Hallin, S., and Stenlid, J. (2016).
@@ -368,10 +335,6 @@ Reis, P.~C., Ruiz-Gonz{\'{a}}lez, C., Crevecoeur, S., Soued, C., and Prairie,
   river}.
 \newblock {\em Science of the Total Environment}, 748:141374.
 
-\bibitem[{Revolution Analytics} and Weston, 2019]{Analytics2019}
-{Revolution Analytics} and Weston, S. (2019).
-\newblock {doMC: Foreach Parallel Adaptor for 'parallel'}.
-
 \bibitem[{RStudio Team}, 2020]{RStudioTeam2016}
 {RStudio Team} (2020).
 \newblock {RStudio: Integrated Development for R}.
@@ -480,24 +443,6 @@ Ward, J.~V. and Stanford, J.~A. (1983).
 \newblock In {Fontaine III}, T.~D. and Bartell, S.~M., editors, {\em Dynamics
   of Lotic Ecosystems}, pages 29--42. Ann Arbor Science, Ann Arbor.
 
-\bibitem[Wickham, 2011]{Wickham2011}
-Wickham, H. (2011).
-\newblock {The Split-Apply-Combine Strategy for Data Analysis}.
-\newblock {\em Journal of Statistical Software}, 40(1):1--29.
-
-\bibitem[Wickham, 2016]{Wickham2016}
-Wickham, H. (2016).
-\newblock {ggplot2: Elegant Graphics for Data Analysis}.
-
-\bibitem[Wickham et~al., 2019]{Wickham2019}
-Wickham, H., Averick, M., Bryan, J., Chang, W., McGowan, L.~D., Fran{\c{c}}ois,
-  R., Grolemund, G., Hayes, A., Henry, L., Hester, J., Kuhn, M., Pedersen,
-  T.~L., Miller, E., Bache, S.~M., M{\"{u}}ller, K., Ooms, J., Robinson, D.,
-  Seidel, D.~P., Spinu, V., Takahashi, K., Vaughan, D., Wilke, C., Woo, K., and
-  Yutani, H. (2019).
-\newblock {Welcome to the tidyverse}.
-\newblock {\em Journal of Open Source Software}, 4(43):1686.
-
 \bibitem[Widder et~al., 2014]{Widder2014}
 Widder, S., Besemer, K., Singer, G.~A., Ceola, S., Bertuzzo, E., Quince, C.,
   Sloan, W.~T., Rinaldo, A., and Battin, T.~J. (2014).
@@ -505,10 +450,6 @@ Widder, S., Besemer, K., Singer, G.~A., Ceola, S., Bertuzzo, E., Quince, C.,
   networks}.
 \newblock {\em Proceedings of the National Academy of Sciences},
   111(35):12799--12804.
-
-\bibitem[Wilke, 2019]{Wilke2019}
-Wilke, C.~O. (2019).
-\newblock {cowplot: Streamlined Plot Theme and Plot Annotations for 'ggplot2'}.
 
 \bibitem[Winter et~al., 2007]{Winter2007}
 Winter, C., Hein, T., Kavka, G., Mach, R.~L., and Farnleitner, A.~H. (2007).
