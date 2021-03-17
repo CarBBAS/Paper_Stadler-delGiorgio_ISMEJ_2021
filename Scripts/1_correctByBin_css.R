@@ -58,7 +58,7 @@ set.seed(3)
 # Read in OTU table and taxonomy information
 #tax <- readRDS("./Objects/otu_taxtab_99.rds")
 #seqtab <- readRDS("./Objects/otu_seqtab_99.rds")
-tax <- read.csv("./Output/OTU_98_taxonomy.csv", 
+tax <- read.csv("./Output/OTU_99_taxonomy.csv", 
                 sep = ',', row.names = 1, colClasses = "character", stringsAsFactors = F)
 tax.names <- rownames(tax) # somehow mutate_if removes rownames, save and add later
 tax <- tax %>% mutate_if(is.character, list(~na_if(.,"")))
@@ -68,7 +68,7 @@ tax <- as.matrix(tax[order(rownames(tax)),])
 #seqtab <- read.csv("./Output/OTU_99_table.csv",
 #                   sep = ',', row.names = 1, stringsAsFactors = F)
 # faster to read in R object
-seqtab <- readRDS('./Objects/OTU_98_table.rds')
+seqtab <- readRDS('./Objects/OTU_99_table.rds')
 seqtab <- seqtab[order(rownames(seqtab)),order(colnames(seqtab))]
 
 
