@@ -71,6 +71,8 @@ tax <- as.matrix(tax[order(rownames(tax)),])
 seqtab <- readRDS('./Objects/OTU_99_table.rds')
 seqtab <- seqtab[order(rownames(seqtab)),order(colnames(seqtab))]
 
+seqtab[row.names(seqtab) == "HW24R", "OTU_128"]
+
 
 # Read in meta data
 meta <-
