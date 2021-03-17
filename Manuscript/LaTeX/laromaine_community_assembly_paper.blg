@@ -3,44 +3,44 @@ Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: laromaine_community_assembly_paper.aux
 The style file: apalike.bst
 Database file #1: /media/shared/Documents/University/PhD/BibTEX/LR_miccom_paper.bib
-You've used 76 entries,
+You've used 75 entries,
             1935 wiz_defined-function locations,
-            963 strings with 21407 characters,
-and the built_in function-call counts, 35360 in all, are:
-= -- 3387
-> -- 1956
+            957 strings with 21153 characters,
+and the built_in function-call counts, 34789 in all, are:
+= -- 3334
+> -- 1918
 < -- 27
-+ -- 696
-- -- 694
-* -- 3349
-:= -- 6247
-add.period$ -- 227
-call.type$ -- 76
-change.case$ -- 726
-chr.to.int$ -- 74
-cite$ -- 76
-duplicate$ -- 1069
-empty$ -- 2169
-format.name$ -- 800
-if$ -- 6666
++ -- 682
+- -- 680
+* -- 3290
+:= -- 6147
+add.period$ -- 224
+call.type$ -- 75
+change.case$ -- 714
+chr.to.int$ -- 73
+cite$ -- 75
+duplicate$ -- 1055
+empty$ -- 2137
+format.name$ -- 785
+if$ -- 6560
 int.to.chr$ -- 3
 int.to.str$ -- 0
-missing$ -- 74
-newline$ -- 380
-num.names$ -- 230
-pop$ -- 572
+missing$ -- 73
+newline$ -- 375
+num.names$ -- 227
+pop$ -- 562
 preamble$ -- 1
-purify$ -- 726
+purify$ -- 714
 quote$ -- 0
-skip$ -- 794
+skip$ -- 784
 stack$ -- 0
-substring$ -- 2536
-swap$ -- 87
+substring$ -- 2493
+swap$ -- 86
 text.length$ -- 2
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 454
+type$ -- 448
 warning$ -- 0
-while$ -- 280
+while$ -- 276
 width$ -- 0
-write$ -- 982
+write$ -- 969
