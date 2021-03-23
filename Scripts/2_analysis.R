@@ -9,7 +9,7 @@
 ### Packages -------------------------------------------------------------------------------
 pckgs <- list("phyloseq", "plyr", "tidyverse", "data.table", # wrangling
               "ggpubr", "ggnewscale", "cowplot", "plotly", "ggpmisc", "gridExtra", # plotting,
-              "kableExtra", "xlsx", # making tables for manuscript (LaTeX) and export as excel (for ISME)
+              "kableExtra",# "xlsx", # making tables for manuscript (LaTeX) and export as excel (for ISME)
               "doMC", # parallel computing
               "vegan", "ape", "ade4", "rstatix") # statistics
 
@@ -48,7 +48,7 @@ set.seed(3)
 
 # do we have several files per object? -> take newest version
 # ASV CSS transformed table
-otu.tab <- select_newest("./Output", "201520162017_fin_css_otu99_table_")
+otu.tab <- select_newest("./Output", "201520162017_fin_css_otu99_table_no.dups_")
 otu.tab <- as.matrix(read.csv(
   paste0("./Output/", otu.tab),
   sep = ";",
@@ -62,7 +62,7 @@ otu.tab <- as.matrix(read.csv(
 otu.tab <- otu.tab[order(row.names(otu.tab)),]
 
 # Taxonomy table
-tax.tab <- select_newest("./Output", "201520162017_tax_otu99_table_")
+tax.tab <- select_newest("./Output", "201520162017_tax_otu99_table_no.dups_")
 tax.tab <-
   as.matrix(read.csv(
     paste0("./Output/", tax.tab),
@@ -77,7 +77,7 @@ tax.tab <- tax.tab[order(row.names(tax.tab)),]
 
 # Meta data
 met.df <-
-  select_newest(path = "./Output", file.pattern = "201520162017_meta_otu99_data_")
+  select_newest(path = "./Output", file.pattern = "201520162017_meta_otu99_no.dups_")
 met.df <-
   read.csv(
     paste0("./Output/", met.df),
@@ -90,23 +90,23 @@ met.df <-
 
 # merge some sample types
 met.df$sample.type.year <- factor(met.df$sample.type.year, levels = c("Soil","Sediment",
-                                                                      "Soilwater","Hyporheicwater", 
+                                                                      "Soilwater","Hyporheic", 
                                                                       "Wellwater","Stream", "Tributary",
                                                                       "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
                                                                       "Upriver", "RO3", "RO2", "RO1","Deep", "Downriver",
-                                                                      "Marine"),
+                                                                      "Marine","Unknown"),
                                   labels = c("Soil","Sediment",
                                              "Soilwater","Soilwater", 
                                              "Groundwater","Stream", "Tributary",
                                              "Riverine \nLakes", "Headwater \nPonds", "Lake", "Lake",
                                              "Upriver",
                                              "Reservoirs","Reservoirs", "Reservoirs","Reservoirs", "Downriver",
-                                             "Estuary"))
+                                             "Estuary","Unknown"))
 
-met.df$Season <- factor(met.df$Season, levels = c("spring","summer","autumn"),
+met.df$Season <- factor(met.df$Season, levels = c("Spring","Summer","Autumn"),
                         labels = c("Spring","Summer","Autumn"))
 
-met.df$DnaType <- factor(met.df$DnaType, levels = c("DNA","cDNA"),
+met.df$dna_type <- factor(met.df$dna_type, levels = c("DNA","cDNA"),
                         labels = c("DNA","RNA"))
 
 # Construct phyloseq object
@@ -137,7 +137,8 @@ colvec <- c("#FCFDBFFF", #"#FEC589FF", #Soil
   "#1F9F88FF", # Upriver, 
   "orchid", #"#471063FF", #Reservoir,
   "#375A8CFF", #Downriver,
-  "gray40") #Estuary)
+  "gray40",
+  "red") #Estuary)
 
 names(colvec) <- as.character(sample.factors) # assign names for later easy selection
 
@@ -173,44 +174,51 @@ otu.tab <- melt.data.table(
 # Join OTU and meta table
 sumdf <- left_join(
   otu.tab,
-  met.df[met.df$DadaNames %in% otu.tab$Sample,] %>%
+  met.df[met.df$seq_name %in% otu.tab$Sample,] %>%
     dplyr::select(
-      DadaNames,
-      DR.names,
-      Year,
+      seq_name,
+      dr_match_name,
+      year,
       Season,
-      DnaType,
+      dna_type,
+      replicate,
       sample.type,
       sample.type.year,
     ),
-  by = c("Sample" = "DadaNames")
+  by = c("Sample" = "seq_name")
 )
 
 # set back to data.table, order data.table by catchment.area
 setDT(sumdf)
 
 # check for duplicates
-any(duplicated(sumdf[DnaType == "DNA" & OTU == "OTU_100",]$DR.names) == T)
-any(duplicated(sumdf[DnaType == "RNA" & OTU == "OTU_100",]$DR.names) == T)
+any(duplicated(sumdf[dna_type == "DNA" & OTU == "OTU_100",]$dr_match_name) == T)
+any(duplicated(sumdf[dna_type == "RNA" & OTU == "OTU_100",]$dr_match_name) == T)
 
 # CSS reads creates 0.5 reads overwrite all with 1 (integer, makes them 0)
+# Everything below 1 and above 0 is 1
 range(sumdf[reads > 0,]$reads, na.rm = T)
-sumdf[reads == 0.5, reads := 1]
+sumdf[reads > 0 & reads <= 1, reads := 1]
+
+# round to counts
+sumdf[, reads := round(reads, digits = 0)]
+range(sumdf[reads > 0,]$reads, na.rm = T)
 
 # cast into wide format
-castdf <- dcast(sumdf, DR.names + OTU ~ DnaType, value.var = "reads")
+castdf <- dcast(sumdf, dr_match_name + replicate + OTU ~ dna_type, value.var = "reads")
 
 # fill NAs with 0, those are taxa not found in RNA or DNA
 castdf[is.na(DNA), DNA := 0]
 castdf[is.na(RNA), RNA := 0]
 
 # how many samples have an OTU with RNA > 0 and DNA == 0? (phantom taxa)
-castdf[DNA > 0 | RNA > 0, n.all := .N, .(DR.names)] # number of any observations above 0 by sample
+castdf[DNA > 0 | RNA > 0, n.all := .N, .(dr_match_name)] # number of any observations above 0 by sample
 temp <- castdf[RNA > 0 & DNA == 0,]
-temp <- temp[, .(n = .N, n.all = unique(n.all)), .(DR.names)][, prop := n * 100 / n.all]
+temp <- temp[, .(n = .N, n.all = unique(n.all)), .(dr_match_name)][, prop := n * 100 / n.all]
 
 setDT(met.df)
-View(met.df[DR.names %in% temp[prop != 100 & prop > 50,]$DR.names,] %>% select(DR.names,DnaType,LibrarySize))
+# which samples have more than 50% phantom taxa
+View(met.df[dr_match_name %in% temp[prop != 100 & prop > 50,]$dr_match_name,] %>% select(dr_match_name,dna_type,LibrarySize))
 
 # overwrite all DNA observations == 0, where RNA > 0 with 1
 castdf[RNA > 0 & DNA == 0, DNA := 1]
@@ -218,9 +226,9 @@ castdf[RNA > 0 & DNA == 0,] # check if overwrite was successful
 
 # format back to long format
 temp <- melt.data.table(castdf,
-                id.vars = c("DR.names","OTU"),
+                id.vars = c("dr_match_name","OTU","replicate"),
                 measure.vars = c("DNA","RNA"),
-                variable.name = "DnaType",
+                variable.name = "dna_type",
                 value.name = "reads")
 
 # original and casted data frame have not the same length
@@ -228,23 +236,23 @@ temp <- melt.data.table(castdf,
 nrow(temp) == nrow(sumdf)
 
 # do row merge/overwrite
-sumdf[temp, cor.reads := i.reads, on = .(DR.names, OTU, DnaType)]
+sumdf[temp, cor.reads := i.reads, on = .(dr_match_name, OTU, replicate, dna_type)]
 
 # cast into wide format
 fin.df <- dcast(sumdf, Sample ~ OTU, value.var = "cor.reads")
 # make matrix and give row.names
-fin.df <- as.matrix(setDF(fin.df, rownames = fin.df$Sample)[,-1])
+fin.df <- as.matrix(setDF(fin.df, rownames = fin.df$Sample)[,-1]) # remove first row with "Sample" move into rownames
 
 # same dimensions as original df?
 dim(fin.df)
 dim(otu_table(pb)) # yes
 
-write.table(fin.df, paste0("./Output/201520162017_fin_css_otu99_phantomcor_",Sys.Date(),".csv"),
+write.table(fin.df, paste0("./Output/201520162017_fin_css_otu99_phantomcor_no.dups_",Sys.Date(),".csv"),
             sep = ";", dec = ".", row.names = T)
 rm(temp, castdf, sumdf, otu.tab)
 
 # read in
-fin.df <- select_newest("./Output", "201520162017_fin_css_otu99_phantomcor_")
+fin.df <- select_newest("./Output", "201520162017_fin_css_otu99_phantomcor_no.dups_")
 fin.df <- as.matrix(read.csv(
   paste0("./Output/", fin.df),
   sep = ";",
@@ -286,7 +294,7 @@ pb <- phyloseq(otu_table(fin.df, taxa_are_rows = F),
 # PCoA was chosen for all ordinations for consistency
 
 # subset only DNA samples
-  dna <- subset_samples(pb, DnaType == "DNA")
+  dna <- subset_samples(pb, dna_type == "DNA")
   
   # remove ASVs that do not appear in this dataset
   dna <- prune_taxa(taxa_sums(dna) != 0, dna)
@@ -382,10 +390,10 @@ zoom.river <- ggplot(dna.pcoa$df, aes(x = Axis.1, y = Axis.2)) +
   stat_ellipse(data = subset(dna.pcoa$df, (sample.type.year == "Upriver" | 
                                              sample.type.year == "Downriver")  &
                                Season == "Spring"),
-                 aes(x = Axis.1, y = Axis.2, group = Year), 
+                 aes(x = Axis.1, y = Axis.2, group = year), 
                linetype = "dashed", colour = "grey50") +
   #stat_ellipse(data = subset(dna.pcoa$df, (sample.type.year == "Upriver" | sample.type.year == "Downriver")),
-  #               aes(x = Axis.1, y = Axis.2, group = paste(Year,Season), linetype = as.character(Year))) +
+  #               aes(x = Axis.1, y = Axis.2, group = paste(year,Season), linetype = as.character(year))) +
   annotate(geom = "text", x = c(0.285,0.285), y = c(0.255,0.12), label = c("2015", "2016"), 
            size = 3, colour = "grey50") +
   scale_fill_continuous(type = "viridis", name = "Distance from \nmouth (km)", direction = -1) +
@@ -496,7 +504,7 @@ pb <- prune_taxa(taxa_names(pb) %in% taxa_names(dna), pb)
 
 # extract species table with species in columns
 pb.mat <- otu_mat(pb)
-#pb.mat <- decostand(pb.mat, "hellinger")
+pb.mat <- decostand(pb.mat, "hellinger")
 # creates strong horse-shoe
 
 # PCoA with Bray-Curtis
@@ -568,11 +576,11 @@ nrow(pb.bray.pcoa$values[pb.bray.pcoa$values$Cumul_eig <= 0.75,])
 # PERMANOVA -------------------------------------------------------------------------------------
 # sensitive towards unbalanced sampling designs = bias.adjust
 ord.df <- all.pcoa[["df"]]
-ord.df$groups <- paste(ord.df$sample.type.year, ord.df$Season, ord.df$DnaType, sep = "_")
+ord.df$groups <- paste(ord.df$sample.type.year, ord.df$Season, ord.df$dna_type, sep = "_")
 
 setDT(ord.df)
 # Test for significant difference between factors
-perm.mod <- adonis(pb.mat ~ sample.type.year + Season + DnaType, 
+perm.mod <- adonis(pb.mat ~ sample.type.year + Season + dna_type, 
                    permutations = 9999, data = ord.df, sqrt.dist = T, method = "bray",
                    parallel = cl)
 #-- results
@@ -589,7 +597,7 @@ mod2 <- betadisper(pb.bray,
                    group = ord.df$Season,
                    bias.adjust = T) # do not set sqrt.dist = T, as pb.bray is already sqrt transformed
 mod3 <- betadisper(pb.bray, 
-                   group = ord.df$DnaType,
+                   group = ord.df$dna_type,
                    bias.adjust = T) # do not set sqrt.dist = T, as pb.bray is already sqrt transformed
 mod4 <- betadisper(pb.bray, 
                    group = ord.df$groups,
@@ -622,7 +630,7 @@ plot.df <- all.pcoa[["df"]]
 p <- plot_ly(type = "scatter", mode = "markers")
 
 p <- plot_ly(plot.df, x = ~Axis.1, y = ~Axis.2, z = ~Axis.3, color = ~Season,
-             size = 5, symbol = ~DnaType, symbols = c(21,22))
+             size = 5, symbol = ~dna_type, symbols = c(21,22))
 p <- p %>% add_markers()
 p <- p %>% layout(scene = list(xaxis = 
                                  list(title = paste("PC1 [", unique(plot.df$x), "%]")),
@@ -681,22 +689,22 @@ dissim.df <- rbind(melt.dist(pb.bray) %>% mutate(Metric = "Bray"),
 
 # Get meta data to rename DNA and RNA data
 meta <- data.frame(Sample = as.character(row.names(sample_df(pb))),
-                   sample_df(pb) %>% dplyr::select(DR.names, DnaType, Year, Season, sample.type.year), 
+                   sample_df(pb) %>% dplyr::select(dr_match_name, dna_type, year, Season, sample.type.year), 
                    stringsAsFactors = F)
 
 # add meta data for both sample x and sample y
 dissim.df <- merge(dissim.df, meta, by.x =  "Sample.x", by.y = "Sample")
-dissim.df <- merge(dissim.df, meta %>% select(DnaType, Sample, Year, DR.names), by.x =  "Sample.y", by.y = "Sample")
+dissim.df <- merge(dissim.df, meta %>% select(dna_type, Sample, year, dr_match_name), by.x =  "Sample.y", by.y = "Sample")
 
 # omit all samples of 2015 (no RNA was taken, and sample name strategy changed -> creates duplicates)
-dissim.df <- dissim.df[dissim.df$Year.x != 2015,]
-dissim.df <- dissim.df[dissim.df$Year.y != 2015,]
+dissim.df <- dissim.df[dissim.df$year.x != 2015,]
+dissim.df <- dissim.df[dissim.df$year.y != 2015,]
 
 # keep all rows where Sample.x and Sample.y are the same
-dissim.df <- dissim.df[dissim.df$DR.names.x == dissim.df$DR.names.y,]
-dissim.df <- dissim.df[!(dissim.df$DnaType.x == dissim.df$DnaType.y),] # omit all distances between same DnaType
+dissim.df <- dissim.df[dissim.df$dr_match_name.x == dissim.df$dr_match_name.y,]
+dissim.df <- dissim.df[!(dissim.df$dna_type.x == dissim.df$dna_type.y),] # omit all distances between same dna_type
 
-dissim.dr <- dissim.df %>% select(Metric, ID = DR.names.x, Year = Year.x, Season, sample.type.year, dist)
+dissim.dr <- dissim.df %>% select(Metric, ID = dr_match_name.x, year = year.x, Season, sample.type.year, dist)
 setDT(dissim.dr)
 
 # add new column to split plot into main and side panel
@@ -753,27 +761,27 @@ pb.scores <- rbind(data.frame(Sample = as.character(row.names(pb.bray.pcoa$vecto
                               pb.soren.pcoa$vectors, stringsAsFactors = F))# get first three axes
 # merge with a selection of meta data
 meta <- data.frame(Sample = as.character(row.names(sample_df(pb))),
-                   sample_df(pb) %>% dplyr::select(sample.type.year, Season, Year, 
-                                                   DnaType, distance.from.mouth, DR.names), 
+                   sample_df(pb) %>% dplyr::select(sample.type.year, Season, year, 
+                                                   dna_type, distance.from.mouth, dr_match_name), 
                    stringsAsFactors = F)
 data <- merge(pb.scores, meta, by = "Sample")
 data$Sample <- as.character(data$Sample)
 
 setDT(data)
 setcolorder(data, c("Sample","Metric",
-                    "sample.type.year","Season","Year", "DnaType","distance.from.mouth","DR.names",
+                    "sample.type.year","Season","year", "dna_type","distance.from.mouth","dr_match_name",
                     colnames(data)[!(colnames(data) %in% c("Sample","Metric",
-                                                           "sample.type.year","Season","Year", "DnaType","distance.from.mouth","DR.names"))]))
+                                                           "sample.type.year","Season","year", "dna_type","distance.from.mouth","dr_match_name"))]))
 # melt datatable
-temp <- melt.data.table(data, id.vars = c("DR.names","DnaType", "Metric"), measure.vars = patterns("^Axis."),
+temp <- melt.data.table(data, id.vars = c("dr_match_name","dna_type", "Metric"), measure.vars = patterns("^Axis."),
              variable.name = "Axis", value.name = "Coordinates")
-temp <- dcast(temp, DR.names + Axis + Metric ~ DnaType, value.var = c("Coordinates"))
+temp <- dcast(temp, dr_match_name + Axis + Metric ~ dna_type, value.var = c("Coordinates"))
 # remove NAs
 temp <- na.omit(temp)
 
 # Calculate distance of all axes
 temp[, pnt.dist := (abs(DNA - RNA))^2] # calculate point distance for each axis and square root
-temp <- temp[, .(sum.dist = sum(pnt.dist)), by = .(Metric, DR.names)] # sum temp axes
+temp <- temp[, .(sum.dist = sum(pnt.dist)), by = .(Metric, dr_match_name)] # sum temp axes
 temp <- temp[, dist := sqrt(sum.dist)]
 
 # Calculate distance among axes capturing 75% of variation
@@ -791,40 +799,40 @@ soren.df <- soren.df[,1:which(colnames(soren.df) == paste("Axis",
 
 # merge with a selection of meta data
 meta <- data.frame(Sample = as.character(row.names(sample_df(pb))),
-                   sample_df(pb) %>% dplyr::select(sample.type.year, Season, Year, 
-                                                   DnaType, distance.from.mouth, DR.names), 
+                   sample_df(pb) %>% dplyr::select(sample.type.year, Season, year, 
+                                                   dna_type, distance.from.mouth, dr_match_name), 
                    stringsAsFactors = F)
 bray.df <- setDT(merge(meta, bray.df, by = "Sample"))
 soren.df <- setDT(merge(meta, soren.df, by = "Sample"))
 
 # melt and combine bray-curtis and sorensen results into one data frame
-temp.75 <- rbind(melt.data.table(bray.df, id.vars = c("DR.names","DnaType", "Metric"), measure.vars = patterns("^Axis."),
+temp.75 <- rbind(melt.data.table(bray.df, id.vars = c("dr_match_name","dna_type", "Metric"), measure.vars = patterns("^Axis."),
                       variable.name = "Axis", value.name = "Coordinates"),
-      melt.data.table(soren.df, id.vars = c("DR.names","DnaType", "Metric"), measure.vars = patterns("^Axis."),
+      melt.data.table(soren.df, id.vars = c("dr_match_name","dna_type", "Metric"), measure.vars = patterns("^Axis."),
                       variable.name = "Axis", value.name = "Coordinates"))
 
-temp.75 <- dcast(temp.75, DR.names + Axis + Metric ~ DnaType, value.var = c("Coordinates"))
+temp.75 <- dcast(temp.75, dr_match_name + Axis + Metric ~ dna_type, value.var = c("Coordinates"))
 # remove NAs
 temp.75 <- na.omit(temp.75)
 temp.75[, pnt.dist := (abs(DNA - RNA))^2] # calculate point distance for each axis and square root
-temp.75 <- temp.75[, .(sum.dist = sum(pnt.dist)), by = .(Metric, DR.names)] # sum temp axes
+temp.75 <- temp.75[, .(sum.dist = sum(pnt.dist)), by = .(Metric, dr_match_name)] # sum temp axes
 temp.75 <- temp.75[, dist := sqrt(sum.dist)] # take sqrt
 
 # combine back with categories
 # all axes
 dist.dr <- temp[data, c("sample.type.year",
-                        "Year", "Season") := list(i.sample.type.year,
-                                                  i.Year, i.Season), on = .(DR.names)]
+                        "year", "Season") := list(i.sample.type.year,
+                                                  i.year, i.Season), on = .(dr_match_name)]
 # 75% variance
 dist.75 <- temp.75[data, c("sample.type.year",
-                           "Year", "Season") := list(i.sample.type.year,
-                                                     i.Year, i.Season), on = .(DR.names)]
+                           "year", "Season") := list(i.sample.type.year,
+                                                     i.year, i.Season), on = .(dr_match_name)]
 
 # Calculate delta of the two metrics
-diff.df <- dcast(dist.75, DR.names + sample.type.year + Season ~ Metric, value.var = "dist")
+diff.df <- dcast(dist.75, dr_match_name + sample.type.year + Season ~ Metric, value.var = "dist")
 diff.df <- diff.df[, delta := Bray - Sorensen]
 
-diff.df <- melt(diff.df, id.vars = c("DR.names","sample.type.year","Season"),
+diff.df <- melt(diff.df, id.vars = c("dr_match_name","sample.type.year","Season"),
                 measure.vars = c("delta","Sorensen","Bray"),
                 variable.name = "Metric", value.name = "dist")
 sum.delta <- diff.df[, .(mean =  mean(dist, na.rm = T),
@@ -886,11 +894,11 @@ sum.ls <- lapply(list(sum.dist, sum.dist75, sum.delta), function(x){
 # If distance is calculated over all PCoA dimension, we back-calculate the pairwise dissimilarity
 all.ax <- merge(dissim.dr[dissim.dr$Metric == "Bray",], 
                 dist.dr[dist.dr$Metric == "Bray",], 
-                by.x = "ID", by.y = "DR.names")
+                by.x = "ID", by.y = "dr_match_name")
 
 #all.ax <- merge(dissim.dr[dissim.dr$Metric == "Sorensen",], 
 #                dist.dr[dist.dr$Metric == "Sorensen",], 
-#                by.x = "ID", by.y = "DR.names") # works for both metrics
+#                by.x = "ID", by.y = "dr_match_name") # works for both metrics
 
 (p <- ggplot(all.ax, aes(x = dist.x, y = dist.y, fill = sample.type.year.x)) +
   theme_bw() +
@@ -1076,12 +1084,12 @@ commat <- melt.data.table(
 
 # add meta variables
 commat[setDT(sample_df(pb), keep.rownames = "Sample"), 
-       c("DR.names", "DnaType","sample.type.year","Season") := list(i.DR.names, i.DnaType,
+       c("dr_match_name", "dna_type","sample.type.year","Season") := list(i.dr_match_name, i.dna_type,
                                                                     i.sample.type.year, i.Season),
        on = .(Sample)]
 
 # cast so that we can calculate difference between DNA and RNA of each OTU
-temp <- dcast(commat, DR.names + sample.type.year + OTU ~ DnaType, value.var = c("reads"))
+temp <- dcast(commat, dr_match_name + sample.type.year + OTU ~ dna_type, value.var = c("reads"))
 temp[, diff := DNA - RNA]
 temp <- temp[!is.na(diff),]
 
@@ -1153,7 +1161,7 @@ first.df[, ratio := DNA / RNA]
 
 # merge with some meta data
 first.df[met.df, c("sample.type.year","Season") := list(i.sample.type.year,
-                                                       i.Season), on = .(DR.names)]
+                                                       i.Season), on = .(dr_match_name)]
 
 # remove any NAs in the dataset
 first.df[is.na(DNA),]
@@ -1182,15 +1190,15 @@ rel.df <- readRDS(
 setDT(rel.df)
 # calculate means by sample type
 means <- rel.df[, .(mean.css = mean(css.reads, na.rm = T),
-                    sd.css = sd(css.reads, na.rm = T)), by = .(sample.type.year, DnaType, OTU)]
+                    sd.css = sd(css.reads, na.rm = T)), by = .(sample.type.year, dna_type, OTU)]
 # order the abundances to make ranks
 means <- means[mean.css != 0,] # remove all 0 observations
 means <- means[order(mean.css, decreasing = T)]
-means[, rank.abun := 1:.N, by = .(DnaType, sample.type.year)]
-means[, log.mean := log1p(mean.css), by = .(DnaType, sample.type.year)]
+means[, rank.abun := 1:.N, by = .(dna_type, sample.type.year)]
+means[, log.mean := log1p(mean.css), by = .(dna_type, sample.type.year)]
 
 # smooth and get derivative
-classif.thres <- ddply(means, .(DnaType, sample.type.year), function(x){
+classif.thres <- ddply(means, .(dna_type, sample.type.year), function(x){
   spl <- smooth.spline(x$rank.abun, x$log.mean, spar = 0.7)
   #pred <- predict(spl)
   #first <- predict(spl, deriv = 1) # first derivative
@@ -1210,7 +1218,7 @@ setDT(classif.thres)
 classif.thres[, .(mean.max = mean(max),
                   sd.max = sd(max),
                   mean.min = mean(min),
-                  sd.min = sd(min)), by = .(DnaType, ab.group)]
+                  sd.min = sd(min)), by = .(dna_type, ab.group)]
 #saveRDS(classif.thres, "./Objects/abundance.classification.threshold.rds")
 
 
@@ -1245,13 +1253,13 @@ mean.df <- rna.df[dna.df, , on = .(OTU, sample.type.year, abg.dna, first.obs, Se
 # Calculate the number of reads only in reactive fraction
 ac.all <- first.df[RNA > 0,
                    .(otu.n.all.rna = .N,
-                     sum.reads.all.rna = sum(RNA, na.rm = T)), by = .(sample.type.year, Season)]  # DR.names
+                     sum.reads.all.rna = sum(RNA, na.rm = T)), by = .(sample.type.year, Season)]  # dr_match_name
 mean.df[ac.all, "sum.reads.all.rna" := i.sum.reads.all.rna, on = .(sample.type.year,Season)]
 
 # Sum of all reads of all observations of DNA (not only DNA >0 and RNA = 0, like before)
 all <- first.df[DNA > 0,
                 .(otu.n.all.dna = .N,
-                  sum.reads.all.dna = sum(DNA, na.rm = T)), by = .(sample.type.year, Season)] #DR.names
+                  sum.reads.all.dna = sum(DNA, na.rm = T)), by = .(sample.type.year, Season)] #dr_match_name
 mean.df[all, "sum.reads.all.dna" := i.sum.reads.all.dna, on = .(sample.type.year,Season)]
 
 # Calculate percentage
@@ -1462,7 +1470,7 @@ subdf <- first.df[!is.na(un.reactive),]
 # count the number of OTUs
 all <- subdf[DNA > 0,
                 .(otu.n.all.dna = .N,
-                  sum.reads.all.dna = sum(DNA, na.rm = T)), by = .(sample.type.year, Season)] #DR.names
+                  sum.reads.all.dna = sum(DNA, na.rm = T)), by = .(sample.type.year, Season)] #dr_match_name
 
 # count number of OTUs in each group
 group.count <- subdf[DNA > 0,.(otu.n.un.reactive = .N), by = .(sample.type.year, Season, un.reactive)]
@@ -1528,15 +1536,15 @@ rel.df <- readRDS(
 setDT(rel.df)
 # calculate means by sample type
 means <- rel.df[, .(mean.css = mean(css.reads, na.rm = T),
-                    sd.css = sd(css.reads, na.rm = T)), by = .(sample.type.year, DnaType, OTU)]
+                    sd.css = sd(css.reads, na.rm = T)), by = .(sample.type.year, dna_type, OTU)]
 # order the abundances to make ranks
 means <- means[mean.css != 0,] # remove all 0 observations
 means <- means[order(mean.css, decreasing = T)]
-means[, rank.abun := 1:.N, by = .(DnaType, sample.type.year)]
-means[, log.mean := log1p(mean.css), by = .(DnaType, sample.type.year)]
+means[, rank.abun := 1:.N, by = .(dna_type, sample.type.year)]
+means[, log.mean := log1p(mean.css), by = .(dna_type, sample.type.year)]
 
 # smooth and get derivative
-classif.thres <- ddply(means, .(DnaType, sample.type.year), function(x){
+classif.thres <- ddply(means, .(dna_type, sample.type.year), function(x){
   spl <- smooth.spline(x$rank.abun, x$log.mean, spar = 0.7)
   #pred <- predict(spl)
   #first <- predict(spl, deriv = 1) # first derivative
@@ -1556,7 +1564,7 @@ setDT(classif.thres)
 classif.thres[, .(mean.max = mean(max),
                   sd.max = sd(max),
                   mean.min = mean(min),
-                  sd.min = sd(min)), by = .(DnaType, ab.group)]
+                  sd.min = sd(min)), by = .(dna_type, ab.group)]
 #saveRDS(classif.thres, "./Objects/abundance.classification.threshold.rds")
 
 
@@ -1573,9 +1581,9 @@ means[mean.css < 47 & mean.css >= 5, ab.group := 2] # Medium
 means[mean.css < 5 & mean.css > 0, ab.group := 3] # Rare
 
 # code to resuscitate absent rows
-temp <- dcast(means, DnaType + OTU ~ sample.type.year, value.var = c("ab.group")) # simple wide first
+temp <- dcast(means, dna_type + OTU ~ sample.type.year, value.var = c("ab.group")) # simple wide first
 temp[is.na(temp)] <- 0 # much faster to overwrite NAs this way
-ag.class <- melt(temp, id.vars = c("DnaType", "OTU"),
+ag.class <- melt(temp, id.vars = c("dna_type", "OTU"),
                  variable.name = "sample.type.year", value.name = "ab.group") # make long again
 
 # Add ecosystem domain identifier
@@ -1587,7 +1595,7 @@ ag.class <- melt(temp, id.vars = c("DnaType", "OTU"),
 
 # Custom function to identify ASVs for each group
 
-abun.list <- dlply(ag.class, .(DnaType), function(x){
+abun.list <- dlply(ag.class, .(dna_type), function(x){
   setDT(x)
   # 1. Universally abundant
   univ.abun <- unique(as.character(x[ab.group == 1, abun.counts := .N, by = .(OTU)][abun.counts == length(levels(factor(sample.type.year))),]$OTU))
@@ -1671,10 +1679,10 @@ ls.asvs <- dna.ab.group[which(sapply(dna.ab.group, length) != 0L)]
 grp.names <- names(ls.asvs)
 
 # extract raw DNA - RNA relationship
-rel.df <- rel.df[Year != 2015,]
+rel.df <- rel.df[year != 2015,]
 
 # create new ID column with sample type and DNA Type
-rel.df[, ID := paste(sample.type.year, DnaType, sep = "_")]
+rel.df[, ID := paste(sample.type.year, dna_type, sep = "_")]
 
 # what's the N ?
 unlist(lapply(dna.ab.group, length))
@@ -1958,7 +1966,7 @@ ggplot(plot.ab) +
 
 inac[ac, c("otu.n.all.rna", "sum.reads.all.rna","otu.n.rna","sum.reads.rna") :=
        list(i.otu.n.all.rna, i.sum.reads.all.rna, i.otu.n, i.sum.reads),
-     on = .(first.obs, sample.type.year, Season)] #DR.names
+     on = .(first.obs, sample.type.year, Season)] #dr_match_name
 
 # calculate percentages
 inac[,c("perc.otu", "perc.reads",
@@ -2044,10 +2052,10 @@ ggplot(pdf, aes(x = log(mean), y = sample.type.year)) +
 # calculate number of observations per habitat type and season = Total
 inac.all <- first.df[DNA > 0 & RNA == 0,
                      .(otu.n.all.dna = .N,
-                       sum.reads.all.dna = sum(DNA, na.rm = T)), by = .(sample.type.year, Season)] #DR.names
+                       sum.reads.all.dna = sum(DNA, na.rm = T)), by = .(sample.type.year, Season)] #dr_match_name
 ac.all <- first.df[RNA > 0,
                    .(otu.n.all.rna = .N,
-                     sum.reads.all.rna = sum(RNA, na.rm = T)), by = .(sample.type.year, Season)]  # DR.names
+                     sum.reads.all.rna = sum(RNA, na.rm = T)), by = .(sample.type.year, Season)]  # dr_match_name
 
 inac <- first.df[DNA > 0 & RNA == 0, .(otu.n = .N,
                                sum.reads = sum(DNA, na.rm = T)),
@@ -2059,13 +2067,13 @@ ac <- first.df[RNA > 0, .(otu.n.rna = .N,
 
 # merge together
 inac[inac.all, c("otu.n.all.dna","sum.reads.all.dna") :=
-       list(i.otu.n.all.dna, i.sum.reads.all.dna), on = .(sample.type.year, Season)] #DR.names
+       list(i.otu.n.all.dna, i.sum.reads.all.dna), on = .(sample.type.year, Season)] #dr_match_name
 ac[ac.all, c("otu.n.all.rna","sum.reads.all.rna") :=
-     list(i.otu.n.all.rna, i.sum.reads.all.rna), on = .(sample.type.year, Season)]  #DR.names
+     list(i.otu.n.all.rna, i.sum.reads.all.rna), on = .(sample.type.year, Season)]  #dr_match_name
 
 inac[ac, c("otu.n.all.rna", "sum.reads.all.rna","otu.n.rna","sum.reads.rna") :=
        list(i.otu.n.all.rna, i.sum.reads.all.rna, i.otu.n.rna, i.sum.reads.rna),
-     on = .(first.obs, abg.dna, sample.type.year, Season)] #DR.names
+     on = .(first.obs, abg.dna, sample.type.year, Season)] #dr_match_name
 
 # calculate percentages
 inac[,c("perc.otu", "perc.reads",
@@ -2123,14 +2131,14 @@ dr <- ggplot(plot.df, aes(x = sample.type.year)) +
 # Where in the rank abundance curve does community reshuffling occur? ----------------------------
 # calculate change in abundance between DNA and RNA between each OTU
 
-cast.abun <- dcast(rel.df, DR.names + OTU ~ DnaType, value.var = "css.reads")
+cast.abun <- dcast(rel.df, dr_match_name + OTU ~ dna_type, value.var = "css.reads")
 cast.abun <- cast.abun[!is.na(DNA) & !is.na(cDNA),]
 cast.abun[, diff.abun := DNA - cDNA]
 
 cast.abun[dist.resid, c("Bray", "Sorensen", "resid", "sample.type.year","Season") :=
-            list(i.Bray, i.Sorensen, i.resid, i.sample.type.year, i.Season), on = .(DR.names)]
+            list(i.Bray, i.Sorensen, i.resid, i.sample.type.year, i.Season), on = .(dr_match_name)]
 
-#cast.abun[dist.1d[Metric == "Bray" & Axis == "Axis.2",], c("dist.pc2") := list(i.dist), on = .(DR.names)]
+#cast.abun[dist.1d[Metric == "Bray" & Axis == "Axis.2",], c("dist.pc2") := list(i.dist), on = .(dr_match_name)]
 
 cast.abun <- cast.abun[!(diff.abun == 0),] # omit no abundance difference as they do not contribute to differences
 cast.abun[cDNA > 0 & DNA == 0,]
@@ -2297,7 +2305,7 @@ abund.phyla[, rel.rna := rel.rna * -1] # make negatvive for visualization
 abund.melt <- melt(abund.phyla, 
                    id.vars = c("phylum", "ab.groups", "sample.type.year"),
                    measure.vars = c("rel.dna","rel.rna"),
-                   variable.name = "DnaType", value.name = "rel.abund")
+                   variable.name = "dna_type", value.name = "rel.abund")
 
 ggplot(abund.melt, aes(x = sample.type.year, y = rel.abund, fill = phylum)) +
   geom_bar(stat = "identity", width = 0.8) +

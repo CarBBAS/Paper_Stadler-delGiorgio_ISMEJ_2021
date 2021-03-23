@@ -41,9 +41,9 @@ set.seed(3)
 # 2. Read and prepare data ---------------------------------------------------------------
 
 # Read in dada2 output
-seqtab <- readRDS("./MotherData/nochim_seqtab_2018.rds") # ASV table with raw sequences
+seqtab <- readRDS("./MotherData/nochim_seqtab_2015-2018.rds") # ASV table with raw sequences
 tax <-
-  readRDS("./MotherData/taxtab_idtaxa_silva_v138_2018.rds") # assigned taxonomy
+  readRDS("./MotherData/taxtab_gtdb_r95_2018.rds") # assigned taxonomy
 
 # extract taxonomy
 tax <- as.data.frame(tax, stringsAsFactors = F)
@@ -58,8 +58,9 @@ align.ls <- dlply(align.group, .(align.group), function(x){
   return(vec)
 }, .parallel = T)
 
+names(align.ls[1]) <- "Unclassified"
 # do not include un-classified ASVs, they will be removed downstream anyway
-align.ls[[1]] <- NULL
+#align.ls[[1]] <- NULL
 
 
 # 3. OTU clustering ---------------------------------------------------------------
@@ -99,6 +100,25 @@ for(i in 1:length(align.ls)){
   }
 }
 
+# all at once
+asv_sequences <- colnames(seqtab)
+sample_names <- rownames(seqtab)
+dna <- Biostrings::DNAStringSet(asv_sequences)
+
+## Find clusters of ASVs to form the new OTUs
+aln <- DECIPHER::AlignSeqs(dna, processors = nproc)
+d <- DECIPHER::DistanceMatrix(aln, processors = nproc)
+clusters <- DECIPHER::IdClusters(
+  d, 
+  method = "complete",
+  cutoff = 0.01,
+  # use `cutoff = 0.01` for a 99% OTU ; 0.003 for 99.7%
+  # cutoff 0.02 for 98%
+  # cutoff 0.03 for 97%
+  processors = nproc)
+saveRDS(clusters, "./Objects/OTU_clusters_gtdb_allatonce.rds")
+
+
 # at this point we have a list with
 # each bin representing a taxonomic group (e.g. 'Bacteria') with individual ASVs
 # the bin contains the OTU number each ASV was assigned to
@@ -106,8 +126,82 @@ for(i in 1:length(align.ls)){
 # Meaning that there are many OTU1, OTU2, OTU3, important is that they stay within the bin
 # Actual OTU assignment will happen later
 #saveRDS(cl.out, "./Objects/OTU_clusters_95.rds") # save intermediate object
-saveRDS(cl.out, "./Objects/OTU_clusters.rds") # save intermediate object
+saveRDS(cl.out, "./Objects/OTU_clusters_gtdb.rds") # save intermediate object
 
+# 2. Assign OTU numbers and keep ASV sequences  ---------------------------------------------------------------
+cl.out <- readRDS("./Objects/OTU_clusters_gtdb.rds")
+
+# This loop re-assigns the exact sequences to each "OTU" 
+for(i in 1:length(cl.out)){
+  if(class(cl.out[[i]]) == 'data.frame'){
+    # if there are many "ASVs" in a taxonomic classification, output is a data frame
+    cl.out[[i]]$sequences <- align.ls[[i]] # fill with sequence
+  } else{
+    # if there is only one ASV in taxonomic classification, make it a data frame for easy merging
+    cl.out[[i]] <- data.frame(cluster = NA, sequences = align.ls[[i]])
+  }
+}
+
+# create new empty list
+# loops runs bin by bin, summing all reads that are of the same cluster (= OTU)
+fin.ls <- list()
+for(i in 1:length(cl.out)){
+  #transpose back into OTU table and keep sequences as rownames
+  sub.seq <- as.data.frame(t(seqtab[,colnames(seqtab) %in% align.ls[[i]]]))
+  setDT(sub.seq, keep.rownames = "sequences", key = "sequences")
+  
+  # merge abundance table with clustering output
+  # combines both tables by exact sequence matches, and adds the cluster ID
+  merg.seq <- sub.seq[setDT(cl.out[[i]], key = "sequences")]
+  # extract sequence of most abundant ASV in OTU cluster
+  max.abun.seq <- merg.seq[, `:=`(sum = rowSums(.SD, na.rm = T)), .SDcols = -c("sequences","cluster")]
+  max.seq <- max.abun.seq[, .SD[which.max(sum)], by = .(cluster)]$sequences
+  
+  # sum abundances for all ASVs within one OTU
+  merg.seq <- merg.seq[, lapply(.SD[,-1], sum, na.rm = T), by = .(cluster)] 
+  
+  # Add taxonomic bin info
+  merg.seq$tax <- names(align.ls)[i]
+  merg.seq$sequences <- max.seq
+  fin.ls[[i]] <- merg.seq
+}
+
+# bind lists into one big data frame
+fin.df <- bind_rows(fin.ls)
+
+# order rows by max sum abundance
+fin.df <- fin.df[order(fin.df$sum, decreasing = T),]
+
+#create OTU numbers = ascending numbers (smallest number = OTU with highest abundance)
+fin.df$OTU <-
+  paste("OTU", seq(length = nrow(fin.df)), sep = "_")
+setDF(fin.df)
+row.names(fin.df) <- fin.df$OTU
+
+# save OTU table with sequences separately (as reference)
+ref.tab <- fin.df[,c("OTU","sequences")]
+
+# save taxonomic annotation for each OTU
+tax <- data.frame(OTU = fin.df$OTU, all = fin.df$tax)
+tax <- tax %>% separate(col = "all", into = c("domain","phylum","class","order","family","genus","species"),
+                sep = "[$]")
+rownames(tax) <- tax$OTU ; tax$OTU <- NULL
+tax <- as.matrix(tax)
+
+# remove unneccessary columns, convert back to OTU table
+fin.df$cluster <- NULL; fin.df$sum <- NULL; fin.df$OTU <- NULL; fin.df$tax <- NULL; fin.df$sequences <- NULL
+seqtab <- as.matrix(t(fin.df))
+
+# save as R object
+saveRDS(tax, "./Objects/OTU_99_gtdb_taxonomy.rds")
+saveRDS(seqtab, "./Objects/OTU_99_gtdb_table.rds")
+
+# save as csv file for repository archiving
+write.table(seqtab, "./Output/OTU_99_gtdb_table.csv", sep = ",", row.names = T)
+write.table(tax, "./Output/OTU_99_gtdb_taxonomy.csv", sep = ",", row.names = T)
+write.table(ref.tab, "./Output/OTU_99_gtdb_sequences.csv", sep = ",", row.names = F)
+
+# For several similarity thresholds:
 for(j in 98:95){
   print(paste0("Working on...",j,"% similarity"))
   # 2. Assign OTU numbers and keep ASV sequences  ---------------------------------------------------------------
@@ -184,79 +278,6 @@ for(j in 98:95){
   write.table(ref.tab, paste0("./Output/OTU_",j,"_sequences.csv"), sep = ",", row.names = F)
   
 }
-
-# 2. Assign OTU numbers and keep ASV sequences  ---------------------------------------------------------------
-cl.out <- readRDS("./Objects/OTU_clusters.rds")
-
-# This loop re-assigns the exact sequences to each "OTU" 
-for(i in 1:length(cl.out)){
-  if(class(cl.out[[i]]) == 'data.frame'){
-    # if there are many "ASVs" in a taxonomic classification, output is a data frame
-    cl.out[[i]]$sequences <- align.ls[[i]] # fill with sequence
-  } else{
-    # if there is only one ASV in taxonomic classification, make it a data frame for easy merging
-    cl.out[[i]] <- data.frame(cluster = NA, sequences = align.ls[[i]])
-  }
-}
-
-# create new empty list
-# loops runs bin by bin, summing all reads that are of the same cluster (= OTU)
-fin.ls <- list()
-for(i in 1:length(cl.out)){
-  #transpose back into OTU table and keep sequences as rownames
-  sub.seq <- as.data.frame(t(seqtab[,colnames(seqtab) %in% align.ls[[i]]]))
-  setDT(sub.seq, keep.rownames = "sequences", key = "sequences")
-  
-  # merge abundance table with clustering output
-  # combines both tables by exact sequence matches, and adds the cluster ID
-  merg.seq <- sub.seq[setDT(cl.out[[i]], key = "sequences")]
-  # extract sequence of most abundant ASV in OTU cluster
-  max.abun.seq <- merg.seq[, `:=`(sum = rowSums(.SD, na.rm = T)), .SDcols = -c("sequences","cluster")]
-  max.seq <- max.abun.seq[, .SD[which.max(sum)], by = .(cluster)]$sequences
-  
-  # sum abundances for all ASVs within one OTU
-  merg.seq <- merg.seq[, lapply(.SD[,-1], sum, na.rm = T), by = .(cluster)] 
-  
-  # Add taxonomic bin info
-  merg.seq$tax <- names(align.ls)[i]
-  merg.seq$sequences <- max.seq
-  fin.ls[[i]] <- merg.seq
-}
-
-# bind lists into one big data frame
-fin.df <- bind_rows(fin.ls)
-
-# order rows by max sum abundance
-fin.df <- fin.df[order(fin.df$sum, decreasing = T),]
-
-#create OTU numbers = ascending numbers (smallest number = OTU with highest abundance)
-fin.df$OTU <-
-  paste("OTU", seq(length = nrow(fin.df)), sep = "_")
-setDF(fin.df)
-row.names(fin.df) <- fin.df$OTU
-
-# save OTU table with sequences separately (as reference)
-ref.tab <- fin.df[,c("OTU","sequences")]
-
-# save taxonomic annotation for each OTU
-tax <- data.frame(OTU = fin.df$OTU, all = fin.df$tax)
-tax <- tax %>% separate(col = "all", into = c("domain","phylum","class","order","family","genus","species"),
-                sep = "[$]")
-rownames(tax) <- tax$OTU ; tax$OTU <- NULL
-tax <- as.matrix(tax)
-
-# remove unneccessary columns, convert back to OTU table
-fin.df$cluster <- NULL; fin.df$sum <- NULL; fin.df$OTU <- NULL; fin.df$tax <- NULL; fin.df$sequences <- NULL
-seqtab <- as.matrix(t(fin.df))
-
-# save as R object
-saveRDS(tax, "./Objects/OTU_99_taxonomy.rds")
-saveRDS(seqtab, "./Objects/OTU_99_table.rds")
-
-# save as csv file for repository archiving
-write.table(seqtab, "./Output/OTU_99_table.csv", sep = ",", row.names = T)
-write.table(tax, "./Output/OTU_99_taxonomy.csv", sep = ",", row.names = T)
-write.table(ref.tab, "./Output/OTU_99_sequences.csv", sep = ",", row.names = F)
 
 #---------------------#
 #------- Done! -------#

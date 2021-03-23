@@ -58,7 +58,7 @@ set.seed(3)
 # Read in OTU table and taxonomy information
 #tax <- readRDS("./Objects/otu_taxtab_99.rds")
 #seqtab <- readRDS("./Objects/otu_seqtab_99.rds")
-tax <- read.csv("./Output/OTU_99_taxonomy.csv", 
+tax <- read.csv("./Output/OTU_99_gtdb_taxonomy.csv", 
                 sep = ',', row.names = 1, colClasses = "character", stringsAsFactors = F)
 tax.names <- rownames(tax) # somehow mutate_if removes rownames, save and add later
 tax <- tax %>% mutate_if(is.character, list(~na_if(.,"")))
@@ -68,30 +68,44 @@ tax <- as.matrix(tax[order(rownames(tax)),])
 #seqtab <- read.csv("./Output/OTU_99_table.csv",
 #                   sep = ',', row.names = 1, stringsAsFactors = F)
 # faster to read in R object
-seqtab <- readRDS('./Objects/OTU_99_table.rds')
+seqtab <- readRDS('./Objects/OTU_99_gtdb_table.rds')
 seqtab <- seqtab[order(rownames(seqtab)),order(colnames(seqtab))]
 
-seqtab[row.names(seqtab) == "HW24R", "OTU_128"]
-
+#seqtab[row.names(seqtab) == "HW24R", "OTU_128"]
 
 # Read in meta data
 meta <-
   read.csv(
-    "./MotherData/master_bacmeta.csv",
-    sep = ";",
+    "./MotherData/main_bac_match_2021-02-22.csv", #/master_bacmeta
+    sep = ",",
     dec = ".",
     stringsAsFactors = F
   )
 
-# we have more samples than in the data set needed (aka meta), as new 2018 data were added.
-# Omit rows with 2018 samples
-seqtab <- seqtab[rownames(seqtab) %in% meta$DadaNames,]
+naming <-  read.csv(
+  "./MotherData/sequence_metadata.csv", #/master_bacmeta
+  sep = ",",
+  dec = ".",
+  stringsAsFactors = F
+)
+
+# merge the two
+setDT(meta); setDT(naming)
+
+meta <- naming[meta[,-c("year","lat","long","sampling.date","sample.type.year"), with = T], ,
+               on = c("dr_match_name" = "dna.match")]
+rm(naming)
+write.table(meta, "./MotherData/meta_2015-2018.csv", sep = ",", dec = ".", row.names = F)
+
+# all data
+#seqtab <- seqtab[rownames(seqtab) %in% meta$seq_name,]
+
 
 # phyloseq needs the sample names of the meta data to be the same as the microbial data
 meta <- sample_data(meta)
 
 # Assign rownames to be Sample ID's
-rownames(meta) <- meta$DadaNames
+rownames(meta) <- meta$seq_name
 meta <- meta[order(rownames(meta)),]
 
 # Construct phyloseq object
@@ -101,7 +115,9 @@ ps <- phyloseq(otu_table(seqtab, taxa_are_rows = F),
 
 # How many unclassified OTUs?
 t <- ps %>% subset_taxa(taxa_sums(ps) != 0) %>% subset_taxa(is.na(domain))
-nrow(tax_mat(t))
+nrow(tax_mat(t)) # 50602
+# of a total
+nrow(tax_mat(ps)) # 93710
 rm(t)
 
 # Filter only bacteria, omitting chloroplasts and mitochondria
@@ -110,7 +126,7 @@ pb <- ps %>%
                 family  != "Mitochondria" &
                 order   != "Chloroplast")
 
-# 3. Shrink to relevant subset ---------------------------------------------------------------
+# 3. Separate duplicates ------------------------------------------------------------------------
 # Filter out OTUs that do not have any abundance in data set
 pb <- filter_taxa(pb, function(x)
   sum(x) > 0, TRUE)
@@ -118,24 +134,80 @@ pb <- filter_taxa(pb, function(x)
 # Add another column of library size to meta data
 sample_data(pb)$LibrarySize <- sample_sums(pb)
 
+dups <- sample_df(pb)
+# extract duplicates
+setDT(dups)
+t <- ddply(dups, .(dr_match_name, seq_depth, dna_type), function(x){
+  if(nrow(x) > 1){
+    return(x)
+  }
+}) %>% select(dr_match_name, seq_depth, dna_type, seq_name, replicate, LibrarySize)
+
+which.bigger <-ddply(t, .(dr_match_name, dna_type, seq_depth), function(x){
+  x[which.max(x$LibrarySize),]
+})
+# seems like mostly replicate 2 has a larger library size. But this is sample dependent.
+# extract always the sample with more replicates
+# BUT we keep both duplicates for "true" replicates (labelled t2)
+
+# first, make a df with all samples (we will do the PCoA with both datasets)
+all <- pb
+
+# extract only one sample per duplicate
+t <- t[t$dr_match_name %in% t[grep("s2", t$seq_name),]$dr_match_name,]
+
+which.bigger <-ddply(t, .(dr_match_name, dna_type, seq_depth), function(x){
+  x[which.max(x$LibrarySize),]
+})
+
+# samples that have s2 duplicates
+dupl.names <- t$seq_name
+
+# samples that have higher libray size
+better.samples <- which.bigger$seq_name
+
+# extract a df without any s2 samples and add "better" duplicates
+no.dups <- rbind(dups[!(seq_name %in% dupl.names),],
+      dups[seq_name %in% better.samples,])
+
+# sanity check
+nrow(no.dups) + length(better.samples) == nrow(sample_df(all))
+
+# extract a phyloseq object
+no.dups <- subset_samples(all, seq_name %in% no.dups$seq_name)
+# remove taxa that don't appear in this data set
+no.dups <- filter_taxa(no.dups, function(x)
+  sum(x) > 0, TRUE)
+
+# save phyloseq objects
+saveRDS(no.dups, "./Objects/phyloseq_no.duplicates_2015-18.rds")
+saveRDS(all, "./Objects/phyloseq_all_2015-18.rds")
+
+# 4. Shrink to relevant subset -------------------------------------------------------------------------------------
+
 # Subset only shallow samples
-pb <- subset_samples(pb, SeqDepth == "Shallow")
+all <- subset_samples(all, seq_depth == "Shallow")
+no.dups <- subset_samples(no.dups, seq_depth == "Shallow")
 
 # Subset only 2015 to 2017
-pb <- subset_samples(pb, Year == 2015 | Year == 2016 | Year == 2017)
+all <- subset_samples(all, year == 2015 | year == 2016 | year == 2017)
+no.dups <- subset_samples(no.dups, year == 2015 | year == 2016 | year == 2017)
 
-# Omit balnk and Bioassay
-pb <- subset_samples(pb, !(sample.type.year == "Bioassay" | sample.type.year == "Blank"))
+# Omit blank and Bioassay
+all <- subset_samples(all, !(sample.type.year == "Bioassay" | sample.type.year == "Blank"))
+no.dups <- subset_samples(no.dups, !(sample.type.year == "Bioassay" | sample.type.year == "Blank"))
 
 # remove ASVs that do not appear in this dataset
-pb <- prune_taxa(taxa_sums(pb) != 0, pb)
+all <- prune_taxa(taxa_sums(all) != 0, all)
+no.dups <- prune_taxa(taxa_sums(no.dups) != 0, no.dups)
 
+# All samples
 # extract individual tables from phyloseq obj
-otu.tab <- otu_table(pb)
+otu.tab <- otu_table(all)
 
-met.df <- sample_df(pb)
+met.df <- sample_df(all)
 
-tax.df <- tax_mat(pb)
+tax.df <- tax_mat(all)
 
 # remove unnecessary objects
 rm(meta, ps, seqtab, tax)
@@ -156,19 +228,19 @@ otu.tab <- melt.data.table(
 # Join OTU and meta table
 sumdf <- left_join(
   otu.tab,
-  met.df[met.df$DadaNames %in% otu.tab$Sample,] %>%
+  met.df[met.df$seq_name %in% otu.tab$Sample,] %>%
     dplyr::select(
-      DadaNames,
-      Year,
+      seq_name,
+      dr_match_name,
+      year,
       Season,
-      DnaType,
+      dna_type,
       sample.type,
       sample.type.year,
-      soilorwater,
       catchment.area,
       distance.from.mouth
     ),
-  by = c("Sample" = "DadaNames")
+  by = c("Sample" = "seq_name")
 )
 
 # set back to data.table, order data.table by catchment.area
@@ -181,82 +253,23 @@ sumdf[sample.type.year == "Soil", catchment.area := -10]
 sumdf[sample.type.year == "Soilwater", catchment.area := -20]
 sumdf[sample.type.year == "Hyporheicwater", catchment.area := -30]
 
-# correct one miscategorisation
-sumdf[sumdf$Sample == "RO2111.60mD",]$sample.type.year <- "Deep"
-
-
-# 5. Match DNA and RNA ---------------------------------------------------------------
-# new sample name column to identify which DNAs belong to which RNA
-sumdf[, DR.names := Sample]
-# correct a few wrong sample names for matching DNA and RNA
-sumdf[sumdf$DR.names == "RO2R52R", "DR.names"] <- "RO2.52R"
-sumdf[sumdf$DR.names == "SWR34R", "DR.names"] <- "SW34R"
-sumdf[sumdf$DR.names == "RO2.36pD", "DR.names"] <- "RO2.36D"
-sumdf[sumdf$DR.names == "RO2.36pR", "DR.names"] <- "RO2.36R"
-sumdf[sumdf$DR.names == "RO2111.60mD", "DR.names"] <- "RO2111.90mD"
-sumdf[sumdf$DR.names == "RO2.30DPR", "DR.names"] <- "RO2.30R" # two DNA
-sumdf[sumdf$DR.names == "RO301.HypoR", "DR.names"] <- "RO31.HypoR"
-sumdf[sumdf$DR.names == "RO301R", "DR.names"] <- "RO31R" 
-sumdf[sumdf$DR.names == "RO304R", "DR.names"] <- "RO34R" 
-sumdf[sumdf$DR.names == "RO307R", "DR.names"] <- "RO37R" 
-sumdf[sumdf$DR.names == "L230R", "DR.names"] <- "L330R" # L230 does not exist
-
-# remove Ds and Rs to match counterpart DR.names
-sumdf$DR.names[sumdf$DnaType == "DNA"] <- str_replace(sumdf$DR.names[sumdf$DnaType == "DNA"], "D$", "")
-sumdf$DR.names[sumdf$DnaType == "cDNA"] <- str_replace(sumdf$DR.names[sumdf$DnaType == "cDNA"], "R$", "")
-
 # calculate the sum of OTUs per DnaType, omit those OTUs that only appear in RNA
-sum.reads <- sumdf[, .(sum.reads = sum(reads)), by = .(DnaType, OTU)]
-notindna <- sum.reads[DnaType == "DNA" & sum.reads == 0,]$OTU
+sum.reads <- sumdf[, .(sum.reads = sum(reads)), by = .(dna_type, OTU)]
+notindna <- sum.reads[dna_type == "DNA" & sum.reads == 0,]$OTU
 
 # order for overview
-sum.reads <- sum.reads[order(OTU, DnaType),]
+sum.reads <- sum.reads[order(OTU, dna_type),]
 
 nrow(tax.df[rownames(tax.df) %in% sum.reads[OTU %in% as.character(notindna) & sum.reads > 100,]$OTU,])
 # 162 OTUs only in RNA and that have a high read number (> 100)
-# 490 with ASVs and clustering by 99.7% similarity
 
 sumdf <- sumdf[!(OTU %in% notindna),]
 length(notindna)
-# removing 3353 OTUs
-
-# How many taxa only appear in RNA per sample?
-temp <- sumdf[OTU == "OTU_1" & DnaType == "cDNA", ]
-t<-temp[!duplicated(DR.names),]$DR.names
-
-temp <- sumdf[DR.names %in% t,]
-temp <- temp[, .(mean = mean(reads, na.rm = T)), by = .(OTU, DnaType, DR.names)]
-
-rna.obs <- dcast(temp, DR.names + OTU ~ DnaType, value.var = "mean")
-rna.obs[DNA > 0 | cDNA > 0, n.all := .N, .(DR.names)]
-tt <- rna.obs[cDNA >= 1 & DNA == 0,]
-
-rnaonly <- tt[, .(n = .N,
-                  n.all = unique(n.all)), .(DR.names)]
-rnaonly <- rnaonly[,prop := n * 100 / n.all]
-# quite some...
-
-comp.seq <- function (str1, str2) {
-  tmp = cbind (strsplit(as.character(str1), ""), strsplit(as.character(str2), ""))
-  t(apply (tmp, 1, function(x){x[[1]]==x[[2]]}))
-}
-# nucleotide difference... different OTUs
-otu1 <- "TACGTAGGGTGCGAGCGTTAATCGGAATTACTGGGCGTAAAGCGTGCGCAGGCGGTTATACAAGACAGGCGTGAAATCCCCGGGCTTAACCTGGGAATGGCGCCTGTGACTGTATAGCTAGAGTGTGTCAGAGGGGGGTAGAATTCCACGTGTAGCAGTGAAATGCGTAGATATGTGGAGGAATACCAATGGCGAAGGCAGCCCCCTGGGATAACACTGACGCTCATGCACGAAAGCGTGGGGAGCAAACAGG"
-otu2 <- "TACGTAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGTGCGCAGGCGGTTATACAAGACAGGCGTGAAATCCCCGGGCTTAACCTGGGAATGGCGCCTGTGACTGTATAGCTAGAGTGTGTCAGAGGGGGGTAGAATTCCACGTGTAGCAGTGAAATGCGTAGATATGTGGAGGAATACCAATGGCGAAGGCAGCCCCCTGGGATAACACTGACGCTCATGCACGAAAGCGTGGGGAGCAAACAGG"
-otu3 <- "GACGAACCGTGCAAACGTTATTCGGAATCACTGGGCTTAAAGGGCGCGTAGGCGGGTGATCAAGTCAATGGTGAAATCCTCCAGCTTAACTGGAGAAGTGCCTTTGATACTGATTGTCTAGAGGGAGGTAGGGGCATGTGGAACTTCAGGTGGAGCGGTGAAATGCGTAGATATCTGAAGGAACGCCAGTGGCGAAAGCGATGTGCTGGACCTCTTCTGACGCTGAGGCGCGAAAGCTAGGGGATCAAACGGG"
-# just one nucleotide difference
-which(comp.seq(otu1, otu2) == F)
-which(comp.seq(otu2, otu3) == F)
-tax.df <- setDT(data.frame(tax.df), keep.rownames = "OTU")
-tax.df[!is.na(genus), n := .N, .(genus)]
-tax.df[is.na(genus) & !is.na(family), n := .N, .(family)]
-only.in.rna <- unique(tt$OTU)
-View(tax.df[OTU %in% only.in.rna,])
-
+# removing 1682 OTUs
 
 #combine back with some meta Data and sample names
 # add ID column for parallel computing
-sumdf[, ID := paste(Year, Season, DnaType, OTU, sep = ".")]
+sumdf[, ID := paste(year, Season, dna_type, OTU, sep = ".")]
 
 # split data frame in present and absent
 # (Otherwise computational power is overwhelmed)
@@ -281,8 +294,8 @@ dir.create(file.path("./Objects"))
 present <- sumdf[PA == "Present",]
 absent <- sumdf[PA == "Absent",]
 
-# remove single observations with read numbers lower than 10 reads by sample.type ~ Year ~ Season ~ DnaType combination
-present[, bin := paste(sample.type.year, Year, Season, DnaType, OTU, sep = "_")]
+# remove single observations with read numbers lower than 10 reads by sample.type ~ Year ~ Season ~ dna_type combination
+present[, bin := paste(sample.type.year, year, Season, dna_type, OTU, sep = "_")]
 # number of observations by bin
 present[, n.bin := .N, by = .(bin)]
 present[n.bin == 1 & reads < 10, cor.reads := 0]
@@ -306,52 +319,52 @@ cor.reads <- as.matrix(cor.reads)
 cor.reads <- cor.reads[which(rowSums(cor.reads) != 0),]
 
 # join back to phyloseq so that orders of samples and ASVs match across data frames
-cor.pb <- phyloseq(otu_table(cor.reads, taxa_are_rows = F),
+cor.all <- phyloseq(otu_table(cor.reads, taxa_are_rows = F),
                    sample_data(met.df),
                    tax_table(tax.df[row.names(tax.df) %in% colnames(cor.reads),]))
 
 # save initial sumdf data frame to be used later as reference (sample ~ corrected sample name)
-saveRDS(sumdf, "./Objects/summary.meta.with.oldnames.rds")
+#saveRDS(sumdf, "./Objects/summary.meta.with.oldnames.rds")
 
 # 7. CSS transformation ---------------------------------------------------------------
 # We apply the cumuluative sum scaling transformation (Paulson et al. Nature Methods 2013)
 # metagenomeSeq needs, samples in columns, "features" (= ASVs) in rows
 # export phyloseq object into MRexperiment
-pb.ms <- physeq_to_metagenomeSeq_mod(cor.pb) # encountered error with original function use customised function
+all.ms <- physeq_to_metagenomeSeq_mod(cor.all) # encountered error with original function use customised function
 
 # inspect data
-head(pData(pb.ms), 3) # meta data
-head(fData(pb.ms), 3) # taxonomy table
-head(MRcounts(pb.ms[, 1:2])) # count table
+head(pData(all.ms), 3) # meta data
+head(fData(all.ms), 3) # taxonomy table
+head(MRcounts(all.ms[, 1:2])) # count table
 
 # we've done all the subsetting in phyloseq, directly move to CSS transformation
 
 # calculate normalisation factor
-p <- round(cumNormStatFast(pb.ms), digits = 2)
+p <- round(cumNormStatFast(all.ms), digits = 2)
 
 # apply CSS transformation
-pb.ms <- cumNorm(pb.ms, p = p)
+all.ms <- cumNorm(all.ms, p = p)
 
 # check if normalisation was succesful
-t(otu_table(cor.pb))[1100:1110, 1:5]
-MRcounts(pb.ms, norm = T)[1100:1110, 1:5]
+t(otu_table(cor.all))[1100:1110, 1:5]
+MRcounts(all.ms, norm = T)[1100:1110, 1:5]
 
 # export normalised count matrices
-pb.mat <- MRcounts(pb.ms, norm = T)
-pb.mat <- round(pb.mat, digits = 0) # export as count data instead of decimals
-exportMat(pb.mat, file = paste0("./Output/201520162017_CSS_otu99_otutab_", Sys.Date(),".tsv"))
+all.mat <- MRcounts(all.ms, norm = T)
+#all.mat <- round(all.mat, digits = 0) # export as count data instead of decimals
+exportMat(all.mat, file = paste0("./Output/201520162017_CSS_otu99_otutab_all_", Sys.Date(),".tsv"))
 
 # export sample statistics
 # create folder for saving
 dir.create(file.path("./Output/StatTables"))
-exportStats(pb.ms, file = paste0("./Output/StatTables/201520162017_CSS_otu99_transf_stats_",Sys.Date(),".tsv"))
+exportStats(all.ms, file = paste0("./Output/StatTables/201520162017_CSS_otu99_all_transf_stats_",Sys.Date(),".tsv"))
 # read with read.csv(file, sep = "\t")
 
 # transform data into long format to merge with fin
 # melt asv table into long format
 # to do this easily we transpose and melt matrix
 css <- melt.data.table(
-  setDT(as.data.frame(t(pb.mat)), keep.rownames = "Sample"),
+  setDT(as.data.frame(t(all.mat)), keep.rownames = "Sample"),
   id.vars = "Sample",
   measure.vars = patterns("^OTU_"),
   variable.name = "OTU",
@@ -380,16 +393,20 @@ fin[, n.obs := nrow(.SD[css.reads > 0]), by = .(ID)] # how many of those have an
 # add z-standardised css.reads to compare rare and abundant things later in regressions
 fin[, z.css.reads := (css.reads - mean(css.reads, na.rm = T)) / sd(css.reads, na.rm = T)]
 
+# for all samples, we export the whole file
+out <- fin
+
 # calculate mean reads for duplicates
 dupl.mean <- fin[, .(reads = mean(reads, na.rm = T),
                   cor.reads = mean(cor.reads, na.rm = T),
                   css.reads = mean(css.reads, na.rm = T), 
                   rel.abund = mean(rel.abund, na.rm = T),
-                  z.css.reads = mean(z.css.reads, na.rm = T)), by = .(DR.names, DnaType, OTU)]
+                  z.css.reads = mean(z.css.reads, na.rm = T)), by = .(dr_match_name, dna_type, OTU)]
+
 out <- dupl.mean[fin, c("Sample","Season","Year","sample.type.year","soilorwater","catchment.area",
               "distance.from.mouth", "n", "n.obs", "PA", "ID", "library.size") := 
             list(i.Sample,i.Season,i.Year,i.sample.type.year,i.soilorwater,i.catchment.area,
-                 i.distance.from.mouth, i.n, i.n.obs, i.PA, i.ID, i.library.size), on = .(DR.names, DnaType, OTU)]
+                 i.distance.from.mouth, i.n, i.n.obs, i.PA, i.ID, i.library.size), on = .(dr_match_name, dna_type, OTU)]
 
 # 11. Export ---------------------------------------------------------------
 # rearrange data frame before saving
@@ -398,13 +415,12 @@ setcolorder(
   c(
     "ID",
     "Sample",
-    "DR.names",
+    "dr_match_name",
     "OTU",
-    "Year",
+    "year",
     "Season",
-    "DnaType",
+    "dna_type",
     "sample.type.year",
-    "soilorwater",
     "catchment.area",
     "distance.from.mouth",
     "library.size",
@@ -420,10 +436,10 @@ setcolorder(
 )
 
 saveRDS(out,
-        paste0("./Objects/201520162017_css_otu99_",
+        paste0("./Objects/201520162017_css_otu99_all_",
                Sys.Date(),
                ".rds"))
-write.table(out, paste0("./Output/201520162017_css_otu99_",
+write.table(out, paste0("./Output/201520162017_css_otu99_all_",
                       Sys.Date(),
                       ".csv"), sep = ",", dec = ".",  row.names = F)
 ## Extract final info from all phyloseq objects
@@ -441,62 +457,356 @@ otu.tab <- otu.tab[, colSums(otu.tab) > 0]
 otu.tab <- otu.tab[order(row.names(otu.tab)),]
 write.table(
   otu.tab,
-  paste0("./Output/201520162017_fin_css_otu99_table_", Sys.Date(), ".csv"),
+  paste0("./Output/201520162017_fin_css_otu99_table_all_", Sys.Date(), ".csv"),
   sep = ";",
   dec = ".",
   row.names = T
 )
 
 # export shrinked meta data
-met.df <- sample_df(pb)
+met.df <- sample_df(all)
 
 # only take those samples in OTU table, will remove duplicates and one lost sample
-met.df <- met.df[met.df$DadaNames %in% levels(factor(row.names(otu.tab))),]
+met.df <- met.df[met.df$seq_name %in% levels(factor(row.names(otu.tab))),]
 setDT(met.df)
-met.df <- met.df[out, c("DR.names", "sample.type.year") := 
-                 list(i.DR.names, i.sample.type.year), on = .(DadaNames == Sample)]
+met.df <- met.df[out, c("dr_match_name", "sample.type.year") := 
+                 list(i.dr_match_name, i.sample.type.year), on = .(seq_name == Sample)]
 setDF(met.df)
 # Assign rownames to be Sample ID's
-rownames(met.df) <- met.df$DadaNames
+rownames(met.df) <- met.df$seq_name
 write.table(
   met.df,
-  paste0("./Output/201520162017_meta_otu99_data_", Sys.Date(), ".csv"),
+  paste0("./Output/201520162017_meta_otu99_all_", Sys.Date(), ".csv"),
   sep = ";",
   dec = ".",
   row.names = T
 )
 
-tax.df <- tax_mat(pb)
+tax.df <- tax_mat(all)
 tax.df <- tax.df[row.names(tax.df) %in% levels(factor(colnames(otu.tab))),]
 # orders need to match between tax.tab and otu.tab
 tax.df <- tax.df[order(row.names(tax.df)),]
 
 write.table(
   tax.df,
-  paste0("./Output/201520162017_tax_otu99_table_", Sys.Date(), ".csv"),
+  paste0("./Output/201520162017_tax_otu99_table_all_", Sys.Date(), ".csv"),
   sep = ";",
   dec = ".",
   row.names = T
 )
 
-#rm(met.df, out, pb, pb.mat, pb.ms, present, san, seqdf, sum.reads, sumdf, tax.df, tax.tab, test,notindna, p, absent,
+#rm(met.df, out, all, all.mat, all.ms, present, san, seqdf, sum.reads, sumdf, tax.df, tax.tab, test,notindna, p, absent,
 #   otu.tab, cor.reads, css, dupl.mean, fin)
+
+# Without duplicates ------------------------------------------------------------------------------------------------
+# extract individual tables from phyloseq obj
+otu.tab <- otu_table(no.dups)
+
+met.df <- sample_df(no.dups)
+
+tax.df <- tax_mat(no.dups)
+
+# remove unnecessary objects
+rm(meta, ps, seqtab, tax)
+
+# 4. Correct too few reads ---------------------------------------------------------------
+# transform ASV table into data.table
+otu.tab <- setDT(as.data.frame(otu.tab, strings.As.Factors = F), keep.rownames = "Sample")
+
+# melt OTU table into long format
+otu.tab <- melt.data.table(
+  otu.tab,
+  id.vars = "Sample",
+  measure.vars = patterns("^OTU_"),
+  variable.name = "OTU",
+  value.name = "reads"
+)
+
+# Join OTU and meta table
+sumdf <- left_join(
+  otu.tab,
+  met.df[met.df$seq_name %in% otu.tab$Sample,] %>%
+    dplyr::select(
+      seq_name,
+      dr_match_name,
+      year,
+      Season,
+      dna_type,
+      sample.type,
+      sample.type.year,
+      catchment.area,
+      distance.from.mouth
+    ),
+  by = c("Sample" = "seq_name")
+)
+
+# set back to data.table, order data.table by catchment.area
+setDT(sumdf)
+
+# adjust catchment area to include soil, soilwater, and hyporheic water
+#sumdf[, catchment.area := catchment.area + 45] # add 45 to no.dups
+
+sumdf[sample.type.year == "Soil", catchment.area := -10]
+sumdf[sample.type.year == "Soilwater", catchment.area := -20]
+sumdf[sample.type.year == "Hyporheicwater", catchment.area := -30]
+
+# calculate the sum of OTUs per DnaType, omit those OTUs that only appear in RNA
+sum.reads <- sumdf[, .(sum.reads = sum(reads)), by = .(dna_type, OTU)]
+notindna <- sum.reads[dna_type == "DNA" & sum.reads == 0,]$OTU
+
+# order for overview
+sum.reads <- sum.reads[order(OTU, dna_type),]
+
+nrow(tax.df[rownames(tax.df) %in% sum.reads[OTU %in% as.character(notindna) & sum.reads > 100,]$OTU,])
+# 162 OTUs only in RNA and that have a high read number (> 100)
+
+sumdf <- sumdf[!(OTU %in% notindna),]
+length(notindna)
+# removing 1682 OTUs
+
+#combine back with some meta Data and sample names
+# add ID column for parno.dupsel computing
+sumdf[, ID := paste(year, Season, dna_type, OTU, sep = ".")]
+
+# split data frame in present and absent
+# (Otherwise computational power is overwhelmed)
+sumdf[, n := .N, by = .(ID)] # number of samples by factorial combination
+sumdf[, n.obs := nrow(.SD[reads > 0]), by = .(ID)] # how many of those have an actual observation of an OTU?
+
+# initiate presence-absence col
+sumdf[, PA := character()]
+sumdf[is.na(PA) &
+        n.obs == 0, PA := "Absent", by = .(ID)]
+# if for a factorial combination, there was not a single observation define as absent
+sumdf[is.na(PA) & n.obs > 0, PA := "Present", by = .(ID)]
+# no.dups observations above 0 are present
+
+# 6. Quality control ---------------------------------------------------------------
+getDoParWorkers() # 12
+# check if cores were no.dupsocated correctly
+
+# create folder for saving
+dir.create(file.path("./Objects"))
+
+present <- sumdf[PA == "Present",]
+absent <- sumdf[PA == "Absent",]
+
+# remove single observations with read numbers lower than 10 reads by sample.type ~ Year ~ Season ~ dna_type combination
+present[, bin := paste(sample.type.year, year, Season, dna_type, OTU, sep = "_")]
+# number of observations by bin
+present[, n.bin := .N, by = .(bin)]
+present[n.bin == 1 & reads < 10, cor.reads := 0]
+# select no.dups with only one observation by bin, overwrite no.dups reads less than 10 with 0
+present[is.na(cor.reads), cor.reads := reads] # fill in rest
+present[, bin := NULL][, n.bin := NULL] # remove unncessary columns for downstream analysis
+
+# add 0 column to absent for cor.reads
+absent[, cor.reads := 0]
+
+# combine present and absent back together
+fin <- bind_rows(present, absent)
+
+# extract corrected reads for metagenomeseq as matrix
+cor.reads <- setDF(spread(fin %>% select(Sample, OTU, cor.reads), key = OTU, value = cor.reads))
+row.names(cor.reads) <- cor.reads$Sample
+cor.reads$Sample <- NULL
+cor.reads <- as.matrix(cor.reads)
+
+# one sample has no OTU reads left
+cor.reads <- cor.reads[which(rowSums(cor.reads) != 0),]
+
+# join back to phyloseq so that orders of samples and ASVs match across data frames
+cor.no.dups <- phyloseq(otu_table(cor.reads, taxa_are_rows = F),
+                    sample_data(met.df),
+                    tax_table(tax.df[row.names(tax.df) %in% colnames(cor.reads),]))
+
+# save initial sumdf data frame to be used later as reference (sample ~ corrected sample name)
+#saveRDS(sumdf, "./Objects/summary.meta.with.oldnames.rds")
+
+# 7. CSS transformation ---------------------------------------------------------------
+# We apply the cumuluative sum scaling transformation (Paulson et al. Nature Methods 2013)
+# metagenomeSeq needs, samples in columns, "features" (= ASVs) in rows
+# export phyloseq object into MRexperiment
+no.dups.ms <- physeq_to_metagenomeSeq_mod(cor.no.dups) # encountered error with original function use customised function
+
+# inspect data
+head(pData(no.dups.ms), 3) # meta data
+head(fData(no.dups.ms), 3) # taxonomy table
+head(MRcounts(no.dups.ms[, 1:2])) # count table
+
+# we've done no.dups the subsetting in phyloseq, directly move to CSS transformation
+
+# calculate normalisation factor
+p <- round(cumNormStatFast(no.dups.ms), digits = 2)
+
+# apply CSS transformation
+no.dups.ms <- cumNorm(no.dups.ms, p = p)
+
+# check if normalisation was succesful
+t(otu_table(cor.no.dups))[1100:1110, 1:5]
+MRcounts(no.dups.ms, norm = T)[1100:1110, 1:5]
+
+# export normalised count matrices
+no.dups.mat <- MRcounts(no.dups.ms, norm = T)
+#no.dups.mat <- round(no.dups.mat, digits = 0) # export as count data instead of decimals
+exportMat(no.dups.mat, file = paste0("./Output/201520162017_CSS_otu99_otutab_no.dups_", Sys.Date(),".tsv"))
+
+# export sample statistics
+# create folder for saving
+dir.create(file.path("./Output/StatTables"))
+exportStats(no.dups.ms, file = paste0("./Output/StatTables/201520162017_CSS_otu99_no.dups_transf_stats_",Sys.Date(),".tsv"))
+# read with read.csv(file, sep = "\t")
+
+# transform data into long format to merge with fin
+# melt asv table into long format
+# to do this easily we transpose and melt matrix
+css <- melt.data.table(
+  setDT(as.data.frame(t(no.dups.mat)), keep.rownames = "Sample"),
+  id.vars = "Sample",
+  measure.vars = patterns("^OTU_"),
+  variable.name = "OTU",
+  value.name = "css.reads"
+)
+
+fin <- merge(fin, css, by = c("Sample", "OTU"))
+
+# 8. Calculate relative abundances ---------------------------------------------------------------
+# !! not recommended to use !! #
+# but calculate for completeness
+# calculate relative abundances
+fin[, library.size := sum(css.reads), .(Sample)]
+fin[, rel.abund := css.reads / library.size]
+# 273 samples
+
+#sanity check
+san <- fin[, .(check = sum(rel.abund)), .(Sample)]
+san$check # no.dups 1
+
+# 9. Identify who became absent after quality control ---------------------------------------------------------------
+# Classify those as absent after correcting by bin
+fin[, n := .N, by = .(ID)] # number of samples by factorial combination
+fin[, n.obs := nrow(.SD[css.reads > 0]), by = .(ID)] # how many of those have an actual observation of ASV?
+
+# add z-standardised css.reads to compare rare and abundant things later in regressions
+fin[, z.css.reads := (css.reads - mean(css.reads, na.rm = T)) / sd(css.reads, na.rm = T)]
+
+# for no.dups samples, we export the whole file
+out <- fin
+
+# calculate mean reads for duplicates
+dupl.mean <- fin[, .(reads = mean(reads, na.rm = T),
+                     cor.reads = mean(cor.reads, na.rm = T),
+                     css.reads = mean(css.reads, na.rm = T), 
+                     rel.abund = mean(rel.abund, na.rm = T),
+                     z.css.reads = mean(z.css.reads, na.rm = T)), by = .(dr_match_name, dna_type, OTU)]
+
+out <- dupl.mean[fin, c("Sample","Season","Year","sample.type.year","soilorwater","catchment.area",
+                        "distance.from.mouth", "n", "n.obs", "PA", "ID", "library.size") := 
+                   list(i.Sample,i.Season,i.Year,i.sample.type.year,i.soilorwater,i.catchment.area,
+                        i.distance.from.mouth, i.n, i.n.obs, i.PA, i.ID, i.library.size), on = .(dr_match_name, dna_type, OTU)]
+
+# 11. Export ---------------------------------------------------------------
+# rearrange data frame before saving
+setcolorder(
+  out,
+  c(
+    "ID",
+    "Sample",
+    "dr_match_name",
+    "OTU",
+    "year",
+    "Season",
+    "dna_type",
+    "sample.type.year",
+    "catchment.area",
+    "distance.from.mouth",
+    "library.size",
+    "n",
+    "n.obs",
+    "PA",
+    "reads",
+    "cor.reads",
+    "css.reads",
+    "rel.abund",
+    "z.css.reads"
+  )
+)
+
+saveRDS(out,
+        paste0("./Objects/201520162017_css_otu99_no.dups_",
+               Sys.Date(),
+               ".rds"))
+write.table(out, paste0("./Output/201520162017_css_otu99_no.dups_",
+                        Sys.Date(),
+                        ".csv"), sep = ",", dec = ".",  row.names = F)
+## Extract final info from no.dups phyloseq objects
+# export shrinked ASV table
+
+otu.tab <- setDF(dcast(out, Sample ~ OTU, value.var = "css.reads"))
+row.names(otu.tab) <- otu.tab$Sample; otu.tab[, "Sample"] <- NULL
+otu.tab <- as.matrix(otu.tab)
+
+# remove empty samples or empty OTUs
+otu.tab <- otu.tab[rowSums(otu.tab) > 0,]
+otu.tab <- otu.tab[, colSums(otu.tab) > 0]
+
+# row orders need to match between tax.tab and otu.tab
+otu.tab <- otu.tab[order(row.names(otu.tab)),]
+write.table(
+  otu.tab,
+  paste0("./Output/201520162017_fin_css_otu99_table_no.dups_", Sys.Date(), ".csv"),
+  sep = ";",
+  dec = ".",
+  row.names = T
+)
+
+# export shrinked meta data
+met.df <- sample_df(no.dups)
+
+# only take those samples in OTU table, will remove duplicates and one lost sample
+met.df <- met.df[met.df$seq_name %in% levels(factor(row.names(otu.tab))),]
+setDT(met.df)
+met.df <- met.df[out, c("dr_match_name", "sample.type.year") := 
+                   list(i.dr_match_name, i.sample.type.year), on = .(seq_name == Sample)]
+setDF(met.df)
+# Assign rownames to be Sample ID's
+rownames(met.df) <- met.df$seq_name
+write.table(
+  met.df,
+  paste0("./Output/201520162017_meta_otu99_no.dups_", Sys.Date(), ".csv"),
+  sep = ";",
+  dec = ".",
+  row.names = T
+)
+
+tax.df <- tax_mat(no.dups)
+tax.df <- tax.df[row.names(tax.df) %in% levels(factor(colnames(otu.tab))),]
+# orders need to match between tax.tab and otu.tab
+tax.df <- tax.df[order(row.names(tax.df)),]
+
+write.table(
+  tax.df,
+  paste0("./Output/201520162017_tax_otu99_table_no.dups_", Sys.Date(), ".csv"),
+  sep = ";",
+  dec = ".",
+  row.names = T
+)
 
 
 
 
 # 12. Rarefaction ---------------------------------------------------------------
 # overwrite library size data with corrected reads
-sample_data(cor.pb)$LibrarySize <- sample_sums(cor.pb)
-hist(sample_data(cor.pb)$LibrarySize)
+sample_data(cor.all)$LibrarySize <- sample_sums(cor.all)
+hist(sample_data(cor.all)$LibrarySize)
 
 # how many samples do we loose with different thresholds?
-higher <- subset_samples(cor.pb, LibrarySize < 70000)
-high <- subset_samples(cor.pb, LibrarySize < 60000)
-med2 <- subset_samples(cor.pb, LibrarySize < 30000)
-med <- subset_samples(cor.pb, LibrarySize < 25000)
-low <- subset_samples(cor.pb, LibrarySize < 20000)
-lower <- subset_samples(cor.pb, LibrarySize < 15000)
+higher <- subset_samples(cor.all, LibrarySize < 70000)
+high <- subset_samples(cor.all, LibrarySize < 60000)
+med2 <- subset_samples(cor.all, LibrarySize < 30000)
+med <- subset_samples(cor.all, LibrarySize < 25000)
+low <- subset_samples(cor.all, LibrarySize < 20000)
+lower <- subset_samples(cor.all, LibrarySize < 15000)
 sample_data(lower)
 
 data.frame(
@@ -513,8 +823,8 @@ data.frame(
 
 # Almost all are sample with low library size are soily samples.
 # How many samples do we still have for each factor combination if we remove them?
-sample_data(subset_samples(cor.pb, LibrarySize >= 25000)) %>%
-  group_by(year, Season, DnaType, soilorwater) %>% dplyr::summarise(n())
+sample_data(subset_samples(cor.all, LibrarySize >= 25000)) %>%
+  group_by(year, Season, dna_type, soilorwater) %>% dplyr::summarise(n())
 # the sample sizes are acceptable for now. We'll go for rarefaction at 25000.
 
 # Because rarefaction is random and we might be introducing biases,
@@ -535,7 +845,7 @@ for (j in 1:length(min_lib)) {
       data.table(
         otu_mat(
           rarefy_even_depth(
-            cor.pb,
+            cor.all,
             sample.size = min_lib[j],
             verbose = F,
             replace = T
@@ -557,9 +867,9 @@ for (j in 1:length(min_lib)) {
     bind_rows(permlist)  # combine all data frames within lists into one data frame
   
   means <-
-    permdf[, pblapply(.SD, mean, na.rm = T), by = list(rn)]  #calculate means by row and group
+    permdf[, alllapply(.SD, mean, na.rm = T), by = list(rn)]  #calculate means by row and group
   sd <-
-    permdf[, pblapply(.SD, sd, na.rm = T), by = list(rn)]  #calculate standard deviation by row and group
+    permdf[, alllapply(.SD, sd, na.rm = T), by = list(rn)]  #calculate standard deviation by row and group
   
   # melt dataframes
   melmean <- melt.data.table(
