@@ -234,8 +234,8 @@ plot_pcoa <- function(pcoa, physeq, plot.axes = c(1,2), axes = plot.axes,
                  
   # merge with a selection of meta data
   meta <- data.frame(Sample = as.character(row.names(sample_df(physeq))),
-                     sample_df(physeq) %>% dplyr::select(sample.type.year, Season, Year, 
-                                                     DnaType, distance.from.mouth, DR.names), 
+                     sample_df(physeq) %>% dplyr::select(sample.type.year, Season, year, 
+                                                     dna_type, distance.from.mouth, dr_match_name), 
                      stringsAsFactors = F)
   pdataframe <- merge(pdataframe, meta, by = "Sample")
   pdataframe$Sample <- as.character(pdataframe$Sample)
@@ -251,7 +251,7 @@ plot_pcoa <- function(pcoa, physeq, plot.axes = c(1,2), axes = plot.axes,
         theme_cust() +
         geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
         geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
-        geom_point(aes(fill = sample.type.year, shape = Season, colour = DnaType, size = DnaType)) +
+        geom_point(aes(fill = sample.type.year, shape = Season, colour = dna_type, size = dna_type)) +
         coord_fixed(1) + # ensure aspect ratio
         scale_shape_manual(values = c(21,23,25)) +
         scale_colour_manual(values = c("black", "white"), name = "Nucleic Acid \nType") +
@@ -743,7 +743,7 @@ dist.dnarna <- function(bray, save.name = NULL, output = F){
   # merge with a selection of meta data
   meta <- data.frame(Sample = as.character(row.names(sample_df(pb))),
                      sample_df(pb) %>% dplyr::select(sample.type.year, Season, Year, 
-                                                     DnaType, distance.from.mouth, DR.names), 
+                                                     DnaType, distance.from.mouth, dr_match_name), 
                      stringsAsFactors = F)
   data <- merge(pb.scores, meta, by = "Sample")
   data$Sample <- as.character(data$Sample)
@@ -753,15 +753,15 @@ dist.dnarna <- function(bray, save.name = NULL, output = F){
   
     setDT(data)
     # melt datatable
-    temp <- melt(data, id.vars = c("DR.names","DnaType"), measure.vars = patterns("^Axis."),
+    temp <- melt(data, id.vars = c("dr_match_name","dna_type"), measure.vars = patterns("^Axis."),
                  variable.name = "Axis", value.name = "Coordinates")
-    temp <- dcast(temp, DR.names + Axis ~ DnaType, value.var = c("Coordinates"))
+    temp <- dcast(temp, dr_match_name + Axis ~ DnaType, value.var = c("Coordinates"))
     # remove NAs
     temp <- na.omit(temp)
     
     # Calculate distance of all axes
     temp[, pnt.dist := (abs(DNA - RNA))^2] # calculate point distance for each axis and square root
-    temp <- temp[, .(sum.dist = sum(pnt.dist)), by = .(DR.names)] # sum all axes
+    temp <- temp[, .(sum.dist = sum(pnt.dist)), by = .(dr_match_name)] # sum all axes
     temp <- temp[, dist := sqrt(sum.dist)]
     
     # Calculate distance
@@ -774,7 +774,7 @@ dist.dnarna <- function(bray, save.name = NULL, output = F){
   # combine back with categories
   dist.dr <- temp[data, c("sample.type.year",
                           "Year", "Season") := list(i.sample.type.year,
-                                                     i.Year, i.Season), on = .(DR.names)]
+                                                     i.Year, i.Season), on = .(dr_match_name)]
   #dist.2d <- temp.2d[data, c("sample.type.year",
   #                           "Year", "Season") := list(i.sample.type.year,
   #                                                     i.Year, i.Season), on = .(DR.names)]
@@ -974,12 +974,12 @@ dissim.dnarna <- function(physeq, save.name = NULL, output = F){
   
   # Get meta data to rename DNA and RNA data
   meta <- data.frame(Sample = as.character(row.names(sample_df(physeq))),
-                     sample_df(physeq) %>% dplyr::select(DR.names, DnaType, Year, Season, sample.type.year), 
+                     sample_df(physeq) %>% dplyr::select(dr_match_name, dna_type, year, Season, sample.type.year), 
                      stringsAsFactors = F)
   
   # add meta data for both sample x and sample y
   dist.df <- merge(dist.df, meta, by.x =  "Sample.x", by.y = "Sample")
-  dist.df <- merge(dist.df, meta %>% select(DnaType, Sample, Year, DR.names), by.x =  "Sample.y", by.y = "Sample")
+  dist.df <- merge(dist.df, meta %>% select(dna_type, Sample, year, dr_match_name), by.x =  "Sample.y", by.y = "Sample")
   
   # omit all samples of 2015 (no RNA was taken, and sample name strategy changed -> creates duplicates)
   dist.df <- dist.df[dist.df$Year.x != 2015,]
