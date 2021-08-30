@@ -132,7 +132,7 @@ abbrev.p <- function(x){
         } else if(x <= 0.05){
           out <- c("< 0.05","*")
         } else {
-          out <- c(as.character(paste("=",round(x, 2))),"n.s.")
+          out <- c(as.character(paste("=",round(x, 2))),"n.s.", round(x, 2))
         }
   return(out)
 }
@@ -243,21 +243,24 @@ plot_pcoa <- function(pcoa, physeq, plot.axes = c(1,2), axes = plot.axes,
   # extract only factors represented in df for colvec
   colvec <- colvec[names(colvec) %in% as.character(levels(pdataframe$sample.type.year))]
   
+  #find_hull <- function(x){x[chull(x[,paste0("Axis.",axes[1])], x[,paste0("Axis.",axes[2])]),]}
+  #hulls <- ddply(pdataframe, "dna_type", find_hull)
+  
   # get legend of plot separately
   
     # main plot
     p <- ggplot(pdataframe, aes_string(x = paste0("Axis.", plot.axes[1]), 
                                                 y = paste0("Axis.", plot.axes[2]))) +
-        theme_cust() +
         geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
         geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
-        geom_point(aes(fill = sample.type.year, shape = Season, colour = dna_type, size = dna_type)) +
+        geom_point(aes(fill = sample.type.year, shape = Season, size = dna_type)) + #colour = dna_type,
         coord_fixed(1) + # ensure aspect ratio
         scale_shape_manual(values = c(21,23,25)) +
-        scale_colour_manual(values = c("black", "white"), name = "Nucleic Acid \nType") +
         scale_size_manual(values = c(2.5, 2.6), name = "Nucleic Acid \nType") +
-        labs(x = paste0("PC",  plot.axes[1]," [ ", pb.var[pb.var$Axes == plot.axes[1],"var"]," %]"), 
-             y = paste0("PC",  plot.axes[2]," [ ", pb.var[pb.var$Axes == plot.axes[2],"var"]," %]")) +
+        labs(x = paste0("PC",  plot.axes[1]," (", round(pb.var[pb.var$Axes == plot.axes[1],"var"],
+                                                         digits = 1),"%)"), 
+             y = paste0("PC",  plot.axes[2]," (", round(pb.var[pb.var$Axes == plot.axes[2],"var"],
+                                                         digits = 1),"%)")) +
         theme(panel.grid.major = element_blank(),
               panel.grid.minor = element_blank()) +
         guides(shape = guide_legend(order = 2, override.aes=list(size = 2)),
