@@ -9,7 +9,7 @@
 ### Packages -------------------------------------------------------------------------------
 pckgs <- list("phyloseq", "plyr", "tidyverse", "data.table", # wrangling
               "ggpubr", "ggnewscale", "cowplot", "plotly", "ggpmisc", "gridExtra", # plotting,
-              "kableExtra",# "xlsx", # making tables for manuscript (LaTeX) and export as excel (for ISME)
+              "kableExtra", "xlsx", # making tables for manuscript (LaTeX) and export as excel (for ISME)
               "doMC", # parallel computing
               "vegan", "ape", "ade4", "rstatix") # statistics
 
@@ -48,7 +48,7 @@ set.seed(3)
 
 # do we have several files per object? -> take newest version
 # ASV CSS transformed table
-otu.tab <- select_newest("./Output", "201520162017_fin_css_otu99_table_no.dups_")
+otu.tab <- select_newest("./Output", "201520162017_fin_css_otu99_table_paper1_")
 otu.tab <- as.matrix(read.csv(
   paste0("./Output/", otu.tab),
   sep = ";",
@@ -56,13 +56,14 @@ otu.tab <- as.matrix(read.csv(
   row.names = 1,
   stringsAsFactors = F
 ))
+otu.tab[1:4,1:3]
 #otu.tab <- otu.tab[, 1:1000]
 
 # row orders need to match between tax.tab and otu.tab
 otu.tab <- otu.tab[order(row.names(otu.tab)),]
 
 # Taxonomy table
-tax.tab <- select_newest("./Output", "201520162017_tax_otu99_table_no.dups_")
+tax.tab <- select_newest("./Output", "201520162017_tax_otu99_table_paper1_")
 tax.tab <-
   as.matrix(read.csv(
     paste0("./Output/", tax.tab),
@@ -71,13 +72,14 @@ tax.tab <-
     row.names = 1,
     stringsAsFactors = F
   ))
+tax.tab[1:4,]
 # orders need to match between tax.tab and otu.tab
 tax.tab <- tax.tab[order(row.names(tax.tab)),]
 #tax.tab <- tax.tab[,1:1000]
 
 # Meta data
 met.df <-
-  select_newest(path = "./Output", file.pattern = "201520162017_meta_otu99_no.dups_")
+  select_newest(path = "./Output", file.pattern = "201520162017_meta_otu99_paper1_")
 met.df <-
   read.csv(
     paste0("./Output/", met.df),
@@ -87,6 +89,13 @@ met.df <-
     stringsAsFactors = F
   )
 
+met.df[1:4,]
+# Checked by PCoA THW1D is a soilwater sample (actually Hyporheic)
+met.df[met.df$seq_name == "THW1D", ]$sample.type.year <- "Hyporheic"
+# Some downriver samples were wrongly assigned to "Downriver"
+met.df[grep("SWLR", met.df$seq_name),]$sample.type.year <- "Soilwater"
+met.df[grep("SLR", met.df$seq_name),]$sample.type.year <- "Soil"
+
 
 # merge some sample types
 met.df$sample.type.year <- factor(met.df$sample.type.year, levels = c("Soil","Sediment",
@@ -94,14 +103,15 @@ met.df$sample.type.year <- factor(met.df$sample.type.year, levels = c("Soil","Se
                                                                       "Wellwater","Stream", "Tributary",
                                                                       "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
                                                                       "Upriver", "RO3", "RO2", "RO1","Deep", "Downriver",
-                                                                      "Marine","Unknown"),
+                                                                      "Marine"),
                                   labels = c("Soil","Sediment",
                                              "Soilwater","Soilwater", 
                                              "Groundwater","Stream", "Tributary",
-                                             "Riverine \nLakes", "Headwater \nPonds", "Lake", "Lake",
-                                             "Upriver",
-                                             "Reservoirs","Reservoirs", "Reservoirs","Reservoirs", "Downriver",
-                                             "Estuary","Unknown"))
+                                             "Riverine Lakes", "Headwater Ponds", "Lake", "Lake",
+                                             "Upriver",# "RO3", "RO2", "RO1","Deep",
+                                             "Reservoirs","Reservoirs", "Reservoirs","Reservoirs",
+                                             "Downriver",
+                                             "Estuary"))
 
 met.df$Season <- factor(met.df$Season, levels = c("Spring","Summer","Autumn"),
                         labels = c("Spring","Summer","Autumn"))
@@ -117,6 +127,12 @@ pb <- phyloseq(otu_table(otu.tab, taxa_are_rows = F),
 #pb <- prune_taxa(!taxa_sums(pb) == 0, pb)
 pb <- prune_samples(!sample_sums(pb) == 0, pb)
 
+# remove THW1D - no meta data
+pb <- subset_samples(pb, seq_name != "THW1D")
+
+# check rarefaction curve
+#t <- round(otu_table(pb), digits = 0)
+#rarecurve(t, step = nrow(t), cex = 0.5, label = F)
 
 # create colour vector for later plotting
 # ensure consistent colours for all sample types
@@ -136,9 +152,11 @@ colvec <- c("#FCFDBFFF", #"#FEC589FF", #Soil
   "#FDE725FF",# Lake, 
   "#1F9F88FF", # Upriver, 
   "orchid", #"#471063FF", #Reservoir,
+  #'salmon',
+  #"pink",
+  #'navy',
   "#375A8CFF", #Downriver,
-  "gray40",
-  "red") #Estuary)
+  "gray40") #Estuary)
 
 names(colvec) <- as.character(sample.factors) # assign names for later easy selection
 
@@ -157,102 +175,139 @@ names(colvec) <- as.character(sample.factors) # assign names for later easy sele
 #           "navy")
 
 # set theme for plotting
-theme_set(theme_bw())
+# custom theme
+# Custom theme with smaller legends
+theme_cust <- function(base_theme = "bw", base_size = 11, half_line = base_size/2,
+                       border = F){
+  if(base_theme == "bw"){
+    t <- theme_bw(base_size = base_size)
+  }
+  
+  if(base_theme == "pubr"){
+    if(border == T){
+      t <- theme_pubr(base_size = base_size, border = T)
+    } else {
+      t <- theme_pubr(base_size = base_size)
+    }
+  }
+  
+  t %+replace% theme(legend.position = "right", 
+                     legend.spacing = unit(half_line / 2, "pt"), # spacing between legends
+                     legend.key.size = unit(0.8, "lines"), # size of legend symbol box
+                     legend.box.spacing = unit(1.5 * half_line, "pt"), # spacing between legend and plot
+                     legend.text = element_text(size = unit(base_size - 4, "pt")), 
+                     legend.title = element_text(size = unit(base_size - 3, "pt"), hjust = 0)
+  )
+  
+}
+
+#theme_set(theme_pubr())
+
+# only save lat, long, of DNA for GIS
+# gis <- met.df %>% 
+#   filter(dna_type == 'DNA') %>%
+#   select(dr_match_name, lat, long) %>%
+#   unique()
+# write.table(gis, "./Output/gis_samplepnts_miccom.csv", row.names = F, sep = ",")
 
 
 # Phantom taxa ---------------------------------------------------------------------------------------
-otu.tab <- setDT(as.data.frame(otu_table(pb), strings.As.Factors = F), keep.rownames = "Sample")
-# melt OTU table into long format
-otu.tab <- melt.data.table(
-  otu.tab,
-  id.vars = "Sample",
-  measure.vars = patterns("^OTU_"),
-  variable.name = "OTU",
-  value.name = "reads"
-)
+# otu.tab <- setDT(as.data.frame(otu_table(pb), strings.As.Factors = F), keep.rownames = "Sample")
+# # melt OTU table into long format
+# otu.tab <- melt.data.table(
+#   otu.tab,
+#   id.vars = "Sample",
+#   measure.vars = patterns("^OTU_"),
+#   variable.name = "OTU",
+#   value.name = "reads"
+# )
+# 
+# # Join OTU and meta table
+# sumdf <- left_join(
+#   otu.tab,
+#   met.df[met.df$seq_name %in% otu.tab$Sample,] %>%
+#     dplyr::select(
+#       seq_name,
+#       dr_match_name,
+#       year,
+#       Season,
+#       dna_type,
+#       replicate,
+#       sample.type,
+#       sample.type.year,
+#     ),
+#   by = c("Sample" = "seq_name")
+# )
+# 
+# # set back to data.table, order data.table by catchment.area
+# setDT(sumdf)
+# 
+# # check for duplicates
+# any(duplicated(sumdf[dna_type == "DNA" & OTU == "OTU_10002",]$dr_match_name) == T) # no
+# any(duplicated(sumdf[dna_type == "RNA" & OTU == "OTU_10002",]$dr_match_name) == T)
+# 
+# # CSS reads creates 0.5 reads overwrite all with 1 (integer, makes them 0)
+# # Everything below 1 and above 0 is 1
+# range(sumdf[reads > 0,]$reads, na.rm = T)
+# sumdf[reads > 0 & reads <= 1, reads := 1] # 0.1:0.9 = 1
+# 
+# # round to counts
+# sumdf[, reads := round(reads, digits = 0)]
+# range(sumdf[reads > 0,]$reads, na.rm = T)
+# 
+# # cast into wide format
+# castdf <- dcast(sumdf, dr_match_name + OTU ~ dna_type, value.var = "reads")
+# 
+# # fill NAs with 0, those are taxa not found in RNA or DNA
+# castdf[is.na(DNA), DNA := 0]
+# castdf[is.na(RNA), RNA := 0]
+# 
+# # how many samples have an OTU with RNA > 0 and DNA == 0? (phantom taxa)
+# castdf[DNA > 0 | RNA > 0, n.all := .N, .(dr_match_name)] # number of any observations above 0 by sample
+# temp <- castdf[RNA > 0 & DNA == 0,]
+# temp <- temp[, .(n = .N, n.all = unique(n.all)), .(dr_match_name)][, prop := n * 100 / n.all]
+# 
+# setDT(met.df)
+# # which samples have more than 50% phantom taxa
+# View(met.df[dr_match_name %in% temp[prop != 100 & prop > 50,]$dr_match_name,] %>% select(dr_match_name,dna_type,LibrarySize))
+# 
+# # overwrite all DNA observations == 0, where RNA > 0 with 1
+# castdf[RNA > 0 & DNA == 0, DNA := 1]
+# castdf[RNA > 0 & DNA == 0,] # check if overwrite was successful
+# 
+# # format back to long format
+# temp <- melt.data.table(castdf,
+#                 id.vars = c("dr_match_name","OTU"),
+#                 measure.vars = c("DNA","RNA"),
+#                 variable.name = "dna_type",
+#                 value.name = "reads")
+# 
+# # original and casted data frame have not the same length
+# # possible we added rows for samples that didn't have any RNA, but with RNA = 0
+# nrow(temp) == nrow(sumdf)
+# 
+# # do row merge/overwrite
+# # we have dealt with the replicates already in the earlier script
+# mer <- sumdf[temp, cor.reads := i.reads, on = .(dr_match_name, OTU, dna_type)]
+# 
+# # cast into wide format
+# fin.df <- dcast(mer, Sample ~ OTU, value.var = "cor.reads")
+# # make matrix and give row.names
+# fin.df <- as.matrix(setDF(fin.df, rownames = fin.df$Sample)[,-1]) # remove first row with "Sample" move into rownames
+# 
+# # same dimensions as original df?
+# dim(fin.df)
+# dim(otu_table(pb)) # yes
+# 
+# write.table(fin.df, paste0("./Output/201520162017_fin_css_otu99_phantomcor_paper1_",Sys.Date(),".csv"),
+#             sep = ";", dec = ".", row.names = T)
+# rm(temp, castdf, sumdf, otu.tab)
 
-# Join OTU and meta table
-sumdf <- left_join(
-  otu.tab,
-  met.df[met.df$seq_name %in% otu.tab$Sample,] %>%
-    dplyr::select(
-      seq_name,
-      dr_match_name,
-      year,
-      Season,
-      dna_type,
-      replicate,
-      sample.type,
-      sample.type.year,
-    ),
-  by = c("Sample" = "seq_name")
-)
 
-# set back to data.table, order data.table by catchment.area
-setDT(sumdf)
-
-# check for duplicates
-any(duplicated(sumdf[dna_type == "DNA" & OTU == "OTU_100",]$dr_match_name) == T)
-any(duplicated(sumdf[dna_type == "RNA" & OTU == "OTU_100",]$dr_match_name) == T)
-
-# CSS reads creates 0.5 reads overwrite all with 1 (integer, makes them 0)
-# Everything below 1 and above 0 is 1
-range(sumdf[reads > 0,]$reads, na.rm = T)
-sumdf[reads > 0 & reads <= 1, reads := 1]
-
-# round to counts
-sumdf[, reads := round(reads, digits = 0)]
-range(sumdf[reads > 0,]$reads, na.rm = T)
-
-# cast into wide format
-castdf <- dcast(sumdf, dr_match_name + replicate + OTU ~ dna_type, value.var = "reads")
-
-# fill NAs with 0, those are taxa not found in RNA or DNA
-castdf[is.na(DNA), DNA := 0]
-castdf[is.na(RNA), RNA := 0]
-
-# how many samples have an OTU with RNA > 0 and DNA == 0? (phantom taxa)
-castdf[DNA > 0 | RNA > 0, n.all := .N, .(dr_match_name)] # number of any observations above 0 by sample
-temp <- castdf[RNA > 0 & DNA == 0,]
-temp <- temp[, .(n = .N, n.all = unique(n.all)), .(dr_match_name)][, prop := n * 100 / n.all]
-
-setDT(met.df)
-# which samples have more than 50% phantom taxa
-View(met.df[dr_match_name %in% temp[prop != 100 & prop > 50,]$dr_match_name,] %>% select(dr_match_name,dna_type,LibrarySize))
-
-# overwrite all DNA observations == 0, where RNA > 0 with 1
-castdf[RNA > 0 & DNA == 0, DNA := 1]
-castdf[RNA > 0 & DNA == 0,] # check if overwrite was successful
-
-# format back to long format
-temp <- melt.data.table(castdf,
-                id.vars = c("dr_match_name","OTU","replicate"),
-                measure.vars = c("DNA","RNA"),
-                variable.name = "dna_type",
-                value.name = "reads")
-
-# original and casted data frame have not the same length
-# possible that samples dropped when there was not both DNA and RNA
-nrow(temp) == nrow(sumdf)
-
-# do row merge/overwrite
-sumdf[temp, cor.reads := i.reads, on = .(dr_match_name, OTU, replicate, dna_type)]
-
-# cast into wide format
-fin.df <- dcast(sumdf, Sample ~ OTU, value.var = "cor.reads")
-# make matrix and give row.names
-fin.df <- as.matrix(setDF(fin.df, rownames = fin.df$Sample)[,-1]) # remove first row with "Sample" move into rownames
-
-# same dimensions as original df?
-dim(fin.df)
-dim(otu_table(pb)) # yes
-
-write.table(fin.df, paste0("./Output/201520162017_fin_css_otu99_phantomcor_no.dups_",Sys.Date(),".csv"),
-            sep = ";", dec = ".", row.names = T)
-rm(temp, castdf, sumdf, otu.tab)
+# 3. Analysis ----------------------------------------------------------------------------------
 
 # read in
-fin.df <- select_newest("./Output", "201520162017_fin_css_otu99_phantomcor_no.dups_")
+fin.df <- select_newest("./Output", "201520162017_fin_css_otu99_phantomcor_paper1_")
 fin.df <- as.matrix(read.csv(
   paste0("./Output/", fin.df),
   sep = ";",
@@ -266,9 +321,20 @@ pb <- phyloseq(otu_table(fin.df, taxa_are_rows = F),
                sample_data(met.df),
                tax_table(tax.tab))
 
+# remove THW1D - no meta data
+pb <- subset_samples(pb, seq_name != "THW1D")
+pb <- prune_taxa(taxa_sums(pb) != 0, pb)
+pb <- prune_samples(sample_sums(pb) != 0, pb) # remove samples with no reads
 
+# Summary stats
+dim(otu_mat(pb))
+df <- sample_df(pb); setDT(df)
+df[which.min(LibrarySize),]
+df[which.max(LibrarySize),]
+means <- df[, .(mean.lib = mean(LibrarySize)), by = .(sample.type.year)]
+#means %>% arrange(mean.lib)
 
-# 3. Analysis ----------------------------------------------------------------------------------
+rm(means, df)
 
 ## Figure 1: DNA -----------------------------------------------------------------------------------
 # Q: Is the microbial assemblage different between habitat types and seasons?
@@ -317,125 +383,130 @@ pb <- phyloseq(otu_table(fin.df, taxa_are_rows = F),
   is.euclid(pb.bray) # TRUE
 # we need euclidean distance for the PERMANOVA later on
 
-ncol(pb.mat) # OTUs
-nrow(pb.mat) # Samples
+ncol(pb.mat) # 16322 OTUs
+nrow(pb.mat) # 389 Samples
 
 # make PCoA
-pb.bray.pcoa <- ape::pcoa(pb.bray) # 372 registers
+pb.bray.pcoa <- ape::pcoa(pb.bray) # 390 registers
 # plot with custom function (= made to avoid repetitive code)
 # custom function is in ./Functions/custom_fun.R
+# extract scores and variance explained
 dna.pcoa <- plot_pcoa(pb.bray.pcoa, physeq = dna,  colours = colvec, output = T)
 
 # main PCoA
-p <- dna.pcoa$plot + guides(colour = "none")
+p <- dna.pcoa$plot + theme_cust(base_theme = "pubr",
+                                border = T) + guides(colour = "none")
 
 # zoom into terrestrial part
 # different colouring by Season, habitat type as shape
-zoom.terr <- ggplot(dna.pcoa$df, aes(x = Axis.1, y = Axis.2)) +
-    theme_cust() +
-    geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
-    geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
-    geom_point(size = 2.5, alpha = 0.2, fill = "gray20") +
-    new_scale_fill() +
-    geom_point(data = dna.pcoa$df[dna.pcoa$df$sample.type.year == "Soil" | 
-                                    dna.pcoa$df$sample.type.year == "Soilwater" |
-                                    dna.pcoa$df$sample.type.year == "Sediment",], 
-               aes(x = Axis.1, y = Axis.2, fill = Season, shape = sample.type.year), size = 3) +
-    scale_fill_viridis_d(option = "cividis", name = "Season") +
-    scale_shape_manual(values = c(21,23, 25), "Habitat type") +
-    coord_cartesian(ylim = c(-0.12, 0.08), xlim = c(-0.42, -0.218), expand = F) + 
-    labs(x = paste("PC1"), 
-         y = paste("PC2")) +
-    theme(panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank()) +
-  guides(shape = guide_legend(order = 2, override.aes=list(size = 2)),
-         alpha = guide_legend(order = 3, override.aes=list(size = 2)), 
-         fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2)))
-
-# zoom into estuaries
-# different colouring by distance from mouth, shape is Season
-zoom.est <- ggplot(dna.pcoa$df, aes(x = Axis.1, y = Axis.2)) +
-  theme_cust() +
-  geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
-  geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
-  geom_point(size = 2.5, alpha = 0.2, fill = "gray20") +
-  new_scale_fill() +
-  geom_point(data = dna.pcoa$df[dna.pcoa$df$sample.type.year == "Estuary",], 
-             aes(x = Axis.1, y = Axis.2, fill = abs(distance.from.mouth), shape = Season), size = 3) +
-  scale_fill_viridis_c(name = "Distance from \nmouth (km)", direction = -1) +
-  scale_shape_manual(values = c(21,23,25)) +
-  scale_alpha_manual(values = c(1,0.5), name = "Nucleic Acid \nType") +
-  coord_cartesian(ylim = c(-0.15, 0.25), xlim = c(-0.12, 0.29), expand = F) + # ensure aspect ratio
-  labs(x = paste("PC1"), 
-       y = paste("PC2")) +
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
+# zoom.terr <- ggplot(dna.pcoa$df, aes(x = Axis.1, y = Axis.2)) +
+#     theme_cust() +
+#     geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
+#     geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
+#     geom_point(size = 2.5, alpha = 0.2, fill = "gray20") +
+#     new_scale_fill() +
+#     geom_point(data = dna.pcoa$df[dna.pcoa$df$sample.type.year == "Soil" | 
+#                                     dna.pcoa$df$sample.type.year == "Soilwater" |
+#                                     dna.pcoa$df$sample.type.year == "Sediment",], 
+#                aes(x = Axis.1, y = Axis.2, fill = Season, shape = sample.type.year), size = 3) +
+#     scale_fill_viridis_d(option = "cividis", name = "Season") +
+#     scale_shape_manual(values = c(21,23, 25), "Habitat type") +
+#     coord_cartesian(ylim = c(-0.11, 0.04), xlim = c(-0.39, -0.17), expand = F) + 
+#     labs(x = paste("PC1"), 
+#          y = paste("PC2")) +
+#     theme(panel.grid.major = element_blank(),
+#           panel.grid.minor = element_blank()) +
+#   guides(shape = guide_legend(order = 2, override.aes=list(size = 2)),
+#          alpha = guide_legend(order = 3, override.aes=list(size = 2)), 
+#          fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2)))
+# 
+# # zoom into estuaries
+# # different colouring by distance from mouth, shape is Season
+# zoom.est <- ggplot(dna.pcoa$df, aes(x = Axis.1, y = Axis.2)) +
+#   theme_cust() +
+#   geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
+#   geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
+#   geom_point(size = 2.5, alpha = 0.2, fill = "gray20") +
+#   new_scale_fill() +
+#   geom_point(data = dna.pcoa$df[dna.pcoa$df$sample.type.year == "Estuary",], 
+#              aes(x = Axis.1, y = Axis.2, fill = abs(distance.from.mouth), shape = Season), size = 3) +
+#   scale_fill_viridis_c(name = "Distance from \nmouth (km)", direction = -1) +
+#   scale_shape_manual(values = c(21,23,25)) +
+#   scale_alpha_manual(values = c(1,0.5), name = "Nucleic Acid \nType") +
+#   coord_cartesian(ylim = c(-0.17, 0.3), xlim = c(-0.1, 0.28), expand = F) + # ensure aspect ratio
+#   labs(x = paste("PC1"), 
+#        y = paste("PC2")) +
+#   theme(panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank())
   #guides(shape = guide_legend(order = 2, override.aes=list(size = 2)),
   #       alpha = guide_legend(order = 3, override.aes=list(size = 2)), 
   #       fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2)))
 
 # zoom into rivers (upriver vs. downriver)
 # different colouring by distance from mouth, shape is Season
-zoom.river <- ggplot(dna.pcoa$df, aes(x = Axis.1, y = Axis.2)) +
-  theme_cust() +
-  geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
-  geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
-  geom_point(size = 2.5, alpha = 0.2, shape = 21, fill = "gray20") +
-  #scale_fill_manual(values = colvec, name = "Habitat Type") +
-  new_scale_fill() +
-  geom_point(data = dna.pcoa$df[dna.pcoa$df$sample.type.year == "Downriver" | 
-                                  dna.pcoa$df$sample.type.year == "Upriver",], 
-             aes(x = Axis.1, y = Axis.2, 
-                 fill = abs(distance.from.mouth), shape = sample.type.year), size = 3) +
-  stat_ellipse(data = subset(dna.pcoa$df, (sample.type.year == "Upriver" | 
-                                             sample.type.year == "Downriver")  &
-                               Season == "Spring"),
-                 aes(x = Axis.1, y = Axis.2, group = year), 
-               linetype = "dashed", colour = "grey50") +
-  #stat_ellipse(data = subset(dna.pcoa$df, (sample.type.year == "Upriver" | sample.type.year == "Downriver")),
-  #               aes(x = Axis.1, y = Axis.2, group = paste(year,Season), linetype = as.character(year))) +
-  annotate(geom = "text", x = c(0.285,0.285), y = c(0.255,0.12), label = c("2015", "2016"), 
-           size = 3, colour = "grey50") +
-  scale_fill_continuous(type = "viridis", name = "Distance from \nmouth (km)", direction = -1) +
-  #scale_fill_viridis_b(name = "Distance from mouth", direction = -1) +
-  scale_shape_manual(values = c(21,23), name = "Habitat Type") +
-  coord_cartesian(xlim = c(0.03, 0.32), ylim = c(-0.2,0.3), expand = F) + # ensure aspect ratio
-  labs(x = paste("PC1"), 
-       y = paste("PC2")) +
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
-  #guides(shape = guide_legend(order = 2, override.aes=list(size = 2)),
-  #       alpha = guide_legend(order = 3, override.aes=list(size = 2)), 
-  #       fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2)))
+# zoom.river <- ggplot(dna.pcoa$df, aes(x = Axis.1, y = Axis.2)) +
+#   theme_cust() +
+#   geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
+#   geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
+#   geom_point(size = 2.5, alpha = 0.2, shape = 21, fill = "gray20") +
+#   #scale_fill_manual(values = colvec, name = "Habitat Type") +
+#   new_scale_fill() +
+#   geom_point(data = dna.pcoa$df[(dna.pcoa$df$sample.type.year == "Downriver" |
+#                                   dna.pcoa$df$sample.type.year == "Upriver") & Season == "Spring",],
+#              aes(x = Axis.1, y = Axis.2,
+#                  fill = distance.from.mouth, shape = sample.type.year), size = 3) +
+#   stat_ellipse(data = subset(dna.pcoa$df, (sample.type.year == "Upriver" | 
+#                                              sample.type.year == "Downriver")  &
+#                                Season == "Spring"),
+#                  aes(x = Axis.1, y = Axis.2, group = year), 
+#                linetype = "dashed", colour = "grey50") +
+#   #stat_ellipse(data = subset(dna.pcoa$df, (sample.type.year == "Upriver" | sample.type.year == "Downriver")),
+#   #               aes(x = Axis.1, y = Axis.2, group = paste(year,Season), linetype = as.character(year))) +
+#   annotate(geom = "text", x = c(0.2,0.2), y = c(-0.3,-0.19), label = c("2015", "2016"), 
+#            size = 3, colour = "grey50") +
+#   scale_fill_continuous(type = "viridis", name = "Distance from \nmouth (km)", direction = -1) +
+#   #scale_fill_viridis_b(name = "Distance from mouth", direction = -1) +
+#   scale_shape_manual(values = c(21,23), name = "Habitat Type") +
+#   #coord_cartesian(xlim = c(0.03, 0.32), ylim = c(-0.2,0.3), expand = F) + # ensure aspect ratio
+#   labs(x = paste("PC1"), 
+#        y = paste("PC2")) +
+#   theme(panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank())
+#   #guides(shape = guide_legend(order = 2, override.aes=list(size = 2)),
+#   #       alpha = guide_legend(order = 3, override.aes=list(size = 2)), 
+#   #       fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2)))
 
 
 # annotate collage boxes within main plot
-p <- p + 
-  annotate(geom = "rect", xmin = -0.42, ymin = - 0.12, 
-           xmax = -0.21, ymax = 0.08, fill = NA, colour = "grey50", linetype = "dashed", alpha = 0.8) +
-  annotate(geom = "rect", xmin = 0.03, xmax = 0.32,
-           ymin = - 0.2, ymax = 0.3, fill = NA, colour = "grey50", linetype = "dashed", alpha = 0.8) +
-  annotate(geom = "rect", xmin = -0.1, xmax = 0.28,
-           ymin = - 0.12, ymax = 0.245, fill = NA, colour = "grey50", linetype = "dashed", alpha = 0.8) +
-  annotate(geom = "text", x = c(-0.405,0.045,-0.085), 
-           y = c(0.065,0.285,0.23), label = c("b","c","d"), alpha = 0.8, colour = "grey50")
-
-# combine all plots into one
-(collage <- ggarrange(p, 
-          ggarrange(zoom.terr, zoom.river, zoom.est, ncol = 3, labels = c("b","c","d"), align = "hv"),
-          nrow = 2, labels = c("a"), heights = c(0.6, 0.4))
-)
+# p <- p + 
+#   annotate(geom = "rect", xmin = -0.39, ymin = -0.11, 
+#            xmax = -0.17, ymax = 0.04, fill = NA, colour = "grey50", linetype = "dashed", alpha = 0.8) +
+#   annotate(geom = "rect", xmin = -0.1, xmax = 0.28,
+#            ymin = - 0.17, ymax = 0.3, fill = NA, colour = "grey50", linetype = "dashed", alpha = 0.8) +
+#   #annotate(geom = "rect", xmin = -0.1, xmax = 0.28,
+#   #         ymin = - 0.12, ymax = 0.245, fill = NA, colour = "grey50", linetype = "dashed", alpha = 0.8) +
+#   annotate(geom = "text", x = c(-0.41,-0.12), 
+#            y = c(0.035,0.295), label = c("b","c"), alpha = 0.7, colour = "grey50") #"d", x = -0.085, y = 0.23
+# 
+# # combine all plots into one
+# (collage <- ggarrange(p, 
+#           ggarrange(zoom.terr,  zoom.est, ncol = 2, labels = c("b","c"), align = "hv"), #zoom.river,
+#           nrow = 2, labels = c("a"), heights = c(0.6, 0.4))
+# )
 
 # save
-ggsave(paste0("./Figures/Final/PCoA_hellin_DNA_SampleType.tiff"), p,
-       width = 12, height = 10, unit = "cm")
-ggsave(paste0("./Figures/Final/PCoA_hellin_DNA_SampleType.png"),  p,
-       width = 12, height = 10, unit = "cm")
+ggsave(paste0("./Figures/Submission/Figure2_new.tiff"), p,
+       width = 14, height = 10, unit = "cm", dpi = 300)
 
-ggsave(paste0("./Figures/Final/PCoA_hellin_DNA_collage.tiff"), collage,
-       width = 25, height = 15, unit = "cm", dpi = 300)
-ggsave(paste0("./Figures/Final/PCoA_hellin_DNA_collage.png"),  collage,
-       width = 25, height = 15, unit = "cm", dpi = 300)
+ggsave(paste0("./Figures/Final/PCoA_hellin_DNA_SampleType_n.tiff"), p,
+       width = 12, height = 10, unit = "cm", dpi = 300)
+ggsave(paste0("./Figures/Final/PCoA_hellin_DNA_SampleType_n.png"),  p,
+       width = 12, height = 10, unit = "cm", dpi = 300)
+
+ggsave(paste0("./Figures/Final/PCoA_hellin_DNA_collage_n.tiff"), collage,
+       width = 18, height = 15, unit = "cm", dpi = 300)
+ggsave(paste0("./Figures/Final/PCoA_hellin_DNA_collage_n.png"),  collage,
+       width = 18, height = 15, unit = "cm", dpi = 300)
 
 rm(collage, p, zoom.river, zoom.est, zoom.terr)
 
@@ -451,10 +522,20 @@ setDT(ord.df)
 perm.mod <- adonis(pb.mat ~ sample.type.year + Season, 
                    permutations = 9999, data = ord.df, sqrt.dist = T, method = "bray",
                    parallel = cl)
-#-- results
-# habitat = F[12] = 18.02, R^2 = 0.363330, p = 1e-04
-# season = F[2] = 10.95, R^2 = 0.03679, p = 1e-04
-# iterations = 9999
+
+# Results
+# Permutation: free
+# Number of permutations: 9999
+# 
+# Terms added sequentially (first to last)
+# 
+# Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+# sample.type.year  12    45.490  3.7909  17.500 0.34533  1e-04 ***
+#   Season             2     5.222  2.6110  12.053 0.03964  1e-04 ***
+#   Residuals        374    81.017  0.2166         0.61503           
+# Total            388   131.729                 1.00000  
+# ---
+#   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 # calculate multivariate dispersions
 # only habitat type
@@ -477,9 +558,37 @@ perm3 <- anova(mod3, permutations = 9999, pairwise = T, parallel = cl)
 # runs into errors with permutest, anova.cca is same function but runs without errors...
 
 #-- results
-# habitat alone = F[12] = 37.97, p = < 2.2e-16
-# season alone = F[2] = 41.39, p = < 2.2e-16
-# combined = F[27] = 18.99, p = < 2.2e-16
+# habitat alone = F[12] = 38.875, p = < 2.2e-16
+# Response: Distances
+# Df Sum Sq  Mean Sq F value    Pr(>F)    
+# Groups     12 1.3397 0.111638  38.875 < 2.2e-16 ***
+#   Residuals 376 1.0798 0.002872    
+
+# season alone = F[2] = 58.361, p = < 2.2e-16
+# Response: Distances
+# Df  Sum Sq Mean Sq F value    Pr(>F)    
+# Groups      2 0.89849 0.44925  58.361 < 2.2e-16 ***
+#   Residuals 386 2.97133 0.00770  
+
+# combined = F[27] = 20.717 , p = < 2.2e-16
+# Response: Distances
+# Df Sum Sq  Mean Sq F value    Pr(>F)    
+# Groups     27 2.3975 0.088797  20.717 < 2.2e-16 ***
+#   Residuals 358 1.5344 0.004286     
+
+options(scipen = 999)
+(perm.dna <- data.frame(Dataset = "DNA", Group = c("Habitat","Season", "Combined"),
+                       df = c(perm.mod$aov.tab$Df[1:2],NA),
+                       F = c(round(perm.mod$aov.tab$F.Model[1:2], digits = 2), NA),
+                       Rsq = c(round(perm.mod$aov.tab$R2[1:2], digits = 2), NA),
+                       pval = c(paste( "<", perm.mod$aov.tab$`Pr(>F)`[1:2]), NA),
+                       df.p = c(perm1$Df[1], perm2$Df[1], perm3$Df[1]),
+                       F.p = c(round(perm1$`F value`[1], digits = 2),
+                               round(perm2$`F value`[1], digits = 2),
+                               round(perm3$`F value`[1], digits = 2)),
+                       pval.p = c(abbrev.p(perm1$`Pr(>F)`[1])[1],
+                                  abbrev.p(perm2$`Pr(>F)`[1])[1],
+                                  abbrev.p(perm3$`Pr(>F)`[1])[1])))
 
 # look at dispersion
 mod # habitats
@@ -504,7 +613,8 @@ pb <- prune_taxa(taxa_names(pb) %in% taxa_names(dna), pb)
 
 # extract species table with species in columns
 pb.mat <- otu_mat(pb)
-pb.mat <- decostand(pb.mat, "hellinger")
+#pb.mat <- log1p(pb.mat)
+#pb.mat <- decostand(pb.mat, "hellinger")
 # creates strong horse-shoe
 
 # PCoA with Bray-Curtis
@@ -516,10 +626,10 @@ is.euclid(pb.bray)
 pb.bray.pcoa <- ape::pcoa(pb.bray)
 
 
-ncol(pb.mat) # 20182 OTUs
-nrow(pb.mat) # 572 registers
+ncol(pb.mat) # 16322 OTUs
+nrow(pb.mat) # 590 registers
 
-ncol(pb.bray.pcoa$vectors) # 571 axes
+ncol(pb.bray.pcoa$vectors) # 589 axes
 
 # Sanity check
 # back calculate BC dissimilarity matrix from PCoA
@@ -532,28 +642,82 @@ pcoa.23 <- plot_pcoa(pb.bray.pcoa, physeq = pb, plot.axes = c(3,2), colours = co
 
 # extract legends
 # add grey box to colour legend
-leg1 <- get_legend(all.pcoa$plot + theme(legend.key = element_rect(fill = "gray50")) +
-                                           guides(colour = guide_legend(order = 3, size = 2.5,
-                                                                 override.aes = list(fill = "grey20",
-                                                                                     shape = 21)),
-                                                  fill = F, shape = F))
-leg2 <- get_legend(all.pcoa$plot + guides(colour = F) +
-                     theme(legend.margin = margin(3,5.5,3,5.5)))
+#leg1 <- get_legend(all.pcoa$plot + theme_cust(base_theme = "pubr") + 
+#                     theme(legend.key = element_rect(fill = "gray50")) +
+#                                           guides(colour = guide_legend(order = 3, size = 2.5,
+#                                                                 override.aes = list(fill = "grey20",
+#                                                                                     shape = 21)),
+#                                                  fill = F, shape = F))
+#leg2 <- get_legend(all.pcoa$plot + theme_cust(base_theme = "pubr") + guides(colour = F) +
+#                     theme(legend.margin = margin(3,5.5,3,5.5)))
 # change layout to remove gap between legends
-legs <- gtable_rbind(leg2, leg1)
-legs$layout[4,c(1,3)] <- c(9,9)
+#legs <- gtable_rbind(leg2, leg1)
+#legs$layout[4,c(1,3)] <- c(9,9)
+
+find_hull <- function(x, axes){x[chull(x[,paste0("Axis.",axes[1])], x[,paste0("Axis.",axes[2])]),]}
+hulls <- ddply(all.pcoa$df, "dna_type", find_hull, axes = c(1,2))
                            
-pcoa.plot <- all.pcoa$plot + theme(legend.position = "none")
-pcoa.plot2 <- pcoa.23$plot + theme(legend.position = "none")
+pcoa.plot <- ggplot(all.pcoa$df, aes(x =Axis.1, 
+                                           y = Axis.2)) +
+  theme_cust(base_theme = "pubr",
+             border = T) +
+  geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
+  geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
+  scale_fill_manual(values = colvec[names(colvec) %in% as.character(levels(all.pcoa$df$sample.type.year))],
+                      name = "Habitat Type") +
+  geom_point(aes(fill = sample.type.year, shape = Season), size=2.5) + #colour = dna_type,
+  geom_polygon(data = hulls, alpha = 0, aes(linetype = dna_type), fill = "white", colour = "black") +
+  scale_linetype_manual(values = c("solid","dotted"), name = "Nucleic Acid Type") +
+  coord_fixed(1) + # ensure aspect ratio
+  scale_shape_manual(values = c(21,23,25)) +
+  #scale_size_manual(values = c(2.5, 2.6), name = "Nucleic Acid \nType") +
+  labs(x = paste0("PC1 (", round(all.pcoa$var[1,"var"],
+                                                  digits = 1),"%)"), 
+       y = paste0("PC2 (", round(all.pcoa$var[2,"var"],
+                                                  digits = 1),"%)")) +
+  guides(shape = guide_legend(order = 2, override.aes=list(size = 2)),
+         fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2)),
+         size = FALSE)
+
+# 2nd dimension
+hulls <- ddply(pcoa.23$df, "dna_type", find_hull, axes = c(3,2))
+
+pcoa.plot2 <- ggplot(pcoa.23$df, aes(x =Axis.3, 
+                                     y = Axis.2)) +
+  theme_cust(base_theme = "pubr",
+             border = T) +
+  geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
+  geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
+  scale_fill_manual(values = colvec[names(colvec) %in% as.character(levels(pcoa.23$df$sample.type.year))],
+                    name = "Habitat Type") +
+  geom_point(aes(fill = sample.type.year, shape = Season), size=2.5) + #colour = dna_type,
+  scale_linetype_manual(values = c("solid","dotted"), name = "Nucleic Acid Type") +
+  geom_polygon(data = hulls, alpha = 0, aes(linetype = dna_type), fill = "white", colour = "black") +
+  coord_fixed(1) + # ensure aspect ratio
+  scale_shape_manual(values = c(21,23,25)) +
+  
+  #scale_size_manual(values = c(2.5, 2.6), name = "Nucleic Acid \nType") +
+  labs(x = paste0("PC1 (", round(pcoa.23$var[1,"var"],
+                                 digits = 1),"%)"), 
+       y = paste0("PC2 (", round(pcoa.23$var[2,"var"],
+                                 digits = 1),"%)")) +
+  guides(shape = guide_legend(order = 2, override.aes=list(size = 2)),
+         fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2)),
+         size = FALSE)
+  
+pcoa.plot2 <- pcoa.23$plot +  + theme(legend.position = "none")
 
 (p <- ggarrange(pcoa.plot, pcoa.plot2, ncol = 2,
-               align = "hv", labels = "auto", legend.grob = legs,
+               align = "hv", labels = "auto", common.legend = T, # legend.grob = legs,
                legend = "right"))
 
 # save
-ggsave(paste0("./Figures/Final/PCoA_all_SampleType.tiff"), p,
+ggsave(paste0("./Figures/Submission/Figure3_new.tiff"), p,
+       width = 21, height = 11, unit = "cm", dpi = 300)
+
+ggsave(paste0("./Figures/Final/PCoA_all_SampleType_n.tiff"), p,
        width = 20, height = 11, unit = "cm", dpi = 300)
-ggsave(paste0("./Figures/Final/PCoA_all_SampleType.png"),  p,
+ggsave(paste0("./Figures/Final/PCoA_all_SampleType_n.png"),  p,
        width = 20, height = 11, unit = "cm", dpi = 300)
 
 # check screeplot
@@ -563,7 +727,7 @@ ggplot(pb.bray.pcoa$values[pb.bray.pcoa$values$Eigenvalues > 1,],
 
 # how many axes to have 75% of variance captured?
 nrow(pb.bray.pcoa$values[pb.bray.pcoa$values$Cumul_eig <= 0.75,])
-# 186 axes
+# 192 axes
 
 # explore other axes
 #for(i in 2:ncol(pb.bray.pcoa$vectors)){
@@ -584,9 +748,21 @@ perm.mod <- adonis(pb.mat ~ sample.type.year + Season + dna_type,
                    permutations = 9999, data = ord.df, sqrt.dist = T, method = "bray",
                    parallel = cl)
 #-- results
-# habitat = F[12] = 20.719, R^2 = 0.28898, p = 1e-04
-# season = F[2] = 14.922, R^2 = 0.03469, p = 1e-04
-# nucleic acid type = F[1] = 25.891, R^2 = 0.03009, p = 1e-04
+# Permutation: free
+# Number of permutations: 9999
+# 
+# Terms added sequentially (first to last)
+# 
+# Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
+# sample.type.year  12    60.088  5.0073  19.977 0.27534  1e-04 ***
+#   Season             2     7.842  3.9208  15.642 0.03593  1e-04 ***
+#   dna_type           1     6.426  6.4263  25.637 0.02945  1e-04 ***
+#   Residuals        574   143.878  0.2507         0.65929           
+# Total            589   218.234                 1.00000  
+
+# habitat = F[12] = 19.977, R^2 = 0.27534, p = 1e-04
+# season = F[2] = 15.642, R^2 = 0.03593, p = 1e-04
+# nucleic acid type = F[1] = 25.637, R^2 = 0.02945, p = 1e-04
 # iterations = 9999
 
 # calculate multivariate dispersions
@@ -611,10 +787,44 @@ perm4 <- anova(mod4, permutations = 9999, pairwise = T, parallel = cl)
 # runs into errors with permutest and parallel, anova.cca is same function but without errors...
 
 #-- results
-# habitat alone = F[12] = 31.251, p =  < 2.2e-16
-# season alone = F[2] = 44.635, p = < 2.2e-16
-# nucleic acid type alone = F[1] = 1.5927, p = 0.2075
-# combined = F[48] = 10.89, p = < 2.2e-16
+# Response: Distances
+# Df Sum Sq  Mean Sq F value    Pr(>F)    
+# Groups     12 1.3880 0.115666  28.881 < 2.2e-16 ***
+#   Residuals 577 2.3108 0.004005     
+# habitat alone = F[12] = 28.881, p =  < 2.2e-16
+
+# Response: Distances
+# Df Sum Sq Mean Sq F value    Pr(>F)    
+# Groups      2 0.8522 0.42611  62.033 < 2.2e-16 ***
+#   Residuals 587 4.0321 0.00687  
+# season alone = F[2] = 62.033 p = < 2.2e-16
+
+# Response: Distances
+# Df Sum Sq   Mean Sq F value Pr(>F)
+# Groups      1 0.0090 0.0090468  1.1992 0.2739
+# Residuals 588 4.4357 0.0075438   
+# nucleic acid type alone = F[1] = 1.1992 p = 0.2739
+# 
+# Response: Distances
+# Df Sum Sq  Mean Sq F value    Pr(>F)    
+# Groups     49 3.8349 0.078263  9.6002 < 2.2e-16 ***
+#   Residuals 534 4.3533 0.008152    
+# combined = F[49] = 9.6002, p = < 2.2e-16
+
+(perm.dr <- data.frame(Dataset = "DNA and RNA", Group = c("Habitat","Season", "Nucleic Acid Type","Combined"),
+                        df = c(perm.mod$aov.tab$Df[1:3],NA),
+                        F = c(round(perm.mod$aov.tab$F.Model[1:3], digits = 2), NA),
+                        Rsq = c(round(perm.mod$aov.tab$R2[1:3], digits = 2), NA),
+                        pval = c(paste( "<", perm.mod$aov.tab$`Pr(>F)`[1:3]), NA),
+                        df.p = c(perm1$Df[1], perm2$Df[1], perm3$Df[1],perm4$Df[1]),
+                        F.p = c(round(perm1$`F value`[1], digits = 2),
+                                round(perm2$`F value`[1], digits = 2),
+                                round(perm3$`F value`[1], digits = 2),
+                                round(perm4$`F value`[1], digits = 2)),
+                        pval.p = c(abbrev.p(perm1$`Pr(>F)`[1])[1],
+                                   abbrev.p(perm2$`Pr(>F)`[1])[1],
+                                   abbrev.p(perm3$`Pr(>F)`[1])[3],
+                                   abbrev.p(perm4$`Pr(>F)`[1])[1])))
 
 tuk <-TukeyHSD(mod)
 t <- data.frame(Groups = rownames(tuk$group),unlist(tuk$group))
@@ -624,13 +834,53 @@ row.names(t) <- NULL
 # all pair-wise comparisons that are significant
 t <- t[t$p.adj < 0.05,]
 
+# combine tables into one
+permanova.df <- rbind(perm.dna, perm.dr)
+
+# replace NAs with ""
+permanova.df <- permanova.df %>% replace(is.na(.), "")
+
+knitr::kable(permanova.df, "latex", booktabs = T) %>%
+  kable_styling(position = "center", full_width = F) %>%
+  add_header_above(c(" " = 2, "PERMANOVA" = 4, "PERMDISP" = 3)) %>%
+  collapse_rows(columns = 1, valign = "middle")
+
+write.xlsx(permanova.df, file = "./Manuscript/Tables/table1.xlsx", sheetName = "Sheet1", 
+           col.names = TRUE, row.names = FALSE)
+
+# \begin{table}[H]
+# \centering
+# \begin{tabular}{llllllrrl}
+# \toprule
+# \multicolumn{2}{c}{ } & \multicolumn{4}{c}{PERMANOVA} & \multicolumn{3}{c}{PERMDISP} \\
+# \cmidrule(l{3pt}r{3pt}){3-6} \cmidrule(l{3pt}r{3pt}){7-9}
+# Dataset & Group & df & F & Rsq & pval & df.p & F.p & pval.p\\
+# \midrule
+# & Habitat & 12 & 17.5 & 0.35 & < 0.0001 & 12 & 38.87 & < 0.0001\\
+# \cmidrule{2-9}
+# & Season & 2 & 12.05 & 0.04 & < 0.0001 & 2 & 58.36 & < 0.0001\\
+# \cmidrule{2-9}
+# \multirow{-3}{*}{\raggedright\arraybackslash DNA} & Combined &  &  &  &  & 27 & 20.72 & < 0.0001\\
+# \cmidrule{1-9}
+# & Habitat & 12 & 19.98 & 0.28 & < 0.0001 & 12 & 28.88 & < 0.0001\\
+# \cmidrule{2-9}
+# & Season & 2 & 15.64 & 0.04 & < 0.0001 & 2 & 62.03 & < 0.0001\\
+# \cmidrule{2-9}
+# & Nucleic Acid Type & 1 & 25.64 & 0.03 & < 0.0001 & 1 & 1.20 & 0.27\\
+# \cmidrule{2-9}
+# \multirow{-4}{*}{\raggedright\arraybackslash DNA and RNA} & Combined &  &  &  &  & 49 & 9.60 & < 0.0001\\
+# \bottomrule
+# \end{tabular}
+# \end{table}
+
 ## 3D plot ---------------------------------------------------------------------------------------
 # Save 3D plot for all PCoA, third axis separates seasons
 plot.df <- all.pcoa[["df"]]
 p <- plot_ly(type = "scatter", mode = "markers")
 
-p <- plot_ly(plot.df, x = ~Axis.1, y = ~Axis.2, z = ~Axis.3, color = ~Season,
-             size = 5, symbol = ~dna_type, symbols = c(21,22))
+p <- plot_ly(plot.df, x = ~Axis.1, y = ~Axis.2, z = ~Axis.3, color = ~sample.type.year, colors = colvec,
+             stroke = ~dna_type, strokes = c("black", "white"),
+             size = 5, symbol = ~Season, symbols = c(21,23,25), text = ~Sample)
 p <- p %>% add_markers()
 p <- p %>% layout(scene = list(xaxis = 
                                  list(title = paste("PC1 [", unique(plot.df$x), "%]")),
@@ -640,6 +890,28 @@ p <- p %>% layout(scene = list(xaxis =
                                  list(title = paste("PC3 [", unique(plot.df$z), "%]"))))
 p
 
+# for(i in seq(0,6.3,by=0.1)){
+#   outfile <- paste("plot",round(i,digits=2), sep = "_")
+#   cam.zoom = 2
+#   ver.angle = 0
+#   graph <- p %>%
+#     layout(scene=list(camera = list(eye = list(x = cos(i)*cam.zoom,y = sin(i)*cam.zoom, z=0.2),
+#                                     center = list(x = 0,
+#                                                   y = 0,
+#                                                   z = 0
+#                                     )
+#                       )
+#     )
+#     )
+#   graph
+#   
+#   
+#   cat("Now rendering iteration:", i,"\n")
+#   plotly::orca(graph, file = paste(outfile,"png", sep="."),
+#                  width = 1200,
+#                  height = 1050)
+# }
+
 htmlwidgets::saveWidget(as_widget(p), "PCoA_DNARNA_Season_3D.html")
 
 ## Figure 4: Distance -----------------------------------------------------------------------------------
@@ -647,6 +919,7 @@ htmlwidgets::saveWidget(as_widget(p), "PCoA_DNARNA_Season_3D.html")
 
 # Calculate incidence based dissimilarity
 # PCoA with Sorensen, incidence based equivalent of Bray Curtis
+pb.mat <- otu_mat(pb)
 pb.soren <- vegdist(pb.mat, method = "bray", binary = T)
 is.euclid(pb.soren) # FALSE
 pb.soren <- sqrt(pb.soren) # make Euclidean
@@ -661,7 +934,7 @@ soren.32 <- plot_pcoa(pb.soren.pcoa, physeq = pb, plot.axes = c(3,2), colour = c
 
 # how many axes to have 75% of variance captured?
 nrow(pb.soren.pcoa$values[pb.soren.pcoa$values$Cumul_eig <= 0.75,])
-# 199 axes
+# 204 axes
 
 # extract legends
 # add grey box to colour legend
@@ -711,7 +984,7 @@ setDT(dissim.dr)
 dissim.dr[, panels := "main"]
 dissim.dr[sample.type.year == "Tributary" |
           sample.type.year == "Lake" |
-          sample.type.year == "HeadwaterLakes" |
+          sample.type.year == "Riverine \nLakes" |
           sample.type.year == "Sediment", panels := "side"]
 
 # calculate confidence interval and means of sample type and season combinations
@@ -845,7 +1118,7 @@ sum.delta <- diff.df[, .(mean =  mean(dist, na.rm = T),
 diff.df[,.(mean =  mean(dist, na.rm = T),
            stdev = sd(dist, na.rm = T),
            n = .N),
-        by = .(Season, Metric)]
+        by = .(Season, Metric)] %>% arrange(Metric, mean)
 
 
 # calculate confidence interval and means of sample type and season combinations
@@ -909,6 +1182,9 @@ all.ax <- merge(dissim.dr[dissim.dr$Metric == "Bray",],
 )
 
 ggsave("./Figures/General/allaxesdist_dissim_cor.png", p)
+
+#------------------------------------------------------------------------------------------
+# Extract dissimilarity
 
 
 ##########################
@@ -1064,9 +1340,12 @@ up <- ggarrange(m,s, ncol = 2, nrow = 1,  widths = c(3,1), legend = "none")
 (dist.p <- ggarrange(up, down, nrow = 2, ncol = 1, common.legend = T, legend.grob = legs, legend = "right",
           heights = c(2,1), align = "v", labels = "auto", vjust = .9))
 
-ggsave("./Figures/Final/distance_lollipop.png", dist.p, 
+ggsave("./Figures/Submission/Figure4.tiff", dist.p, 
        width = 18, height = 13, units = "cm", dpi = 300)
-ggsave("./Figures/Final/distance_lollipop.tiff", dist.p, 
+
+ggsave("./Figures/Final/distance_lollipop_n.png", dist.p, 
+       width = 18, height = 13, units = "cm", dpi = 300)
+ggsave("./Figures/Final/distance_lollipop_n.tiff", dist.p, 
        width = 18, height = 13, units = "cm", dpi = 300)
 
 
@@ -1132,6 +1411,9 @@ all.otus <- unique(as.character(temp[DNA > 0 & (sample.type.year == "Soil" |
                                 sample.type.year == "Estuary"),]$OTU))
 length(c(soil, soilwater, stream, upriver, reservoir, downriver, estuary)) == length(all.otus) # need to be TRUE
 
+# 12795 of original 16368
+# some OTUs are unique to ecosystems outside of the continuum
+
 # make OTU character
 temp[, OTU := as.character(OTU)]
 # create new column with first observed category for each OTU
@@ -1183,7 +1465,7 @@ first.df[is.na(RNA),]
 
 # calculate the mean abundance of each ASV for all sample types
 # we do this exercise on the original reads, not the one corrected for phantom taxa
-rel.df <- select_newest("./Objects", "201520162017_css_otu99_")
+rel.df <- select_newest("./Objects", "201520162017_css_otu99_paper1_")
 rel.df <- readRDS(
   paste0("./Objects/", rel.df))
 
@@ -1226,14 +1508,14 @@ classif.thres[, .(mean.max = mean(max),
 
 # After consulting the means and deviations of the maximum and minimum thresholds across samples
 # (see previous script) we settle with:
-# Abundant >= 47 css reads
-# Medium < 47 & >= 5 css reads
-# Rare < 5 css reads
+# Abundant >= 54 css reads
+# Medium < 54 & >= 6 css reads
+# Rare < 6 css reads
 
 # Add abundance group to each observation
-first.df[DNA >= 47, abg.dna := "Abundant"]
-first.df[DNA < 47 & DNA >= 5, abg.dna := "Moderate"]
-first.df[DNA < 5, abg.dna := "Rare"]
+first.df[DNA >= 72, abg.dna := "Abundant"]
+first.df[DNA < 72 & DNA >= 10, abg.dna := "Moderate"]
+first.df[DNA < 10, abg.dna := "Rare"]
 #first.df[DNA >= 66, abg.rna := "Abundant"]
 #first.df[DNA < 66 & DNA >= 9, abg.rna := "Moderate"]
 #first.df[DNA < 9, abg.rna := "Rare"]
@@ -1276,8 +1558,10 @@ mean.df[, .(sum.all = sum(perc.sum.dna.byotu, na.rm = T)),
 # overall mean simplifies pattern too much. Tried 4 bins first by:
 # 1. < 25th quartile, 2. 25th quartile - Median, 3. Median - 75th quartile, 4. > 75th quartile
 # 1+2 and 3+4 were relatively similar, and hence, decide on only two bins.
-mean.df[perc.sum.rna.byotu < summary(perc.sum.rna.byotu)[3], quan.bin := 1] #  < 50%
-mean.df[perc.sum.rna.byotu >= summary(perc.sum.rna.byotu)[3], quan.bin := 2] # >= 50%
+mean.df[perc.sum.rna.byotu < exp(-5), quan.bin := 1] #  < 50%
+mean.df[perc.sum.rna.byotu >= exp(-5), quan.bin := 2] # >= 50%
+# mean.df[perc.sum.rna.byotu < summary(perc.sum.rna.byotu)[3], quan.bin := 1] #  < 50%
+# mean.df[perc.sum.rna.byotu >= summary(perc.sum.rna.byotu)[3], quan.bin := 2] # >= 50%
 
 # Any OTUs not assigned a quartile bin?
 any(is.na(mean.df$quan.bin))
@@ -1296,10 +1580,16 @@ mean.mean <- mean.df[quan.bin == 2, .(mean = mean(perc.sum.rna.otu),
                                       sd = sd(perc.sum.rna.otu)), by = .(first.obs)]
 
 lins <- dlply(mean.df[quan.bin == 2,], .(sample.type.year, Season), function(x){
-  lm(perc.sum.rna.otu ~ perc.sum.dna.otu, data = x)
+  lm(log(perc.sum.dna.otu) ~ log(perc.sum.rna.otu), data = x)
 })
 
-lapply(lins, coef)
+
+ggplot() +
+  geom_point(aes(x = lins[[2]]$model$`log(perc.sum.rna.otu)`, y = lins[[2]]$model$`log(perc.sum.dna.otu)`)) +
+  geom_line(aes(x = lins[[2]]$model$`log(perc.sum.rna.otu)`, y = lins[[2]]$fitted.values))
+
+(slopes.df <- ldply(lins, coef))
+mean(slopes.df$`log(perc.sum.rna.otu)`)
 
 mean.mean %>% arrange(mean)
 
@@ -1322,7 +1612,8 @@ line_df <- data.frame(Season = c("Summer","Spring", "Summer", "Spring", "Summer"
                                            "Downriver","Downriver","Downriver",
                                            "Reservoirs","Reservoirs","Reservoirs",
                                            "Estuary"))
-line_df$x <- 0 ; line_df$y <- summary(log(mean.df$perc.sum.rna.otu))[3]
+#line_df$x <- 0 ; line_df$y <- summary(log(mean.df$perc.sum.rna.otu))[3]
+line_df$x <- 0 ; line_df$y <- -5
 line_df$Season <- factor(line_df$Season, levels = c("Spring","Summer","Autumn"))
 setDT(line_df)
 line_df[, sample.type.year := factor(sample.type.year, levels = c("Soil", "Soilwater", "Stream",
@@ -1335,7 +1626,7 @@ mean.df[, sample.type.year := factor(sample.type.year, levels = c("Soil", "Soilw
 
 # Categorize median bins
 mean.df[, quan.bin := factor(quan.bin, levels = c(2,1),
-                           labels = c("> Median","< Median"))]
+                           labels = c("> 0.0067","< 0.0067"))]
 
 
 (perc.cont.dna.rna <- ggplot(mean.df[!is.na(quan.bin),]) +
@@ -1346,7 +1637,7 @@ mean.df[, quan.bin := factor(quan.bin, levels = c(2,1),
                linetype = "solid", colour = "gray70") +
     geom_smooth(aes(x = log(perc.sum.dna.otu), y = log(perc.sum.rna.otu), group = as.character(quan.bin)),
                 method = "lm", se = F, colour = "gray30", size = 0.5, linetype = "solid",
-                data = mean.df[!is.na(quan.bin) & quan.bin == "> Median",]) +
+                data = mean.df[!is.na(quan.bin) & quan.bin == "> 0.0067",]) +
     #ggforce::geom_mark_ellipse(data = subset(mean.df[!is.na(quan.bin) & Season == "Summer" 
     #                                        & sample.type.year == "Soil",], (quan.bin == 2)),
     #                  aes(x = log(perc.sum.dna.otu), y = log(perc.sum.rna.otu), group = as.character(quan.bin)),
@@ -1354,7 +1645,7 @@ mean.df[, quan.bin := factor(quan.bin, levels = c(2,1),
     geom_point(aes(x = log(perc.sum.dna.otu), y = log(perc.sum.rna.otu), colour = first.obs,
                    shape = abg.dna, fill = quan.bin), alpha = 0.9, size =2) +
     geom_text(data = ann_df,
-              aes(y = perc.sum.rna.otu +1, x = perc.sum.dna.otu), label = "Median", size =2.5,
+              aes(y = perc.sum.rna.otu +1, x = perc.sum.dna.otu+1.2), label = "Threshold", size =2.5,
               colour = "gray50") +
     scale_colour_manual(values = new.col,
                         name = "First \ndetected in") +
@@ -1362,14 +1653,14 @@ mean.df[, quan.bin := factor(quan.bin, levels = c(2,1),
                        name = "Local DNA\nabundance") +
     scale_fill_manual(values = c("white","gray80"),
                       name = "Bins of \n% RNA reads") +
-    scale_y_continuous(limits = c(min(log(mean.df$perc.sum.rna.otu)), 
-                                  max(log(mean.df$perc.sum.rna.otu)) + 1)) +
+    scale_y_continuous(limits = c(min(log(mean.df$perc.sum.rna.otu), na.rm = T) - 1, 
+                                  max(log(mean.df$perc.sum.rna.otu), na.rm = T) + 1)) +
     theme(panel.grid = element_blank(),
           legend.position = "right",
           strip.background = element_rect(fill = "gray20"),
           strip.text = element_text(colour = "white", size = 9)) +
-    labs(x = "Mean % OTU contribution to\ntotal DNA reads (log-scale)",
-         y = "Mean % OTU contribution to\ntotal RNA reads (log-scale)") +
+    labs(x = "Mean % OTU contribution to\nlocal DNA pool (log-scale)",
+         y = "Mean % OTU contribution to\nlocal RNA pool (log-scale)") +
     guides(shape = guide_legend(order = 2, override.aes=list(size = 3)),
            fill = guide_legend(order = 1, override.aes=list(shape=21, size = 3)),
            colour = guide_legend(order = 3, override.aes=list(size = 3))))
@@ -1402,7 +1693,7 @@ subdf[, perc.dna := sum.first.medlow * 100 / sum.dna]
 
 # Categorize median bins
 subdf[, quan.bin := factor(quan.bin, levels = c(2,1),
-                              labels = c("> Median\n(reactive)","< Median\n(unreactive)"))]
+                              labels = c("> Threshold\n(reactive)","< Threshold\n(unreactive)"))]
 # Add a new bin for the non RNA OTUs
 subdf[is.na(quan.bin), quan.bin := "RNA = 0\n(unreactive)"]
 
@@ -1418,7 +1709,7 @@ subdf[, sample.type.year := factor(sample.type.year, levels = c("Soil", "Soilwat
           axis.title.x = element_blank(),
           strip.background = element_rect(fill = "gray20"),
           strip.text = element_text(colour = "white", size = 9)) +
-    labs(x = "Habitat type", y = "% of reads in\ntotal DNA reads") +
+    labs(x = "Habitat type", y = "% of reads in\nlocal DNA pool") +
     scale_fill_manual(values = colvec[names(colvec) %in% plot.df$sample.type.year],
                       name = "First observed in") +
     guides(fill = "none"))
@@ -1432,7 +1723,7 @@ subdf[, sample.type.year := factor(sample.type.year, levels = c("Soil", "Soilwat
         strip.background.x = element_blank(),
         strip.background = element_rect(fill = "gray20"),
         strip.text = element_text(colour = "white", size = 9)) +
-  labs(x = "Habitat type", y = "% of reads in\ntotal DNA reads") +
+  labs(x = "Habitat type", y = "% of reads in\nlocal DNA pool") +
   scale_fill_manual(values = colvec[names(colvec) %in% plot.df$sample.type.year],
                     name = "First observed in") +
   guides(fill = "none"))
@@ -1452,10 +1743,17 @@ subdf[, sample.type.year := factor(sample.type.year, levels = c("Soil", "Soilwat
 #                            perc.dna, ncol = 2, labels = "auto", widths = c(2,1.1),
 #                            legend.grob = get_legend(perc.cont.dna.rna), legend = "bottom"))
 
-ggsave("./Figures/Final/first.observed.contribution.medianbins.png", 
+ggsave("./Figures/Submission/Figure5.tiff", 
        perc.cont.col, width = 25, height = 15, units = "cm", dpi = 300)
-ggsave("./Figures/Final/first.observed.contribution.medianbins.tiff", 
+
+ggsave("./Figures/Final/first.observed.contribution.thresbins_n.png", 
        perc.cont.col, width = 25, height = 15, units = "cm", dpi = 300)
+ggsave("./Figures/Final/first.observed.contribution.thresbins_n.tiff", 
+       perc.cont.col, width = 25, height = 15, units = "cm", dpi = 300)
+
+subdf[, .(sum = sum(perc.dna)), by = .(quan.bin)]
+
+# Calculate % OTU for supplementary -------------------------------------------------------------------------
 
 # What's the proportion of reactive vs unreactive? -----------------------------------------------------------------------------------
 
@@ -1490,7 +1788,7 @@ group.count[, .(sum = sum(perc.otu)), by = .(sample.type.year, Season)]
   scale_fill_viridis_d(direction = -1, option = "magma", name = "Fraction", labels = c("Reactive","Unreactive"))+
   theme(legend.position = "top")) 
 
-ggsave("./Figures/Final/reactive.unreative.pies.png", 
+ggsave("./Figures/Final/reactive.unreative.pies_n.png", 
        unreac.pie, width = 10, height = 15, units = "cm", dpi = 300)
 
 
@@ -1504,819 +1802,8 @@ ggsave("./Figures/Final/reactive.unreative.pies.png",
   scale_fill_viridis_d(direction = -1, option = "cividis", name = "Fraction", labels = c("Reactive","Unreactive")) +
   labs(y = "% of bacterial OTUs", x = "Habitat type"))
 
-ggsave("./Figures/Final/reactive.unreative.barplot.png", 
+ggsave("./Figures/Final/reactive.unreative.barplot_n.png", 
        unreac.bar, width = 12, height = 6, units = "cm", dpi = 300)
-
-
-
-
-
-
-## Figure 6: Spatial abundance groups-------------------------------------------------------------------
-# Q: Who in the rank abundance curve is driving the dissimilarity patterns between DNA and RNA?
-
-# Define abundance groups-----------------------------------------------------------------------
-
-# Conventional grouping does not work with this data set
-# Otherwise, there are no abundant ASVs as we cover too different ecosystem types
-
-# Try to come up with a new classification
-# 1. Calculate the mean abundance of each ASV for a sample type (e.g. reservoir, lake, stream, soil etc)
-# 2. Define abundance groups based on rank abundance curves:
-#-- * For each sample type, we create a rank abundance curve
-#-- * Log-transform and take the derivative of the curve
-#-- * Use second derivative of log-curve to define where the curve starts to bend.
-
-# calculate the mean abundance of each ASV for all sample types
-# we do this exercise on the original reads, not the one corrected for phantom taxa
-rel.df <- select_newest("./Objects", "201520162017_css_otu99_")
-rel.df <- readRDS(
-  paste0("./Objects/", rel.df))
-
-setDT(rel.df)
-# calculate means by sample type
-means <- rel.df[, .(mean.css = mean(css.reads, na.rm = T),
-                    sd.css = sd(css.reads, na.rm = T)), by = .(sample.type.year, dna_type, OTU)]
-# order the abundances to make ranks
-means <- means[mean.css != 0,] # remove all 0 observations
-means <- means[order(mean.css, decreasing = T)]
-means[, rank.abun := 1:.N, by = .(dna_type, sample.type.year)]
-means[, log.mean := log1p(mean.css), by = .(dna_type, sample.type.year)]
-
-# smooth and get derivative
-classif.thres <- ddply(means, .(dna_type, sample.type.year), function(x){
-  spl <- smooth.spline(x$rank.abun, x$log.mean, spar = 0.7)
-  #pred <- predict(spl)
-  #first <- predict(spl, deriv = 1) # first derivative
-  sec <- predict(spl, deriv = 2) # second derivative
-  setDT(x)
-  x[rank.abun <= x$rank.abun[localMaxima(sec$y)[1]], ab.group := "Abundant", by = .(OTU)]
-  x[rank.abun > x$rank.abun[localMaxima(sec$y)[1]] &
-      rank.abun <= x$rank.abun[localMaxima(sec$y)[2]], ab.group := "Medium", by = .(OTU)]
-  x[rank.abun > x$rank.abun[localMaxima(sec$y)[2]], ab.group := "Rare", by = .(OTU)]
-  
-  out <- x[, .(max = max(mean.css),
-               min = min(mean.css)), by = .(ab.group)]
-  return(out)
-}, .parallel = T)
-
-setDT(classif.thres)
-classif.thres[, .(mean.max = mean(max),
-                  sd.max = sd(max),
-                  mean.min = mean(min),
-                  sd.min = sd(min)), by = .(dna_type, ab.group)]
-#saveRDS(classif.thres, "./Objects/abundance.classification.threshold.rds")
-
-
-# Apply abundance groups -----------------------------------------------------------------------
-
-# After consulting the means and deviations of the maximum and minimum thresholds across samples
-# (see previous script) we settle with:
-# Abundant >= 47 css reads
-# Medium < 47 & >= 5 css reads
-# Rare < 5 css reads
-
-means[mean.css >= 47, ab.group := 1] # Abundant
-means[mean.css < 47 & mean.css >= 5, ab.group := 2] # Medium
-means[mean.css < 5 & mean.css > 0, ab.group := 3] # Rare
-
-# code to resuscitate absent rows
-temp <- dcast(means, dna_type + OTU ~ sample.type.year, value.var = c("ab.group")) # simple wide first
-temp[is.na(temp)] <- 0 # much faster to overwrite NAs this way
-ag.class <- melt(temp, id.vars = c("dna_type", "OTU"),
-                 variable.name = "sample.type.year", value.name = "ab.group") # make long again
-
-# Add ecosystem domain identifier
-#ag.class[, ecosys.domain := "Freshwater"]
-#ag.class[sample.type.year == "Soil" | sample.type.year == "Soilwater" | sample.type.year == "Hyporheicwater"
-#         | sample.type.year == "Wellwater" | sample.type.year == "Sediment",
-#         ecosys.domain := "Soily"]
-#ag.class[sample.type.year == "Marine", ecosys.domain := NA]
-
-# Custom function to identify ASVs for each group
-
-abun.list <- dlply(ag.class, .(dna_type), function(x){
-  setDT(x)
-  # 1. Universally abundant
-  univ.abun <- unique(as.character(x[ab.group == 1, abun.counts := .N, by = .(OTU)][abun.counts == length(levels(factor(sample.type.year))),]$OTU))
-  # 2. Universally moderate/medium
-  univ.med <- unique(as.character(x[ab.group == 2, med.counts := .N, by = .(OTU)][med.counts == length(levels(factor(sample.type.year))),]$OTU))
-  # 3. Universally rare (all present)
-  univ.rare <- as.character(x[ab.group == 3, rare.counts := .N, by = .(OTU)][rare.counts == length(levels(factor(sample.type.year))),]$OTU)
-  #remove cols
-  x[, c("abun.counts", "med.counts", "rare.counts") := list(NULL, NULL, NULL)]
-  
-  # 4. Abundant (not all present)
-  abundant <- unique(as.character(x[ab.group == 1 | ab.group == 0, abun.counts := .N, by = .(OTU)][abun.counts == length(levels(factor(sample.type.year))),]$OTU))
-  # 5. Moderate (not all present)
-  moderate <- unique(as.character(x[ab.group == 2 | ab.group == 0, med.counts := .N, by = .(OTU)][med.counts == length(levels(factor(sample.type.year))),]$OTU))
-  # 6. Rare (not all present)
-  rare <- unique(as.character(x[ab.group == 3 | ab.group == 0, rare.counts := .N, by = .(OTU)][rare.counts == length(levels(factor(sample.type.year))),]$OTU))
-  
-  # 6. Habitat specialist
-  # Abundant in only one habitat, never abundant in other habitats
-  hab.spec <- as.character(unique(x[ab.group == 1 | ab.group == 2,
-                abun.counts.by.hab := nrow(.SD), by = .(OTU)][abun.counts.by.hab == 1,]$OTU))
-  
-  # remove OTUs classified as specialists from abundant, moderate and rare
-  abundant <- abundant[!(abundant %in% hab.spec)]
-  moderate <- moderate[!(moderate %in% hab.spec)]
-  rare <- rare[!(rare %in% hab.spec)] # there should be none, but just to be safe
-  
-  #remove cols
-  x[, c("abun.counts", "med.counts", "rare.counts", "abun.counts.by.hab") := list(NULL, NULL, NULL, NULL)]
-  
-  # 7. Shifters
-  rest <- c(univ.abun, univ.med, univ.rare, abundant, moderate, rare, hab.spec)
-  remain <- x[OTU %in% unique(x$OTU)[!(unique(x$OTU) %in% rest)]]
-  
-  remain[,
-         abun.counts := nrow(.SD[ab.group == 3]), by = .(OTU)]
-  remain[,med.counts := nrow(.SD[ab.group == 2 ]), by = .(OTU)]
-  remain[, rare.counts := nrow(.SD[ab.group == 1]), by = .(OTU)]
-  remain[, absent.counts := nrow(.SD[ab.group == 0]), by = .(OTU)]
-  
-  # present in all samples = cosmopolitan, shifts between medium, abundant, rare
-  cosmopolitan <- as.character(unique(remain[absent.counts == 0,]$OTU))
-  
-  # Shifts between medium and abundant
-  upper.shifter <- as.character(unique(remain[!(OTU %in% cosmopolitan) & 
-                                                   med.counts > 0 & rare.counts == 0 & abun.counts > 0,]$OTU))
-  # Shifts between rare and medium
-  lower.shifter <- as.character(unique(remain[!(OTU %in% cosmopolitan) & 
-                                                 med.counts > 0 & rare.counts > 0 & abun.counts == 0,]$OTU))
-  
-  # Shifter, shifts between rare, medium and abundant or between rare an abundant
-  shifter <- as.character(unique(remain[!(OTU %in% c(cosmopolitan, upper.shifter, lower.shifter)) & 
-                                          rare.counts > 0 & abun.counts > 0,]$OTU))
-  
-  #sanity check
-  if(length(univ.abun) + length(univ.med) + length(univ.rare) + length(abundant) + length(moderate) + length(rare) +
-     length(hab.spec) +
-     length(cosmopolitan) + length(shifter) +  length(upper.shifter) + length(lower.shifter) != length(unique(x$OTU))){
-    stop("Sum of abundance groups does not equal input")
-  }
-  
-  list(universal.abundant = univ.abun,
-       universal.medium = univ.med,
-       universal.rare = univ.rare,
-       abundant = abundant,
-       moderate = moderate,
-       rare = rare,
-       specialist = hab.spec,
-       cosmopolitan = cosmopolitan,
-       shifter = shifter,
-       upper.shifter = upper.shifter,
-       lower.shifter = lower.shifter
-       )
-}, .parallel = T)
-
-# Only extract abundance classification based on DNA
-dna.ab.group <- abun.list[["DNA"]]
-
-# only keep those abundance groups that have ASVs assigned
-ls.asvs <- dna.ab.group[which(sapply(dna.ab.group, length) != 0L)]
-grp.names <- names(ls.asvs)
-
-# extract raw DNA - RNA relationship
-rel.df <- rel.df[year != 2015,]
-
-# create new ID column with sample type and DNA Type
-rel.df[, ID := paste(sample.type.year, dna_type, sep = "_")]
-
-# what's the N ?
-unlist(lapply(dna.ab.group, length))
-# abundant 1
-# moderate 4
-# rare 17459
-# specialist 1561
-# cosmopolitan 46
-# shifter 341
-# upper.shifter 755
-# lower.shifter 17
-
-# create table
-
-tab1 <- data.frame(abundance.groups = c("Universal abundant", "Universal moderate", "Universal rare",
-                                        "Abundant", "Moderate", "Rare",
-                                        "Specialist",
-                                        "Cosmopolitan",
-                                        "Shifter",
-                                        "Upper shifter",
-                                        "Lower shifter"),
-           criteria = c("Abundant* in all habitats, never absent",
-                        "Moderate* in all habitats, never absent",
-                        "Rare* in all habitats, never absent",
-                        "Only abundant observations, can be absent",
-                        "Only moderate observations, can be absent",
-                        "Only rare observations, can be absent",
-                        "Only abundant in one habitat type, never abundant in any other habitats",
-                        "Shifts between abundant, moderate and rare, but present in all habitats",
-                        "Shifts between abundant, moderate and rare",
-                        "Shifts in the upper fraction (abundant - moderate) of the rank abundance curve",
-                        "Shifts in the lower fraction (moderate - rare) of the rank abundance curve"),
-           otus = unlist(lapply(dna.ab.group, length)))
-row.names(tab1) <- NULL
-
-colnames(tab1) <- c("Abundance groups", "Criteria", "Categorized OTUs")
-
-# Copy paste to separete LaTeX document
-kable(tab1, format = "latex", booktabs = T, caption = "Abundance groups") %>%
-  kable_styling(position = "center", latex_options = "scale_down" ) %>%
-  row_spec(0) %>%
-  footnote(symbol = linebreak(c("Abundant: 47 >= CSS reads, Moderate: 5 >= CSS reads < 47, Rare: 0 > CSS reads < 5")))
-
-# ISME needs excel tables
-tab1[nrow(tab1)+1,] <- c("Abundant: 47 >= CSS reads, Moderate: 5 >= CSS reads < 47, Rare: 0 > CSS reads < 5", NA, NA)
-
-# Write the first table into a new workbook
-write.xlsx(tab1, file = "./Manuscript/Tables/ISME_tables.xlsx",
-           sheetName = "Tab1", append = FALSE, row.names = F, showNA = F)
-# Add a second data set in a new worksheet
-#write.xlsx(tab2, file = "./Manuscript/Tables/ISME_tables.xlsx", 
-#           sheetName="Tab2", append=TRUE)
-
-
-# What abundance groups are those in first observed groups, what is their proportion in each habitat?
-# Add abundance group to each observation
-first.df[DNA >= 47, abg.dna := "Abundant"]
-first.df[DNA < 47 & DNA >= 5, abg.dna := "Moderate"]
-first.df[DNA < 5, abg.dna := "Rare"]
-#first.df[DNA >= 66, abg.rna := "Abundant"]
-#first.df[DNA < 66 & DNA >= 9, abg.rna := "Moderate"]
-#first.df[DNA < 9, abg.rna := "Rare"]
-
-# Add spatial abundance group to each OTU
-for(i in 1:length(grp.names)){
-  first.df[OTU %in% ls.asvs[[grp.names[i]]], spab.names :=  grp.names[i]]
-}
-
-# calculate percentage of each first observed group's abundance category in habitat type
-# n = number of OTUs for each abg category within habitat type/Season
-# n.all = number of OTUs in all categories
-# sum.reads = sum of reads belonging to OTUs in each category
-# sum.reads.all = sum of reads of all OTUs
-
-# there are some taxa without a spatial abundance group
-View(first.df[is.na(spab.names) & (DNA > 0 | RNA > 0),])
-View(first.df[is.na(spab.names),])
-# these are all phantom taxa, assign them to "rare"
-first.df[is.na(spab.names), spab.names := "rare"]
-
-#-----------------------------------
-
-#---------------------------------------------------------------------------
-okabe.ito.sel <- c("#000000", "gray50",
-                   "#0072B2", "#009E73", "#CC79A7", "#56B4E9","gold", "#E69F00")
-# Add spatial abundance group to each OTU
-for(i in 1:length(grp.names)){
-  byotu.df[OTU %in% ls.asvs[[grp.names[i]]], spab.names :=  grp.names[i]]
-}
-
-# there are some taxa without a spatial abundance group
-View(byotu.df[is.na(spab.names),])
-# these are all taxa with very few DNA, assign them to "rare"
-byotu.df[is.na(spab.names), spab.names := "rare"]
-
-
-byotu.df$spab.names <- factor(byotu.df$spab.names, levels = c('abundant','moderate', 'rare',
-                                                                'specialist',
-                                                                'cosmopolitan',
-                                                                'shifter',
-                                                                'upper.shifter', 'lower.shifter'),
-                               labels = c('Abundant','Moderate', 'Rare',
-                                          'Specialist', 'Cosmopolitan', 'Shifter',
-                                          'Upper shifter', 'Lower shifter'))
-
-
-
-(spag.box <- ggplot(byotu.df[!is.na(quan.bin),]) +
-  geom_point(aes(x = first.obs, y = log(perc.sum.rna.byotu), colour = spab.names, fill = quan.bin),
-             alpha = 0, shape = 22) +
-  geom_boxplot(aes(x = first.obs, y = log(perc.sum.rna.byotu), colour = spab.names, fill = quan.bin),
-                 outlier.size = 0.5, outlier.colour = "gray50", position = position_dodge(0.7), varwidth = F,
-               show.legend = F) +
-  scale_fill_manual(values = c("white","gray80"), name = "Bins of\n% RNA reads") +
-  scale_colour_manual(values = okabe.ito.sel, name = "Spatial\nabundance group") +
-  theme(panel.grid = element_blank(),
-        axis.text.x = element_text(angle = 45, hjust = 1))+
-  scale_y_continuous(limits = c(min(log(byotu.df[!is.na(quan.bin),]$perc.sum.rna.byotu)),
-                                max(log(byotu.df[!is.na(quan.bin),]$perc.sum.rna.byotu))-2.1)) +
-  labs(x = "First detected in", y = "% OTU contribution to\ntotal RNA (log-scale)")  +
-  guides(fill = guide_legend(order = 2, override.aes=list(alpha = 1, size = 7)),
-         colour = guide_legend(order = 1, override.aes=list(alpha = 1, size = 7, fill = okabe.ito.sel))))
-
-# What's the proportion of first observed OTUs' spatial abundance group?
-first.spag <- first.df[,.(spab.names = unique(spab.names)),
-                       by = .(OTU, first.obs)][, n := .N, by = .(first.obs)][, n.spag := .N, by = .(first.obs, spab.names)]
-
-#calculate percentage
-spag.perc <- first.spag[, .(n = unique(n),
-                            n.spag = unique(n.spag)),
-                        by = .(first.obs, spab.names)][, perc.spag := n.spag * 100 / n, ]
-
-# sanity check
-spag.perc[, .(sum = sum(perc.spag)), by = .(first.obs)]
-
-spag.perc$spab.names <- factor(spag.perc$spab.names, levels = c('abundant','moderate', 'rare',
-                                                             'specialist',
-                                                             'cosmopolitan',
-                                                             'shifter',
-                                                             'upper.shifter', 'lower.shifter'),
-                              labels = c('Abundant','Moderate', 'Rare',
-                                         'Specialist', 'Cosmopolitan', 'Shifter',
-                                         'Upper shifter', 'Lower shifter'))
-
-#library(thematic)
-#okabe.ito.sel <- okabe_ito(n = 8)
-okabe.ito.sel <- c("#000000", "gray70",
-                   "#0072B2", "#009E73", "#CC79A7", "#56B4E9","#F0E442", "#E69F00")
-
-# plot this
-frac.spag <- ggplot(spag.perc) +
-  theme_cust("bw") +
-  geom_col(aes(x = first.obs, y = perc.spag, fill = spab.names)) +
-  scale_fill_manual(values = okabe.ito.sel, name = "Spatial\nabundance group") +
-  labs(x = "First detected in", y = "% of\nbacterial OTUs") +
-  theme(panel.grid = element_blank(),
-        axis.text.x = element_text(angle = 45, hjust = 1))
-
-# combine
-(spag.col <- ggarrange(frac.spag +
-                         theme(axis.title.x = element_blank(),
-                               axis.text.x = element_blank()),
-                       spag.box, nrow = 2, common.legend = T, legend.grob = get_legend(spag.box),
-                       align = "v", legend = "right",
-                       heights = c(0.7, 2), labels = "auto"))
-
-ggsave("./Figures/Final/spag_contribution.png", spag.col,
-       height = 13, width = 15, units = "cm")
-
-  
-
-# so, how do they behave along the continuum?
-# active portion
-mean.df <- first.df[RNA > 0, 
-                    .(sum.rna.byotu = sum(RNA, na.rm = T),
-                      mean.ratio = mean(ratio, na.rm = T),
-                      spab.names = unique(spab.names)),
-                    by = .(OTU, sample.type.year, abg.dna, first.obs, Season)]
-mean.df[ac.all, "sum.reads.all.rna" := i.sum.reads.all.rna, on = .(sample.type.year,Season)]
-
-mean.df[, perc.sum.rna.byotu := sum.rna.byotu * 100 / sum.reads.all.rna]
-
-mean.df$spab.names <- factor(mean.df$spab.names, levels = c('abundant','moderate', 'rare',
-                                                                'specialist',
-                                                                'cosmopolitan',
-                                                                'shifter',
-                                                                'upper.shifter', 'lower.shifter'),
-                               labels = c('Abundant','Moderate', 'Rare',
-                                          'Specialist', 'Cosmopolitan', 'Shifter',
-                                          'Upper shifter', 'Lower shifter'))
-
-spag.box <- ggplot(mean.df) +
-  theme_cust("bw") +
-  geom_boxplot(aes(x = first.obs, y = log(perc.sum.rna.byotu), fill = spab.names),
-               outlier.size = .5,  position = position_dodge(0.7), varwidth = F) +
-  scale_fill_manual(values = okabe.ito.sel) +
-  theme(panel.grid = element_blank(),
-        axis.text.x = element_text(angle = 45, hjust = 1))+
-  labs(x = "First detected in", y = "% OTU contribution to total RNA\n(log-scale)")
-
-(spag.col <- ggarrange(frac.spag +
-            theme(axis.title.x = element_blank(),
-                  axis.text.x = element_blank()), spag.box, nrow = 2, common.legend = T, align = "v", legend = "right",
-          heights = c(0.7, 2), labels = "auto"))
-
-ggsave("./Figures/Final/spag_contribution.png", spag.col,
-       height = 13, width = 14, units = "cm")
-
-#-------------------------------------------------------------------------------------------------
-
-ggplot(mean.df) +
-  theme_cust("pubr")+
-  facet_grid(.~Season, scale = "free_x", space = "free") +
-  geom_hline(yintercept = 0, linetype = "dashed", colour = "gray10") +
-  geom_jitter(aes(y = log(mean.ratio), x = num.hab, colour = first.obs,
-                 shape = abg.dna, size = as.character(quan.bin))) +
-  scale_colour_manual(values = colvec,
-                      name = "First \ndetected in") +
-  scale_shape_manual(values = c(21,23,25),
-                     name = "Local DNA\nabundance") +
-  scale_size_manual(values = c(1,2,5,6), labels = c("< Q1","Q1 - Median",
-                                                    "Median - Q3", "> Q3"),
-                    name = "IQR of \n% RNA reads")
-  
-
-
-plot.ab <- plot.ab %>%
-  mutate(abg.dna = fct_relevel(abg.dna, "Rare","Moderate","Abundant"))
-
-ggplot(plot.ab) +
-  theme_cust("pubr")+
-  facet_grid(first.obs~Season, scale = "free_x", space = "free") +
-  geom_line(aes(x = num.hab, y = log(perc.otu.dna.ab / perc.otu.rna.ab), colour = abg.dna))
-
-ggplot(plot.ab) +
-  theme_cust("pubr")+
-  facet_grid(first.obs~Season, scale = "free_x", space = "free") +
-  scale_fill_viridis_d(direction = 1) +
-  scale_alpha_manual(values = c(1,0.5,0.5)) +
-  geom_line(aes(x = num.hab, y = perc.reads.rna.ab * -1, colour = abg.dna)) +
-  geom_line(aes(x = num.hab, y = perc.reads.dna.ab, colour = abg.dna)) +
-  geom_ribbon(aes(x = num.hab,
-                  ymin =  perc.reads.rna.ab * -1,
-                  ymax = perc.reads.dna.ab, fill = abg.dna, alpha = abg.dna)) +
-  geom_point(data = plot.ab[(first.obs == "Downriver" & 
-                               (Season == "Spring" | Season == "Autumn")) |
-                              first.obs == "Estuary",],
-             aes(x = num.hab, y = perc.reads.dna.ab, colour = abg.dna), size = 0.8) +
-  geom_point(data = plot.ab[(first.obs == "Downriver" & 
-                               (Season == "Spring" | Season == "Autumn")) |
-                              first.obs == "Estuary",],
-             aes(x = num.hab, y = perc.reads.rna.ab * -1, colour = abg.dna), size = 0.8) +
-  scale_colour_viridis_d(direction = 1) +
-  geom_hline(yintercept = 0, linetype = "dashed", colour = "gray10")
-
-ggplot(plot.ab) +
-  theme_cust("pubr")+
-  facet_grid(first.obs~Season, scale = "free_x", space = "free") +
-  scale_fill_viridis_d(direction = -1) +
-  scale_alpha_manual(values = c(0.3,0.5,0.8)) +
-  geom_line(aes(x = num.hab, y = perc.otu.rna.ab * -1, colour = abg.dna)) +
-  geom_line(aes(x = num.hab, y = perc.otu.dna.ab, colour = abg.dna)) +
-  geom_ribbon(aes(x = num.hab,
-                  ymin =  perc.otu.rna.ab * -1,
-                  ymax = perc.otu.dna.ab, fill = abg.dna, alpha = abg.dna)) +
-  geom_point(data = plot.ab[(first.obs == "Downriver" & 
-                               (Season == "Spring" | Season == "Autumn")) |
-                              first.obs == "Estuary",],
-             aes(x = num.hab, y = perc.otu.dna.ab, colour = abg.dna), size = 0.8) +
-  geom_point(data = plot.ab[(first.obs == "Downriver" & 
-                               (Season == "Spring" | Season == "Autumn")) |
-                              first.obs == "Estuary",],
-             aes(x = num.hab, y = perc.otu.rna.ab * -1, colour = abg.dna), size = 0.8) +
-  scale_colour_viridis_d(direction = -1) +
-  geom_hline(yintercept = 0, linetype = "dashed", colour = "gray10")
-# geom_line(aes(x = num.hab, y = perc.otu.dna.ab, 
-#colour = abg.dna)) +
-#  geom_line(aes(x = num.hab, y = perc.otu.rna.ab * -1, 
-                colour = abg.dna)) 
-# merge with original percentage dataframe
-
-inac[ac, c("otu.n.all.rna", "sum.reads.all.rna","otu.n.rna","sum.reads.rna") :=
-       list(i.otu.n.all.rna, i.sum.reads.all.rna, i.otu.n, i.sum.reads),
-     on = .(first.obs, sample.type.year, Season)] #dr_match_name
-
-# calculate percentages
-inac[,c("perc.otu", "perc.reads",
-        "perc.otu.rna", "perc.reads.rna") := list(otu.n * 100 / otu.n.all.dna,
-                                                  sum.reads * 100 / sum.reads.all.dna,
-                                                  otu.n.rna * 100 / otu.n.all.rna,
-                                                  sum.reads.rna * 100 / sum.reads.all.rna)]
-# Sanity check
-inac[,.(sum.otu = sum(perc.otu),
-        sum.reads = sum(perc.reads),
-        sum.otu.rna = sum(perc.otu.rna),
-        sum.reads.rna = sum(perc.reads.rna)),, by =.(sample.type.year, Season)]
-
-ratio.df <- first.df[DNA > 0 & RNA > 0, .(mean = mean(ratio, na.rm = T),
-                                        ci = conf.int(ratio)),
-                   by = .(sample.type.year, Season, spab.names, first.obs)]
-
-ggplot(ratio.df) +
-  theme_cust("pubr") +
-  facet_grid(spab.names~Season, scale = "free_x", space = "free") +
-  geom_jitter(aes(x = log(mean), fill = first.obs,
-                  y= sample.type.year), shape = 21,
-              position = position_dodge(0.7)) +
-  geom_errorbar(aes(xmin = log(mean) - log(ci),
-                xmax = log(mean) + log(ci),
-                y= sample.type.year, colour = first.obs),
-                position = position_dodge(0.7)) +
-  geom_vline(xintercept = 0, linetype = "dashed")
-
-geom_smooth(aes(y = log(mean / mean.ac), x = sample.type.year, colour = abg.dna,
-                group = abg.dna
-), method = "loess", se = F) +
-
-# calculate the mean abundance of each first observed in habitats along the continuum
-m.inac <- first.df[DNA > 0 & RNA > 0, .(mean = mean(DNA, na.rm = T),
-                                        ci = conf.int(DNA)),
-         by = .(sample.type.year, Season, abg.dna, first.obs)]
-m.ac <- first.df[DNA > 0 & RNA > 0, .(mean = mean(RNA, na.rm = T),
-                                      ci = conf.int(RNA)),
-                   by = .(sample.type.year, Season, abg.dna, first.obs)]
-
-test <- m.inac[m.ac, mean.ac := i.mean, on = .(sample.type.year, Season, first.obs)]
-
-ggplot(test) +
-  theme_cust("pubr") +
-  facet_grid(first.obs~Season, scale = "free_x", space = "free") +
-  #geom_jitter(aes(y = log(mean / mean.ac), fill = abg.dna,
-  #                x= sample.type.year), shape = 21,
-  #            position = position_dodge(0.7)) +
-  geom_smooth(aes(y = log(mean / mean.ac), x = sample.type.year, colour = abg.dna,
-                  group = abg.dna
-                  ), method = "loess", se = F) +
-  geom_hline(yintercept = 0, linetype = "dashed")
-
-
-sum.abg.dna <- first.df[, .(n.otu = .N,
-             sum.reads = sum(DNA, na.rm = T)), by = .(sample.type.year, Season, abg.dna, first.obs)]
-sum.abg.rna <- first.df[, .(n.otu = .N *-1,
-                            sum.reads = sum(RNA, na.rm = T) * -1), by = .(sample.type.year, Season, abg.dna, first.obs)]
-
-test <- rbind(sum.abg.dna, sum.abg.rna)
-
-ggplot() +
-  theme_cust("pubr") +
-  facet_grid(sample.type.year~Season, scale = "free_y", space = "free") +
-  geom_jitter(data = test[sum.reads > 0,], aes(x = log(sum.reads), y = abg.dna, fill = first.obs), shape = 21,
-              position = position_dodge(0.7)) +
-  geom_jitter(data = test[sum.reads < 0,], aes(x = log(sum.reads *-1)*-1, y = abg.dna, fill = first.obs), shape = 21,
-              position = position_dodge(0.7)) +
-  geom_vline(xintercept = 0, linetype = "dashed")
-
-ggplot(sum.abg, aes(x = abg.dna, y = log(sum.reads))) +
-  geom_col(aes(fill = first.obs)) +
-  facet_grid(Season~sample.type.year)
-
-pdf <- first.df[, .(mean = mean(DNA, na.rm = T),
-                    sd = sd(DNA, na.rm = T)),  by = .(sample.type.year, Season, first.obs, spab.names)]
-
-ggplot(pdf, aes(x = log(mean), y = sample.type.year)) +
-  facet_grid(spab.names~Season) +
-  geom_point(aes(fill = first.obs), shape = 21)
-
-# calculate number of observations per habitat type and season = Total
-inac.all <- first.df[DNA > 0 & RNA == 0,
-                     .(otu.n.all.dna = .N,
-                       sum.reads.all.dna = sum(DNA, na.rm = T)), by = .(sample.type.year, Season)] #dr_match_name
-ac.all <- first.df[RNA > 0,
-                   .(otu.n.all.rna = .N,
-                     sum.reads.all.rna = sum(RNA, na.rm = T)), by = .(sample.type.year, Season)]  # dr_match_name
-
-inac <- first.df[DNA > 0 & RNA == 0, .(otu.n = .N,
-                               sum.reads = sum(DNA, na.rm = T)),
-         by = .(first.obs, abg.dna, sample.type.year, Season)]
-
-ac <- first.df[RNA > 0, .(otu.n.rna = .N,
-                            sum.reads.rna = sum(RNA, na.rm = T)),
-                 by = .(first.obs, abg.dna, sample.type.year, Season)]
-
-# merge together
-inac[inac.all, c("otu.n.all.dna","sum.reads.all.dna") :=
-       list(i.otu.n.all.dna, i.sum.reads.all.dna), on = .(sample.type.year, Season)] #dr_match_name
-ac[ac.all, c("otu.n.all.rna","sum.reads.all.rna") :=
-     list(i.otu.n.all.rna, i.sum.reads.all.rna), on = .(sample.type.year, Season)]  #dr_match_name
-
-inac[ac, c("otu.n.all.rna", "sum.reads.all.rna","otu.n.rna","sum.reads.rna") :=
-       list(i.otu.n.all.rna, i.sum.reads.all.rna, i.otu.n.rna, i.sum.reads.rna),
-     on = .(first.obs, abg.dna, sample.type.year, Season)] #dr_match_name
-
-# calculate percentages
-inac[,c("perc.otu", "perc.reads",
-        "perc.otu.rna", "perc.reads.rna") := list(otu.n * 100 / otu.n.all.dna,
-                                                  sum.reads * 100 / sum.reads.all.dna,
-                                                  otu.n.rna * 100 / otu.n.all.rna,
-                                                  sum.reads.rna * 100 / sum.reads.all.rna)]
-# Sanity check
-inac[,.(sum.otu = sum(perc.otu, na.rm = T),
-        sum.reads = sum(perc.reads, na.rm = T),
-        sum.otu.rna = sum(perc.otu.rna, na.rm = T),
-        sum.reads.rna = sum(perc.reads.rna, na.rm = T)),, by =.(sample.type.year, Season)]
-
-# re-assign factor levels
-plot.df <- inac
-plot.df[, sample.type.year := factor(sample.type.year, levels = c("Soil", "Soilwater", "Stream",
-                                                                  "Upriver", "Reservoirs", "Downriver",
-                                                                  "Estuary"))]
-
-d <- ggplot(plot.df, aes(x = first.obs)) +
-  theme_cust("pubr") +
-  facet_grid(sample.type.year~Season, space = "free") +
-  geom_col(aes(y = perc.otu, fill = abg.dna), colour = "gray20")
-  #facet_grid(.~Season, scale = "free_x", space = "free") 
-  #theme(axis.text.x = element_blank(),
-  #      axis.title.x = element_blank(),
-  #      strip.background = element_rect(fill = "gray20"),
-  #      strip.text = element_text(colour = "white", size = 10)) +
-  #labs(x = "Habitat type", y = "% of OTUs \nin inactive fraction") #+
-  #scale_fill_manual(values = colvec[names(colvec) %in% plot.df$sample.type.year])
-
-r <- ggplot(plot.df, aes(x = sample.type.year)) +
-  theme_cust("pubr") +
-  geom_col(aes(y = perc.otu.rna, fill = first.obs), colour = "gray20") +
-  facet_grid(.~Season, scale = "free_x", space = "free") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
-        strip.background = element_blank(),
-        strip.text = element_blank()) +
-  labs(x = "Habitat type", y = "% of OTUs \nin reactive fraction") +
-  scale_fill_manual(values = colvec[names(colvec) %in% plot.df$sample.type.year])
-
-dr <- ggplot(plot.df, aes(x = sample.type.year)) +
-  theme_cust("pubr") +
-  geom_col(aes(y = perc.reads, fill = first.obs), colour = "gray20") +
-  facet_grid(.~Season, scale = "free_x", space = "free") +
-  theme(axis.text.x = element_blank(),
-        axis.title.x = element_blank(),
-        strip.background = element_rect(fill = "gray20"),
-        strip.text = element_text(colour = "white", size = 10)) +
-  labs(x = "Habitat type", y = "% of CSS reads \nin inactive fraction") +
-  scale_fill_manual(values = colvec[names(colvec) %in% plot.df$sample.type.year],
-                    name = "First observed in")
-
-
-# Where in the rank abundance curve does community reshuffling occur? ----------------------------
-# calculate change in abundance between DNA and RNA between each OTU
-
-cast.abun <- dcast(rel.df, dr_match_name + OTU ~ dna_type, value.var = "css.reads")
-cast.abun <- cast.abun[!is.na(DNA) & !is.na(cDNA),]
-cast.abun[, diff.abun := DNA - cDNA]
-
-cast.abun[dist.resid, c("Bray", "Sorensen", "resid", "sample.type.year","Season") :=
-            list(i.Bray, i.Sorensen, i.resid, i.sample.type.year, i.Season), on = .(dr_match_name)]
-
-#cast.abun[dist.1d[Metric == "Bray" & Axis == "Axis.2",], c("dist.pc2") := list(i.dist), on = .(dr_match_name)]
-
-cast.abun <- cast.abun[!(diff.abun == 0),] # omit no abundance difference as they do not contribute to differences
-cast.abun[cDNA > 0 & DNA == 0,]
-# add abundance group names into species dataframe
-for(i in 1:length(grp.names)){
-  cast.abun[OTU %in% ls.asvs[[grp.names[i]]], ab.names :=  grp.names[i]]
-  cast.abun[OTU %in% ls.asvs[[grp.names[i]]], ab.names :=  grp.names[i]]
-}
-
-# omit OTUs only in RNA
-cast.abun <- cast.abun[!is.na(ab.names),]
-
-#cast.abun[ab.names == "abundant" | ab.names == "moderate", ab.names := "ab.mod"]
-cast.abun <- cast.abun[ab.names != "abundant",]
-
-cast.abun$ab.groups <- factor(cast.abun$ab.names, levels = c('moderate', 'rare',
-                                                             'specialist',
-                                                             'cosmopolitan',
-                                                             'shifter',
-                                                             'upper.shifter', 'lower.shifter'),
-                           labels = c('Moderate', 'Rare',
-                                      'Specialist', 'Cosmopolitan', 'Shifter',
-                                      'Upper shifter', 'Lower shifter'))
-
-#library(thematic)
-#okabe.ito.sel <- okabe_ito(n = 8)
-okabe.ito.sel <- c("#000000",
-                   "#0072B2", "#009E73", "#CC79A7", "#56B4E9","#F0E442", "#E69F00")
-
-within.p <- ggplot(cast.abun, aes(x = Bray, y = log1p(abs(diff.abun)))) + #dist.pc2
-  theme_pubr() +
-  geom_point(colour = "grey80", alpha = 0.8, size = 0.5) +
-  labs(x = expression(paste(italic("m")["BC"])),
-       y = expression(paste("| ", Delta, " OTU CSS reads |"))) +
-  annotate(geom = "rect", xmin = 0.19, ymin = 0, 
-           xmax = 1, ymax = 8, fill = NA, colour = "grey50", linetype = "dashed", alpha = 0.8) +
-  theme(axis.text = element_text(size = 5), axis.title = element_text(size = 8))
-
-(main <- ggplot(cast.abun,  aes(x = Bray, y = log1p(abs(diff.abun)))) + # dist.pc2
-    theme_pubr() +
-    geom_point(colour = "grey80", alpha = 0.2) +
-    #geom_smooth(aes(group = ab.groups, colour = ab.groups, fill = ab.groups),
-    #            method = "gam", formula = y ~ s(x, bs = "cs"), alpha = 0.4) +
-    stat_summary_bin(fun=mean, geom="line", aes(colour = ab.groups), bins = 10, size = 1) +
-    scale_colour_manual(values = okabe.ito.sel, name = "Spatial\nabundance\ngroups") +
-    scale_fill_manual(values = okabe.ito.sel, name = "Spatial\nabundance\ngroups") +
-    labs(x = expression(paste(italic("m")["BC"])), #^"PC2"
-         y = expression(paste("| ",Delta, " OTU CSS reads |"))) +
-    coord_cartesian(ylim = c(0,10)) +
-    theme(panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank()) +
-    #annotate(geom = "text", x = 0.5/2, y = 9, label = "DNA > RNA") +
-    #annotation_custom(ggplotGrob(within.p), xmin = 0.2, xmax = 0.6, ymin = 6.7, ymax = 10) +
-    theme(legend.position = "right"))
-
-ggsave("./Figures/Final/abgroups_mBC_75.png", main,
-       width = 14, height = 9 , units = "cm")
-
-# OTU optima in PCoA ----------------------------------------------------------------------------
-
-# fit species onto PCoA ordination
-pb.species <-
-  data.frame(
-    OTU = as.character(colnames(pb.mat)),
-    wascores(pb.bray.pcoa$vectors[, 1:3],
-             w = pb.mat),
-    stringsAsFactors = F
-  ) %>% mutate(Metric = "Bray")
-
-#strength.species <- eigengrad(pb.bray.pcoa$vectors[, 1:3],
-#          w = pb.mat)
-
-pb.species <- na.omit(pb.species)
-setDT(pb.species)
-# add abundance group names into species dataframe
-for(i in 1:length(grp.names)){
-  pb.species[OTU %in% ls.asvs[[grp.names[i]]], ab.names :=  grp.names[i]]
-  pb.species[OTU %in% ls.asvs[[grp.names[i]]], ab.names :=  grp.names[i]]
-}
-
-sp.melt <- melt(pb.species, id.vars = c("OTU","ab.names"), measure.vars = patterns("^Axis."),
-     variable.name = "Axis", value.name = "Scores")
-
-sp.melt <- sp.melt[!is.na(sp.melt$ab.names),]
-
-sp.melt$ab.groups <- factor(sp.melt$ab.names, levels = c('abundant.shifter', 'present.as', 
-                                                             'rare.shifter', 'present.rs', 
-                                                             'specialist', 'universal.rare'),
-                              labels = c('Abundant shifter', 'Universal \nabundant shifter',
-                                         'Rare shifter', 'Universal \nrare shifter',
-                                         'Specialist', 'Universal rare'))
-
-sp.melt$ab.groups <- factor(sp.melt$ab.names, levels = c('abundant', 'moderate', 'rare',
-                                                             'specialist',
-                                                             'cosmopolitan',
-                                                             'shifter',
-                                                             'upper.shifter', 'lower.shifter'),
-                              labels = c('Abundant' , 'Moderate', 'Rare',
-                                         'Specialist', 'Cosmopolitan', 'Shifter',
-                                         'Upper shifter', 'Lower shifter'))
-
-sp.melt$Axis <- factor(sp.melt$Axis, levels = c("Axis.1", "Axis.2", "Axis.3"),
-                       labels = c("PC1", "PC2", "PC3"))
-
-labels <- data.frame(Axis = rep(c("PC1", "PC2", "PC3"), times = 2),
-                     x = rep(4.5, times = 6), y = c(rep(0.32, times = 3), rep(-0.43, times = 3)),
-                     labels = c("Aquatic", "DNA", "Spring",
-                                "Terrestrial", "RNA", "Summer/Autumn"))
-
-# combine with PCoA
-(vio <- ggplot(sp.melt, aes(x = ab.groups, y = Scores)) +
-  theme_pubr() +
-  geom_hline(yintercept = 0, colour = "grey20", size = 0.3, linetype = "dotted") +
-  facet_grid(.~Axis, scales = "free") +
-  geom_boxplot(colour = "grey50", outlier.alpha = 0, width = 0.7) +
-  geom_violin(aes(fill = ab.groups), scale = "width", alpha = 0.6) +
-  geom_text(data = labels, aes(x = x, y = y, label = labels), colour = "grey30", size = 3.5) +
-  scale_fill_manual(values = okabe.ito.sel, name = "Abundance groups") +
-  labs(x = "Spatial abundance groups", y = "Species scores") +
-  theme(
-   axis.text.x = element_text(angle = 90, vjust = 0.5, size = 10),
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(),
-    strip.background = element_rect(fill = "grey30"),
-   strip.text = element_text(colour = "white")
-  ) +
-    guides(fill = "none"))
-
-ggsave("./Figures/Final/abgroups_dist_violin.png", vio,
-       width = 15, height = 10, units = "cm")
-
-(prow <- plot_grid(main + theme(legend.position = "bottom",
-                                legend.title = element_text(size = 9),
-                                legend.text = element_text(size = 8),
-                                legend.key.size = unit(0.4, "cm")) +
-                     guides(colour = guide_legend(nrow = 4)), vio, labels = "auto", 
-                   align = "hv", axis = "bt",
-                   rel_widths = c(1,2)))
-
-ggsave("./Figures/Final/abgroups_rollmean_violin.png", prow,
-       width = 25, height = 11, units = "cm")
-
-# calculate relative abundance 
-# colour blind friendly, derived from https://medialab.github.io/iwanthue/
-col_vector<-c("#350070","#dcd873","#06a644","#b9ce40","#003499","#6b8aff","#f5d249","#ec83f6","#7beb8b",
-              "#c947b1","#01b072","#df3587","#006f26","#ff83d0","#215a00","#99a1ff","#668200",
-              "#e77e28","#019cf8","#b5221d","#bd0a35","#b2e294","#840066",
-              "#314800","#ffb0ed","#954700","#3d0e52","#ff9b61","#59003b","#ff6e83","#aa7dbf","#620009")
-
-# Calculate relative abundance of each OTU in spatial abundance group
-tax.tab <- setDT(as.data.frame(tax.tab), keep.rownames = "OTU")
-cast.abun[tax.tab, c("phylum", "class") := list(i.phylum, i.class), on = .(OTU)]
-
-cast.abun[, c("sum.read.dna",
-              "sum.read.rna") := list(sum(round(DNA,0)),
-                                      sum(round(cDNA,0))), by = .(ab.groups, sample.type.year)]
-abund.phyla <- cast.abun[, .(rel.dna = sum(round(DNA,0)) / sum.read.dna,
-                             rel.rna = sum(round(cDNA,0)) / sum.read.rna),
-                         by = .(phylum, ab.groups, sample.type.year)] %>% 
-  distinct()
-abund.phyla[, rel.rna := rel.rna * -1] # make negatvive for visualization
-
-#melt
-abund.melt <- melt(abund.phyla, 
-                   id.vars = c("phylum", "ab.groups", "sample.type.year"),
-                   measure.vars = c("rel.dna","rel.rna"),
-                   variable.name = "dna_type", value.name = "rel.abund")
-
-ggplot(abund.melt, aes(x = sample.type.year, y = rel.abund, fill = phylum)) +
-  geom_bar(stat = "identity", width = 0.8) +
-  geom_hline(yintercept = 0)+
-  facet_wrap(~ab.groups) +
-  coord_flip() +
-  scale_fill_manual(values = rev(col_vector)) +
-  scale_y_continuous(breaks = pretty(abund.melt$rel.abund),
-                     labels = abs(pretty(abund.melt$rel.abund)))
-# left is RNA, right is DNA
-
 
 #---------------------#
 #------- Done! -------#
