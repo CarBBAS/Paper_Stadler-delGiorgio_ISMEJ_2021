@@ -41,15 +41,15 @@ set.seed(3)
 # 2. Read and prepare data ---------------------------------------------------------------
 
 # Read in dada2 output
-seqtab <- readRDS("./MotherData/nochim_seqtab_2015-2018.rds") # ASV table with raw sequences
+seqtab <- readRDS("./MotherData/nochim_seqtab_paper1.rds") # ASV table with raw sequences
 tax <-
-  readRDS("./MotherData/taxtab_gtdb_r95_2018.rds") # assigned taxonomy
+  readRDS("./MotherData/taxtab_paper1_gtdb_r95_2018.rds") # assigned taxonomy
 
 # extract taxonomy
 tax <- as.data.frame(tax, stringsAsFactors = F)
 # split into taxnomy group, which ASVs belong to the same taxonomical classification
-align.group <- unite(tax, col = "align.group", sep = "$", na.rm = T)
-align.group$Seq <- rownames(align.group)
+#align.group <- unite(tax, col = "align.group", sep = "$", na.rm = T)
+#align.group$Seq <- rownames(align.group)
 
 # extract sequences into list bins, where bins are the deepest taxonomical classification
 # bin names are taxonomical classifications
@@ -106,7 +106,8 @@ sample_names <- rownames(seqtab)
 dna <- Biostrings::DNAStringSet(asv_sequences)
 
 ## Find clusters of ASVs to form the new OTUs
-aln <- DECIPHER::AlignSeqs(dna, processors = nproc)
+aln <- DECIPHER::AlignSeqs(dna, processors = NULL)
+saveRDS(aln, "./Objects/aln_decipher.rds")
 d <- DECIPHER::DistanceMatrix(aln, processors = nproc)
 clusters <- DECIPHER::IdClusters(
   d, 
@@ -126,10 +127,10 @@ saveRDS(clusters, "./Objects/OTU_clusters_gtdb_allatonce.rds")
 # Meaning that there are many OTU1, OTU2, OTU3, important is that they stay within the bin
 # Actual OTU assignment will happen later
 #saveRDS(cl.out, "./Objects/OTU_clusters_95.rds") # save intermediate object
-saveRDS(cl.out, "./Objects/OTU_clusters_gtdb.rds") # save intermediate object
+saveRDS(cl.out, "./Objects/OTU_clusters_99_decipher_paper1.rds") # save intermediate object
 
 # 2. Assign OTU numbers and keep ASV sequences  ---------------------------------------------------------------
-cl.out <- readRDS("./Objects/OTU_clusters_gtdb.rds")
+cl.out <- readRDS("./Objects/OTU_clusters_99_decipher_paper1.rds")
 
 # This loop re-assigns the exact sequences to each "OTU" 
 for(i in 1:length(cl.out)){
