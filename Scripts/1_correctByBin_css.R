@@ -34,7 +34,7 @@ pckgs <- list("phyloseq", "metagenomeSeq", # OTU clustering
 
 ### Check if packages are installed, output packages not installed:
 (miss.pckgs <- unlist(pckgs)[!(unlist(pckgs) %in% installed.packages()[,"Package"])])
-#if(length(miss.pckgs) > 0) install.packages(miss.pckgs)
+if(length(miss.pckgs) > 0) install.packages(miss.pckgs)
 # Many packages have to be installed through Bioconductor, please refer to the package websites
 
 ### Load
@@ -344,6 +344,9 @@ cor.reads <- cor.reads[-which(single.count == T),]
 cor.all <- phyloseq(otu_table(cor.reads, taxa_are_rows = F),
                    sample_data(met.df),
                    tax_table(tax.df[row.names(tax.df) %in% colnames(cor.reads),]))
+
+# save physeq of data prior to CSS transformation
+saveRDS(cor.all, "./Objects/physeq_paper1_pre-css.rds")
 
 # save initial sumdf data frame to be used later as reference (sample ~ corrected sample name)
 #saveRDS(sumdf, "./Objects/summary.meta.with.oldnames.rds")

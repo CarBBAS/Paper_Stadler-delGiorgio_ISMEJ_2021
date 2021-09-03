@@ -1027,7 +1027,6 @@ ggplot(cast.dis, aes(y = Sorensen, x =  Bray)) +
 # Calculate distance between DNA and RNA points in PCoA space #
 #-------------------------------------------------------------#
 # calculating distance between points in n-dimensional space for both Bray-Curtis and Sorensen
-
 pb.scores <- rbind(data.frame(Sample = as.character(row.names(pb.bray.pcoa$vectors)), Metric = "Bray",
                         pb.bray.pcoa$vectors, stringsAsFactors = F),
                    data.frame(Sample = as.character(row.names(pb.soren.pcoa$vectors)), Metric = "Sorensen",
@@ -1508,9 +1507,9 @@ classif.thres[, .(mean.max = mean(max),
 
 # After consulting the means and deviations of the maximum and minimum thresholds across samples
 # (see previous script) we settle with:
-# Abundant >= 54 css reads
-# Medium < 54 & >= 6 css reads
-# Rare < 6 css reads
+# Abundant >= 72 css reads
+# Medium < 72 & >= 10 css reads
+# Rare < 10 css reads
 
 # Add abundance group to each observation
 first.df[DNA >= 72, abg.dna := "Abundant"]
@@ -1710,7 +1709,7 @@ subdf[, sample.type.year := factor(sample.type.year, levels = c("Soil", "Soilwat
           strip.background = element_rect(fill = "gray20"),
           strip.text = element_text(colour = "white", size = 9)) +
     labs(x = "Habitat type", y = "% of reads in\nlocal DNA pool") +
-    scale_fill_manual(values = colvec[names(colvec) %in% plot.df$sample.type.year],
+    scale_fill_manual(values = colvec[names(colvec) %in% subdf$sample.type.year],
                       name = "First observed in") +
     guides(fill = "none"))
 
@@ -1724,7 +1723,7 @@ subdf[, sample.type.year := factor(sample.type.year, levels = c("Soil", "Soilwat
         strip.background = element_rect(fill = "gray20"),
         strip.text = element_text(colour = "white", size = 9)) +
   labs(x = "Habitat type", y = "% of reads in\nlocal DNA pool") +
-  scale_fill_manual(values = colvec[names(colvec) %in% plot.df$sample.type.year],
+  scale_fill_manual(values = colvec[names(colvec) %in% subdf$sample.type.year],
                     name = "First observed in") +
   guides(fill = "none"))
 
