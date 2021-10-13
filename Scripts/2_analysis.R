@@ -1,9 +1,15 @@
 #-- Script for the publication:
-#-- Title
-#-- Responsible author: Masumi Stadler
+#-- Terrestrial connectivity, upstream aquatic history and seasonality shape bacterial
+#-- community assembly within a large boreal aquatic network. The ISME Journal.
+#-- Authors: Masumi Stadler & Paul A. del Giorgio
+#-- Responsible code author: Masumi Stadler
 
 # This script is the third of a series of scripts that were used to analyse the data
 # used in the publication.
+
+###-------------------------###
+#-   Analyses and figures   - #
+###-------------------------###
 
 # 1. R set-up ------------------------------------------------------------------------------
 ### Packages -------------------------------------------------------------------------------
@@ -394,121 +400,12 @@ pb.bray.pcoa <- ape::pcoa(pb.bray) # 390 registers
 dna.pcoa <- plot_pcoa(pb.bray.pcoa, physeq = dna,  colours = colvec, output = T)
 
 # main PCoA
-p <- dna.pcoa$plot + theme_cust(base_theme = "pubr",
-                                border = T) + guides(colour = "none")
-
-# zoom into terrestrial part
-# different colouring by Season, habitat type as shape
-# zoom.terr <- ggplot(dna.pcoa$df, aes(x = Axis.1, y = Axis.2)) +
-#     theme_cust() +
-#     geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
-#     geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
-#     geom_point(size = 2.5, alpha = 0.2, fill = "gray20") +
-#     new_scale_fill() +
-#     geom_point(data = dna.pcoa$df[dna.pcoa$df$sample.type.year == "Soil" | 
-#                                     dna.pcoa$df$sample.type.year == "Soilwater" |
-#                                     dna.pcoa$df$sample.type.year == "Sediment",], 
-#                aes(x = Axis.1, y = Axis.2, fill = Season, shape = sample.type.year), size = 3) +
-#     scale_fill_viridis_d(option = "cividis", name = "Season") +
-#     scale_shape_manual(values = c(21,23, 25), "Habitat type") +
-#     coord_cartesian(ylim = c(-0.11, 0.04), xlim = c(-0.39, -0.17), expand = F) + 
-#     labs(x = paste("PC1"), 
-#          y = paste("PC2")) +
-#     theme(panel.grid.major = element_blank(),
-#           panel.grid.minor = element_blank()) +
-#   guides(shape = guide_legend(order = 2, override.aes=list(size = 2)),
-#          alpha = guide_legend(order = 3, override.aes=list(size = 2)), 
-#          fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2)))
-# 
-# # zoom into estuaries
-# # different colouring by distance from mouth, shape is Season
-# zoom.est <- ggplot(dna.pcoa$df, aes(x = Axis.1, y = Axis.2)) +
-#   theme_cust() +
-#   geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
-#   geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
-#   geom_point(size = 2.5, alpha = 0.2, fill = "gray20") +
-#   new_scale_fill() +
-#   geom_point(data = dna.pcoa$df[dna.pcoa$df$sample.type.year == "Estuary",], 
-#              aes(x = Axis.1, y = Axis.2, fill = abs(distance.from.mouth), shape = Season), size = 3) +
-#   scale_fill_viridis_c(name = "Distance from \nmouth (km)", direction = -1) +
-#   scale_shape_manual(values = c(21,23,25)) +
-#   scale_alpha_manual(values = c(1,0.5), name = "Nucleic Acid \nType") +
-#   coord_cartesian(ylim = c(-0.17, 0.3), xlim = c(-0.1, 0.28), expand = F) + # ensure aspect ratio
-#   labs(x = paste("PC1"), 
-#        y = paste("PC2")) +
-#   theme(panel.grid.major = element_blank(),
-#         panel.grid.minor = element_blank())
-  #guides(shape = guide_legend(order = 2, override.aes=list(size = 2)),
-  #       alpha = guide_legend(order = 3, override.aes=list(size = 2)), 
-  #       fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2)))
-
-# zoom into rivers (upriver vs. downriver)
-# different colouring by distance from mouth, shape is Season
-# zoom.river <- ggplot(dna.pcoa$df, aes(x = Axis.1, y = Axis.2)) +
-#   theme_cust() +
-#   geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
-#   geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
-#   geom_point(size = 2.5, alpha = 0.2, shape = 21, fill = "gray20") +
-#   #scale_fill_manual(values = colvec, name = "Habitat Type") +
-#   new_scale_fill() +
-#   geom_point(data = dna.pcoa$df[(dna.pcoa$df$sample.type.year == "Downriver" |
-#                                   dna.pcoa$df$sample.type.year == "Upriver") & Season == "Spring",],
-#              aes(x = Axis.1, y = Axis.2,
-#                  fill = distance.from.mouth, shape = sample.type.year), size = 3) +
-#   stat_ellipse(data = subset(dna.pcoa$df, (sample.type.year == "Upriver" | 
-#                                              sample.type.year == "Downriver")  &
-#                                Season == "Spring"),
-#                  aes(x = Axis.1, y = Axis.2, group = year), 
-#                linetype = "dashed", colour = "grey50") +
-#   #stat_ellipse(data = subset(dna.pcoa$df, (sample.type.year == "Upriver" | sample.type.year == "Downriver")),
-#   #               aes(x = Axis.1, y = Axis.2, group = paste(year,Season), linetype = as.character(year))) +
-#   annotate(geom = "text", x = c(0.2,0.2), y = c(-0.3,-0.19), label = c("2015", "2016"), 
-#            size = 3, colour = "grey50") +
-#   scale_fill_continuous(type = "viridis", name = "Distance from \nmouth (km)", direction = -1) +
-#   #scale_fill_viridis_b(name = "Distance from mouth", direction = -1) +
-#   scale_shape_manual(values = c(21,23), name = "Habitat Type") +
-#   #coord_cartesian(xlim = c(0.03, 0.32), ylim = c(-0.2,0.3), expand = F) + # ensure aspect ratio
-#   labs(x = paste("PC1"), 
-#        y = paste("PC2")) +
-#   theme(panel.grid.major = element_blank(),
-#         panel.grid.minor = element_blank())
-#   #guides(shape = guide_legend(order = 2, override.aes=list(size = 2)),
-#   #       alpha = guide_legend(order = 3, override.aes=list(size = 2)), 
-#   #       fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2)))
-
-
-# annotate collage boxes within main plot
-# p <- p + 
-#   annotate(geom = "rect", xmin = -0.39, ymin = -0.11, 
-#            xmax = -0.17, ymax = 0.04, fill = NA, colour = "grey50", linetype = "dashed", alpha = 0.8) +
-#   annotate(geom = "rect", xmin = -0.1, xmax = 0.28,
-#            ymin = - 0.17, ymax = 0.3, fill = NA, colour = "grey50", linetype = "dashed", alpha = 0.8) +
-#   #annotate(geom = "rect", xmin = -0.1, xmax = 0.28,
-#   #         ymin = - 0.12, ymax = 0.245, fill = NA, colour = "grey50", linetype = "dashed", alpha = 0.8) +
-#   annotate(geom = "text", x = c(-0.41,-0.12), 
-#            y = c(0.035,0.295), label = c("b","c"), alpha = 0.7, colour = "grey50") #"d", x = -0.085, y = 0.23
-# 
-# # combine all plots into one
-# (collage <- ggarrange(p, 
-#           ggarrange(zoom.terr,  zoom.est, ncol = 2, labels = c("b","c"), align = "hv"), #zoom.river,
-#           nrow = 2, labels = c("a"), heights = c(0.6, 0.4))
-# )
+(p <- dna.pcoa$plot + theme_cust(base_theme = "pubr",
+                                border = T) + guides(colour = "none"))
 
 # save
 ggsave(paste0("./Figures/Submission/Figure2_new.tiff"), p,
        width = 14, height = 10, unit = "cm", dpi = 300)
-
-ggsave(paste0("./Figures/Final/PCoA_hellin_DNA_SampleType_n.tiff"), p,
-       width = 12, height = 10, unit = "cm", dpi = 300)
-ggsave(paste0("./Figures/Final/PCoA_hellin_DNA_SampleType_n.png"),  p,
-       width = 12, height = 10, unit = "cm", dpi = 300)
-
-ggsave(paste0("./Figures/Final/PCoA_hellin_DNA_collage_n.tiff"), collage,
-       width = 18, height = 15, unit = "cm", dpi = 300)
-ggsave(paste0("./Figures/Final/PCoA_hellin_DNA_collage_n.png"),  collage,
-       width = 18, height = 15, unit = "cm", dpi = 300)
-
-rm(collage, p, zoom.river, zoom.est, zoom.terr)
 
 # PERMANOVA -------------------------------------------------------------------------------------
 # sensitive towards unbalanced sampling designs = bias.adjust
@@ -603,12 +500,15 @@ row.names(t) <- NULL
 # all pair-wise comparisons that are significant
 t <- t[t$p.adj < 0.05,]
 
+# get n of seasons
+# temp <- sample_df(dna) %>% setDT()
+# temp[, .(n = .N), by = .(Season)]
+
 ## Figure 2: DNA-RNA -----------------------------------------------------------------------------------
 # Q2: Are the DNA and RNA assemblages different?
 
 # remove OTUs that only appear in RNA
 pb <- prune_taxa(taxa_names(pb) %in% taxa_names(dna), pb)
-
 # removing of OTUs that only appear in DNA did not have a difference on results
 
 # extract species table with species in columns
@@ -640,23 +540,11 @@ all.pcoa <- plot_pcoa(pb.bray.pcoa, physeq = pb, axes = c(1:3), colours = colvec
 # plot second and third axes
 pcoa.23 <- plot_pcoa(pb.bray.pcoa, physeq = pb, plot.axes = c(3,2), colours = colvec, output = T)
 
-# extract legends
-# add grey box to colour legend
-#leg1 <- get_legend(all.pcoa$plot + theme_cust(base_theme = "pubr") + 
-#                     theme(legend.key = element_rect(fill = "gray50")) +
-#                                           guides(colour = guide_legend(order = 3, size = 2.5,
-#                                                                 override.aes = list(fill = "grey20",
-#                                                                                     shape = 21)),
-#                                                  fill = F, shape = F))
-#leg2 <- get_legend(all.pcoa$plot + theme_cust(base_theme = "pubr") + guides(colour = F) +
-#                     theme(legend.margin = margin(3,5.5,3,5.5)))
-# change layout to remove gap between legends
-#legs <- gtable_rbind(leg2, leg1)
-#legs$layout[4,c(1,3)] <- c(9,9)
-
+# Make hulls around DNA and RNA
 find_hull <- function(x, axes){x[chull(x[,paste0("Axis.",axes[1])], x[,paste0("Axis.",axes[2])]),]}
 hulls <- ddply(all.pcoa$df, "dna_type", find_hull, axes = c(1,2))
-                           
+
+# Plot first two axes
 pcoa.plot <- ggplot(all.pcoa$df, aes(x =Axis.1, 
                                            y = Axis.2)) +
   theme_cust(base_theme = "pubr",
@@ -680,8 +568,10 @@ pcoa.plot <- ggplot(all.pcoa$df, aes(x =Axis.1,
          size = FALSE)
 
 # 2nd dimension
+# Get hulls
 hulls <- ddply(pcoa.23$df, "dna_type", find_hull, axes = c(3,2))
 
+# Plot first and third axes
 pcoa.plot2 <- ggplot(pcoa.23$df, aes(x =Axis.3, 
                                      y = Axis.2)) +
   theme_cust(base_theme = "pubr",
@@ -697,16 +587,15 @@ pcoa.plot2 <- ggplot(pcoa.23$df, aes(x =Axis.3,
   scale_shape_manual(values = c(21,23,25)) +
   
   #scale_size_manual(values = c(2.5, 2.6), name = "Nucleic Acid \nType") +
-  labs(x = paste0("PC1 (", round(pcoa.23$var[1,"var"],
+  labs(x = paste0("PC3 (", round(pcoa.23$var[1,"var"],
                                  digits = 1),"%)"), 
        y = paste0("PC2 (", round(pcoa.23$var[2,"var"],
                                  digits = 1),"%)")) +
   guides(shape = guide_legend(order = 2, override.aes=list(size = 2)),
          fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2)),
          size = FALSE)
-  
-pcoa.plot2 <- pcoa.23$plot +  + theme(legend.position = "none")
 
+# Combine two plots together
 (p <- ggarrange(pcoa.plot, pcoa.plot2, ncol = 2,
                align = "hv", labels = "auto", common.legend = T, # legend.grob = legs,
                legend = "right"))
@@ -715,19 +604,14 @@ pcoa.plot2 <- pcoa.23$plot +  + theme(legend.position = "none")
 ggsave(paste0("./Figures/Submission/Figure3_new.tiff"), p,
        width = 21, height = 11, unit = "cm", dpi = 300)
 
-ggsave(paste0("./Figures/Final/PCoA_all_SampleType_n.tiff"), p,
-       width = 20, height = 11, unit = "cm", dpi = 300)
-ggsave(paste0("./Figures/Final/PCoA_all_SampleType_n.png"),  p,
-       width = 20, height = 11, unit = "cm", dpi = 300)
-
-# check screeplot
-ggplot(pb.bray.pcoa$values[pb.bray.pcoa$values$Eigenvalues > 1,],
-       aes(x = as.numeric(row.names(pb.bray.pcoa$values[pb.bray.pcoa$values$Eigenvalues >= 1,])), y = Eigenvalues)) +
-         geom_col()
-
-# how many axes to have 75% of variance captured?
-nrow(pb.bray.pcoa$values[pb.bray.pcoa$values$Cumul_eig <= 0.75,])
-# 192 axes
+# # check screeplot
+# ggplot(pb.bray.pcoa$values[pb.bray.pcoa$values$Eigenvalues > 1,],
+#        aes(x = as.numeric(row.names(pb.bray.pcoa$values[pb.bray.pcoa$values$Eigenvalues >= 1,])), y = Eigenvalues)) +
+#          geom_col()
+# 
+# # how many axes to have 75% of variance captured?
+# nrow(pb.bray.pcoa$values[pb.bray.pcoa$values$Cumul_eig <= 0.75,])
+# # 192 axes
 
 # explore other axes
 #for(i in 2:ncol(pb.bray.pcoa$vectors)){
@@ -845,8 +729,9 @@ knitr::kable(permanova.df, "latex", booktabs = T) %>%
   add_header_above(c(" " = 2, "PERMANOVA" = 4, "PERMDISP" = 3)) %>%
   collapse_rows(columns = 1, valign = "middle")
 
-write.xlsx(permanova.df, file = "./Manuscript/Tables/table1.xlsx", sheetName = "Sheet1", 
-           col.names = TRUE, row.names = FALSE)
+# ISME needs excel
+# write.xlsx(permanova.df, file = "./Manuscript/Tables/table1.xlsx", sheetName = "Sheet1", 
+#            col.names = TRUE, row.names = FALSE)
 
 # \begin{table}[H]
 # \centering
@@ -890,29 +775,8 @@ p <- p %>% layout(scene = list(xaxis =
                                  list(title = paste("PC3 [", unique(plot.df$z), "%]"))))
 p
 
-# for(i in seq(0,6.3,by=0.1)){
-#   outfile <- paste("plot",round(i,digits=2), sep = "_")
-#   cam.zoom = 2
-#   ver.angle = 0
-#   graph <- p %>%
-#     layout(scene=list(camera = list(eye = list(x = cos(i)*cam.zoom,y = sin(i)*cam.zoom, z=0.2),
-#                                     center = list(x = 0,
-#                                                   y = 0,
-#                                                   z = 0
-#                                     )
-#                       )
-#     )
-#     )
-#   graph
-#   
-#   
-#   cat("Now rendering iteration:", i,"\n")
-#   plotly::orca(graph, file = paste(outfile,"png", sep="."),
-#                  width = 1200,
-#                  height = 1050)
-# }
-
-htmlwidgets::saveWidget(as_widget(p), "PCoA_DNARNA_Season_3D.html")
+# save
+#htmlwidgets::saveWidget(as_widget(p), "PCoA_DNARNA_Season_3D.html")
 
 ## Figure 4: Distance -----------------------------------------------------------------------------------
 # Q: How different are the the DNA and RNA assemblages of the same sample?
@@ -935,93 +799,27 @@ soren.32 <- plot_pcoa(pb.soren.pcoa, physeq = pb, plot.axes = c(3,2), colour = c
 # how many axes to have 75% of variance captured?
 nrow(pb.soren.pcoa$values[pb.soren.pcoa$values$Cumul_eig <= 0.75,])
 # 204 axes
-
-# extract legends
-# add grey box to colour legend
-# same as bray curtis
+hulls.12 <- ddply(soren.12$df, "dna_type", find_hull, axes = c(1,2))
+hulls.32 <- ddply(soren.32$df, "dna_type", find_hull, axes = c(3,2))
 
 # plot Sorensen plots for supplementary
-(p <- ggarrange(soren.12$plot + theme(legend.position = "none"),
-                soren.32$plot + theme(legend.position = "none"),
-                ncol = 2, common.legend = T, legend.grob = legs,
+(p <- ggarrange(soren.12$plot + theme_cust(base_theme = "pubr",
+                                           border = T) + 
+                  scale_linetype_manual(values = c("solid","dotted"), name = "Nucleic Acid Type") +
+                  geom_polygon(data = hulls.12, alpha = 0, aes(linetype = dna_type), fill = "white", colour = "black"),
+                soren.32$plot + theme_cust(base_theme = "pubr",
+                                         border = T) + 
+                  scale_linetype_manual(values = c("solid","dotted"), name = "Nucleic Acid Type") +
+                  geom_polygon(data = hulls.32, alpha = 0, aes(linetype = dna_type), fill = "white", colour = "black"),
+                ncol = 2, common.legend = T,
                 legend = "right",
                align = "hv", labels = "auto"))
 
 # save
-ggsave(paste0("./Figures/Final/PCoA_all_Sorensen.tiff"), p,
-       width = 20, height = 11, unit = "cm")
-ggsave(paste0("./Figures/Final/PCoA_all_Sorensen.png"),  p,
-       width = 20, height = 11, unit = "cm")
-
-#-------------------------------------------------------#
-# Extract pair-wise dissimilarity among DNA-RNA samples #
-#-------------------------------------------------------#
-# convert distance matrix into long format
-dissim.df <- rbind(melt.dist(pb.bray) %>% mutate(Metric = "Bray"),
-                   melt.dist(pb.soren) %>% mutate(Metric = "Sorensen"))
-
-# Get meta data to rename DNA and RNA data
-meta <- data.frame(Sample = as.character(row.names(sample_df(pb))),
-                   sample_df(pb) %>% dplyr::select(dr_match_name, dna_type, year, Season, sample.type.year), 
-                   stringsAsFactors = F)
-
-# add meta data for both sample x and sample y
-dissim.df <- merge(dissim.df, meta, by.x =  "Sample.x", by.y = "Sample")
-dissim.df <- merge(dissim.df, meta %>% select(dna_type, Sample, year, dr_match_name), by.x =  "Sample.y", by.y = "Sample")
-
-# omit all samples of 2015 (no RNA was taken, and sample name strategy changed -> creates duplicates)
-dissim.df <- dissim.df[dissim.df$year.x != 2015,]
-dissim.df <- dissim.df[dissim.df$year.y != 2015,]
-
-# keep all rows where Sample.x and Sample.y are the same
-dissim.df <- dissim.df[dissim.df$dr_match_name.x == dissim.df$dr_match_name.y,]
-dissim.df <- dissim.df[!(dissim.df$dna_type.x == dissim.df$dna_type.y),] # omit all distances between same dna_type
-
-dissim.dr <- dissim.df %>% select(Metric, ID = dr_match_name.x, year = year.x, Season, sample.type.year, dist)
-setDT(dissim.dr)
-
-# add new column to split plot into main and side panel
-dissim.dr[, panels := "main"]
-dissim.dr[sample.type.year == "Tributary" |
-          sample.type.year == "Lake" |
-          sample.type.year == "Riverine \nLakes" |
-          sample.type.year == "Sediment", panels := "side"]
-
-# calculate confidence interval and means of sample type and season combinations
-sum.dissim <- dissim.dr[, .(mean =  mean(dist, na.rm = T),
-                       conf.int = conf.int(dist),
-                       stdev = sd(dist, na.rm = T)), by = .(Metric,sample.type.year, Season, panels)]
-
-cast.dis <- dcast(dissim.dr, ID + sample.type.year + Season + panels ~ Metric, value.var = "dist")
-
-(pw.sorbray <- ggplot(cast.dis, aes(x =  Bray, y = Sorensen)) +
-  theme_cust() +
-  geom_point(aes(fill = sample.type.year, shape = Season), size = 2, alpha = 0.9) +
-  scale_fill_manual(values =  colvec[names(colvec) %in% as.character(levels(cast.dis$sample.type.year))],
-                    name = "Habitat Type") +
-  scale_shape_manual(values = c(21, 23, 25)) +
-  labs(x = expression(paste("DNA-RNA ", italic(D)["BC"])), #paste("Pairwise ", italic(D)["BC"]^"DNA:RNA")
-       y = expression(paste("DNA-RNA ", italic(D)["S"]))) +
-  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
-  annotate(geom = "text", x = 0.53, y = 0.57, label = "1:1", angle = 45, size = 3) +
-  theme(legend.key.size = unit(1.5, "lines"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        legend.key.height = unit(0.4, "cm")) +
-  guides(fill = guide_legend(override.aes=list(shape=21, size = 2), order = 1),
-         shape = guide_legend(override.aes=list(size = 2)))
-)
-
-ggplot(cast.dis, aes(y = Sorensen, x =  Bray)) +
-  theme_bw() +
-  geom_point(aes(fill = Season), size = 3, shape = 21) +
-  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
-  labs(x = expression(paste(italic(D)["BC"])), y = expression(paste(italic(D)["S"]))) +
-  annotate(geom = "text", x = 0.55, y = 0.57, label = "1:1", angle = 45) +
-  theme(legend.key.size = unit(1.5, "lines"),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank()) +
-  guides(fill = guide_legend(override.aes=list(shape=21), order = 1))
+# ggsave(paste0("./Figures/Final/PCoA_all_Sorensen.tiff"), p,
+#        width = 20, height = 11, unit = "cm")
+# ggsave(paste0("./Figures/Final/PCoA_all_Sorensen.png"),  p,
+#        width = 20, height = 11, unit = "cm")
 
 #-------------------------------------------------------------#
 # Calculate distance between DNA and RNA points in PCoA space #
@@ -1044,17 +842,6 @@ setcolorder(data, c("Sample","Metric",
                     "sample.type.year","Season","year", "dna_type","distance.from.mouth","dr_match_name",
                     colnames(data)[!(colnames(data) %in% c("Sample","Metric",
                                                            "sample.type.year","Season","year", "dna_type","distance.from.mouth","dr_match_name"))]))
-# melt datatable
-temp <- melt.data.table(data, id.vars = c("dr_match_name","dna_type", "Metric"), measure.vars = patterns("^Axis."),
-             variable.name = "Axis", value.name = "Coordinates")
-temp <- dcast(temp, dr_match_name + Axis + Metric ~ dna_type, value.var = c("Coordinates"))
-# remove NAs
-temp <- na.omit(temp)
-
-# Calculate distance of all axes
-temp[, pnt.dist := (abs(DNA - RNA))^2] # calculate point distance for each axis and square root
-temp <- temp[, .(sum.dist = sum(pnt.dist)), by = .(Metric, dr_match_name)] # sum temp axes
-temp <- temp[, dist := sqrt(sum.dist)]
 
 # Calculate distance among axes capturing 75% of variation
 # For Bray-Curtis
@@ -1091,11 +878,6 @@ temp.75 <- temp.75[, .(sum.dist = sum(pnt.dist)), by = .(Metric, dr_match_name)]
 temp.75 <- temp.75[, dist := sqrt(sum.dist)] # take sqrt
 
 # combine back with categories
-# all axes
-dist.dr <- temp[data, c("sample.type.year",
-                        "year", "Season") := list(i.sample.type.year,
-                                                  i.year, i.Season), on = .(dr_match_name)]
-# 75% variance
 dist.75 <- temp.75[data, c("sample.type.year",
                            "year", "Season") := list(i.sample.type.year,
                                                      i.year, i.Season), on = .(dr_match_name)]
@@ -1113,7 +895,7 @@ sum.delta <- diff.df[, .(mean =  mean(dist, na.rm = T),
                         n = .N),
                     by = .(sample.type.year, Season, Metric)]
 
-# check summary values for results
+# check summary values for season means
 diff.df[,.(mean =  mean(dist, na.rm = T),
            stdev = sd(dist, na.rm = T),
            n = .N),
@@ -1121,76 +903,37 @@ diff.df[,.(mean =  mean(dist, na.rm = T),
 
 
 # calculate confidence interval and means of sample type and season combinations
-# All axes
-sum.dist <- dist.dr[, .(mean =  mean(dist, na.rm = T),
-                       conf.int = conf.int(dist),
-                       stdev = sd(dist, na.rm = T),
-                       n = .N),
-                   by = .(Metric, sample.type.year, Season)]
-dist.dr[, .(mean =  mean(dist, na.rm = T),
-                        stdev = sd(dist, na.rm = T),
-                        n = .N),
-                    by = .(Metric,Season)]
-
-# only 75%
 sum.dist75 <- dist.75[, .(mean =  mean(dist, na.rm = T),
                           conf.int = conf.int(dist),
                           stdev = sd(dist, na.rm = T),
                           n = .N),
                       by = .(Metric, sample.type.year, Season)]
-
+# check values for season summaries
 dist.75[, .(mean =  mean(dist, na.rm = T),
             stdev = sd(dist, na.rm = T),
             n = .N),
         by = .(Metric,Season)]
 
 # add new column to split plot into main and side panel
-sum.ls <- lapply(list(sum.dist, sum.dist75, sum.delta), function(x){
+sum.ls <- lapply(list(sum.dist75, sum.delta), function(x){
   x[, panels := "main"]
   x[sample.type.year == "Tributary" |
                sample.type.year == "Lake" |
-               sample.type.year == "Riverine \nLakes" |
+               sample.type.year == "Riverine Lakes" |
                sample.type.year == "Sediment", panels := "side"]
   x[, sample.type.year := factor(sample.type.year, levels = c("Soil","Sediment",
                                                               "Soilwater",
                                                               "Stream", "Tributary",
-                                                              "Riverine \nLakes", "Headwater \nPonds", "Lake",
+                                                              "Riverine Lakes", "Headwater Ponds", "Lake",
                                                               "Upriver",
                                                               "Reservoirs","Downriver",
                                                               "Estuary"))]
 })
 
-
-
-# Proof that distance is extracting part of the individual pairwise dissimilarity
-# If distance is calculated over all PCoA dimension, we back-calculate the pairwise dissimilarity
-all.ax <- merge(dissim.dr[dissim.dr$Metric == "Bray",], 
-                dist.dr[dist.dr$Metric == "Bray",], 
-                by.x = "ID", by.y = "dr_match_name")
-
-#all.ax <- merge(dissim.dr[dissim.dr$Metric == "Sorensen",], 
-#                dist.dr[dist.dr$Metric == "Sorensen",], 
-#                by.x = "ID", by.y = "dr_match_name") # works for both metrics
-
-(p <- ggplot(all.ax, aes(x = dist.x, y = dist.y, fill = sample.type.year.x)) +
-  theme_bw() +
-  geom_point(shape = 21) +
-  scale_fill_manual(values = colvec, name = "Habitat Type") +
-  labs(x = expression(paste("Pairwise ", italic("D")["BC"])),
-       y = expression(paste(italic("m")["BC"]^"n = 100%")))
-)
-
-ggsave("./Figures/General/allaxesdist_dissim_cor.png", p)
-
-#------------------------------------------------------------------------------------------
-# Extract dissimilarity
-
-
-##########################
-# Lollipop plots of distance
-temp <- sum.ls[[3]][!is.nan(sum.ls[[3]]$mean),]
+# Figure 4 ---------------------------------------------------------------------------------------------------------
+temp <- sum.ls[[2]][!is.nan(sum.ls[[2]]$mean),]
 # Rename level for plotting
-levels(temp$sample.type.year)[levels(temp$sample.type.year) == "Riverine \nLakes"] <- "Riv. Lakes"
+levels(temp$sample.type.year)[levels(temp$sample.type.year) == "Riverine Lakes"] <- "Riv. Lakes"
 names(colvec)[7] <- "Riv. Lakes"
 
 plot.df <- dcast(temp, sample.type.year + Season + panels ~ Metric, value.var = "mean")
@@ -1296,10 +1039,10 @@ m.down <- ggplot(plot.df[panels == "main",], ) +
   scale_fill_manual(values = colvec, name = "Habitat type") +
   scale_linetype_manual(values = c("solid","dashed","dotted")) +
   scale_shape_manual(values = c(21, 23, 25)) +
-  labs(y= expression(paste(Delta, " Distances")), x = "Habitat Type") +
+  labs(y= expression(paste(Delta, " Distance")), x = "Habitat Type") +
   scale_x_continuous(breaks = 1:length(unique(as.character(plot.df[panels == "main",]$sample.type.year))),
                      labels = unique(as.character(plot.df[panels == "main",]$sample.type.year))) +
-  theme(axis.text.x = element_text(angle = 45, hjust =1),
+  theme(axis.text.x = element_text(angle = 90, hjust =1, vjust = 0.5),
         axis.text = element_text(size = 8),
         axis.title.x = element_blank(),
         strip.background = element_blank(),
@@ -1319,7 +1062,7 @@ s.down <-ggplot(plot.df[panels == "side",], ) +
   labs(y= expression(paste(Delta, " Distances")), x = "Habitat Type") +
   theme(
     axis.title.x = element_blank(),
-    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
     axis.text = element_text(size = 8),
     axis.title.y = element_blank(),
     axis.text.y = element_blank(),
@@ -1336,20 +1079,84 @@ down <- ggarrange(m.down,s.down, ncol = 2, widths = c(3,1), legend = "none")
 
 up <- ggarrange(m,s, ncol = 2, nrow = 1,  widths = c(3,1), legend = "none")
 
-(dist.p <- ggarrange(up, down, nrow = 2, ncol = 1, common.legend = T, legend.grob = legs, legend = "right",
+(dist.p <- ggarrange(up, down, nrow = 2, ncol = 1, common.legend = T,  legend = "right",
+                     legend.grob = legs,
           heights = c(2,1), align = "v", labels = "auto", vjust = .9))
 
-ggsave("./Figures/Submission/Figure4.tiff", dist.p, 
+ggsave("./Figures/Submission/Figure4_new.tiff", dist.p, 
        width = 18, height = 13, units = "cm", dpi = 300)
 
-ggsave("./Figures/Final/distance_lollipop_n.png", dist.p, 
-       width = 18, height = 13, units = "cm", dpi = 300)
-ggsave("./Figures/Final/distance_lollipop_n.tiff", dist.p, 
-       width = 18, height = 13, units = "cm", dpi = 300)
+# Distance across all axes should equal pair-wise dissimilarity ---------------------------------------------------------------------
+# dissim.df <- rbind(melt.dist(pb.bray) %>% mutate(Metric = "Bray"),
+#                    melt.dist(pb.soren) %>% mutate(Metric = "Sorensen"))
+# 
+# # Get meta data to rename DNA and RNA data
+# meta <- data.frame(Sample = as.character(row.names(sample_df(pb))),
+#                    sample_df(pb) %>% dplyr::select(dr_match_name, dna_type, year, Season, sample.type.year), 
+#                    stringsAsFactors = F)
+# 
+# # add meta data for both sample x and sample y
+# dissim.df <- merge(dissim.df, meta, by.x =  "Sample.x", by.y = "Sample")
+# dissim.df <- merge(dissim.df, meta %>% select(dna_type, Sample, year, dr_match_name), by.x =  "Sample.y", by.y = "Sample")
+# 
+# # omit all samples of 2015 (no RNA was taken, and sample name strategy changed -> creates duplicates)
+# dissim.df <- dissim.df[dissim.df$year.x != 2015,]
+# dissim.df <- dissim.df[dissim.df$year.y != 2015,]
+# 
+# # keep all rows where Sample.x and Sample.y are the same
+# dissim.df <- dissim.df[dissim.df$dr_match_name.x == dissim.df$dr_match_name.y,]
+# dissim.df <- dissim.df[!(dissim.df$dna_type.x == dissim.df$dna_type.y),] # omit all distances between same dna_type
+# 
+# # convert distance matrix into long format
+# dissim.dr <- dissim.df %>% select(Metric, ID = dr_match_name.x, year = year.x, Season, sample.type.year, dist)
+# setDT(dissim.dr)
+# 
+# # melt datatable
+# temp <- melt.data.table(data, id.vars = c("dr_match_name","dna_type", "Metric"), measure.vars = patterns("^Axis."),
+#                         variable.name = "Axis", value.name = "Coordinates")
+# temp <- dcast(temp, dr_match_name + Axis + Metric ~ dna_type, value.var = c("Coordinates"))
+# # remove NAs
+# temp <- na.omit(temp)
+# 
+# # Calculate distance of all axes
+# temp[, pnt.dist := (abs(DNA - RNA))^2] # calculate point distance for each axis and square root
+# temp <- temp[, .(sum.dist = sum(pnt.dist)), by = .(Metric, dr_match_name)] # sum temp axes
+# temp <- temp[, dist := sqrt(sum.dist)]
+# 
+# # all axes
+# dist.dr <- temp[data, c("sample.type.year",
+#                         "year", "Season") := list(i.sample.type.year,
+#                                                   i.year, i.Season), on = .(dr_match_name)]
+# 
+# # add new column to split plot into main and side panel
+# dissim.dr[, panels := "main"]
+# dissim.dr[sample.type.year == "Tributary" |
+#             sample.type.year == "Lake" |
+#             sample.type.year == "Riverine \nLakes" |
+#             sample.type.year == "Sediment", panels := "side"]
+# 
+# # If distance is calculated over all PCoA dimension, we back-calculate the pairwise dissimilarity
+# all.ax <- merge(dissim.dr[dissim.dr$Metric == "Bray",], 
+#                 dist.dr[dist.dr$Metric == "Bray",], 
+#                 by.x = "ID", by.y = "dr_match_name")
+# 
+# #all.ax <- merge(dissim.dr[dissim.dr$Metric == "Sorensen",], 
+# #                dist.dr[dist.dr$Metric == "Sorensen",], 
+# #                by.x = "ID", by.y = "dr_match_name") # works for both metrics
+# 
+# (p <- ggplot(all.ax, aes(x = dist.x, y = dist.y, fill = sample.type.year.x)) +
+#     theme_bw() +
+#     geom_point(shape = 21) +
+#     scale_fill_manual(values = colvec, name = "Habitat Type") +
+#     labs(x = expression(paste("Pairwise ", italic("D")["BC"])),
+#          y = expression(paste(italic("m")["BC"]^"n = 100%")))
+# )
+# 
+# ggsave("./Figures/General/allaxesdist_dissim_cor.png", p)
 
 
 # What is behind these patterns? ------------------------------------------------------------------------
-# Figure 5.: Where were OTUs first observed and what is their contribution to DNA and RNA pools? --------
+# Where were OTUs first observed and what is their contribution to DNA and RNA pools? -------------------
 
 # melt community matrix for tidy data set
 commat <- melt.data.table(
@@ -1515,9 +1322,6 @@ classif.thres[, .(mean.max = mean(max),
 first.df[DNA >= 72, abg.dna := "Abundant"]
 first.df[DNA < 72 & DNA >= 10, abg.dna := "Moderate"]
 first.df[DNA < 10, abg.dna := "Rare"]
-#first.df[DNA >= 66, abg.rna := "Abundant"]
-#first.df[DNA < 66 & DNA >= 9, abg.rna := "Moderate"]
-#first.df[DNA < 9, abg.rna := "Rare"]
 
 # Extract reactive fraction: RNA > 0
 rna.df <- first.df[RNA > 0, 
@@ -1575,6 +1379,7 @@ mean.df <- mean.df[,.(perc.sum.rna.otu = mean(perc.sum.rna.byotu, na.rm = T),
                       mean.ratio = mean(mean.ratio, na.rm = T)),
                    by = .(sample.type.year, abg.dna, first.obs, Season, quan.bin)]
 
+# What's the slope of the relationship?
 mean.mean <- mean.df[quan.bin == 2, .(mean = mean(perc.sum.rna.otu),
                                       sd = sd(perc.sum.rna.otu)), by = .(first.obs)]
 
@@ -1582,17 +1387,16 @@ lins <- dlply(mean.df[quan.bin == 2,], .(sample.type.year, Season), function(x){
   lm(log(perc.sum.dna.otu) ~ log(perc.sum.rna.otu), data = x)
 })
 
-
-ggplot() +
-  geom_point(aes(x = lins[[2]]$model$`log(perc.sum.rna.otu)`, y = lins[[2]]$model$`log(perc.sum.dna.otu)`)) +
-  geom_line(aes(x = lins[[2]]$model$`log(perc.sum.rna.otu)`, y = lins[[2]]$fitted.values))
+# ggplot() +
+#   geom_point(aes(x = lins[[2]]$model$`log(perc.sum.rna.otu)`, y = lins[[2]]$model$`log(perc.sum.dna.otu)`)) +
+#   geom_line(aes(x = lins[[2]]$model$`log(perc.sum.rna.otu)`, y = lins[[2]]$fitted.values))
 
 (slopes.df <- ldply(lins, coef))
 mean(slopes.df$`log(perc.sum.rna.otu)`)
 
 mean.mean %>% arrange(mean)
 
-# Prepare for plotting
+# Figure 5 ---------------------------------------------------------------------------------------------------
 # overwrite soil colour, original beige is too hard to see
 new.col <- colvec
 new.col[names(new.col) == "Soil"] <- "gold"
@@ -1625,7 +1429,7 @@ mean.df[, sample.type.year := factor(sample.type.year, levels = c("Soil", "Soilw
 
 # Categorize median bins
 mean.df[, quan.bin := factor(quan.bin, levels = c(2,1),
-                           labels = c("> 0.0067","< 0.0067"))]
+                           labels = c("> 0.0067 %","< 0.0067 %"))]
 
 
 (perc.cont.dna.rna <- ggplot(mean.df[!is.na(quan.bin),]) +
@@ -1636,7 +1440,7 @@ mean.df[, quan.bin := factor(quan.bin, levels = c(2,1),
                linetype = "solid", colour = "gray70") +
     geom_smooth(aes(x = log(perc.sum.dna.otu), y = log(perc.sum.rna.otu), group = as.character(quan.bin)),
                 method = "lm", se = F, colour = "gray30", size = 0.5, linetype = "solid",
-                data = mean.df[!is.na(quan.bin) & quan.bin == "> 0.0067",]) +
+                data = mean.df[!is.na(quan.bin) & quan.bin == "> 0.0067 %",]) +
     #ggforce::geom_mark_ellipse(data = subset(mean.df[!is.na(quan.bin) & Season == "Summer" 
     #                                        & sample.type.year == "Soil",], (quan.bin == 2)),
     #                  aes(x = log(perc.sum.dna.otu), y = log(perc.sum.rna.otu), group = as.character(quan.bin)),
@@ -1644,22 +1448,22 @@ mean.df[, quan.bin := factor(quan.bin, levels = c(2,1),
     geom_point(aes(x = log(perc.sum.dna.otu), y = log(perc.sum.rna.otu), colour = first.obs,
                    shape = abg.dna, fill = quan.bin), alpha = 0.9, size =2) +
     geom_text(data = ann_df,
-              aes(y = perc.sum.rna.otu +1, x = perc.sum.dna.otu+1.2), label = "Threshold", size =2.5,
+              aes(y = perc.sum.rna.otu +1, x = perc.sum.dna.otu+0.5), label = "PRT", size =2.5,
               colour = "gray50") +
     scale_colour_manual(values = new.col,
                         name = "First \ndetected in") +
     scale_shape_manual(values = c(21,23,25),
                        name = "Local DNA\nabundance") +
     scale_fill_manual(values = c("white","gray80"),
-                      name = "Bins of \n% RNA reads") +
+                      name = "Potential reactivity\nthreshold (PRT)") +
     scale_y_continuous(limits = c(min(log(mean.df$perc.sum.rna.otu), na.rm = T) - 1, 
                                   max(log(mean.df$perc.sum.rna.otu), na.rm = T) + 1)) +
     theme(panel.grid = element_blank(),
           legend.position = "right",
           strip.background = element_rect(fill = "gray20"),
           strip.text = element_text(colour = "white", size = 9)) +
-    labs(x = "Mean % OTU contribution to\nlocal DNA pool (log-scale)",
-         y = "Mean % OTU contribution to\nlocal RNA pool (log-scale)") +
+    labs(x = "Mean OTU contribution to\nlocal DNA pool (%, log-scale)",
+         y = "Mean OTU contribution to\nlocal RNA pool (%, log-scale)") +
     guides(shape = guide_legend(order = 2, override.aes=list(size = 3)),
            fill = guide_legend(order = 1, override.aes=list(shape=21, size = 3)),
            colour = guide_legend(order = 3, override.aes=list(size = 3))))
@@ -1692,7 +1496,7 @@ subdf[, perc.dna := sum.first.medlow * 100 / sum.dna]
 
 # Categorize median bins
 subdf[, quan.bin := factor(quan.bin, levels = c(2,1),
-                              labels = c("> Threshold\n(reactive)","< Threshold\n(unreactive)"))]
+                              labels = c("> PRT\n(reactive)","< PRT\n(unreactive)"))]
 # Add a new bin for the non RNA OTUs
 subdf[is.na(quan.bin), quan.bin := "RNA = 0\n(unreactive)"]
 
@@ -1708,7 +1512,7 @@ subdf[, sample.type.year := factor(sample.type.year, levels = c("Soil", "Soilwat
           axis.title.x = element_blank(),
           strip.background = element_rect(fill = "gray20"),
           strip.text = element_text(colour = "white", size = 9)) +
-    labs(x = "Habitat type", y = "% of reads in\nlocal DNA pool") +
+    labs(x = "Habitat type", y = "Proportion of reads in\nlocal DNA pool (%)") +
     scale_fill_manual(values = colvec[names(colvec) %in% subdf$sample.type.year],
                       name = "First observed in") +
     guides(fill = "none"))
@@ -1717,12 +1521,12 @@ subdf[, sample.type.year := factor(sample.type.year, levels = c("Soil", "Soilwat
   theme_cust("pubr") +
   geom_col(aes(y = perc.dna, fill = first.obs), colour = "gray20", size = 0.3) +
   facet_grid(quan.bin~Season, scale = "free_x", space = "free") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 9),
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 9),
         #axis.title.y = element_blank(),
         strip.background.x = element_blank(),
         strip.background = element_rect(fill = "gray20"),
         strip.text = element_text(colour = "white", size = 9)) +
-  labs(x = "Habitat type", y = "% of reads in\nlocal DNA pool") +
+  labs(x = "Habitat type", y = "Proportion of reads in\nlocal DNA pool (%)") +
   scale_fill_manual(values = colvec[names(colvec) %in% subdf$sample.type.year],
                     name = "First observed in") +
   guides(fill = "none"))
@@ -1731,8 +1535,9 @@ subdf[, sample.type.year := factor(sample.type.year, levels = c("Soil", "Soilwat
 
 (perc.cont.col <- 
   ggarrange(ggarrange(un.perc.dna, perc.dna, nrow = 2, heights = c(1,2.1), labels = c("a","c")),
-          ann.perc.cont.dna.rna, ncol = 2, labels = c("","b"),
-          widths = c(1.4,2),
+            NULL,
+          ann.perc.cont.dna.rna, ncol = 3, labels = c("","","b"),
+          widths = c(1.4,0.2,2),
           legend.grob = get_legend(perc.cont.dna.rna), legend = "right"))
 
 #(perc.cont.col <- ggarrange(ggarrange(ann.perc.cont.dna.rna,
@@ -1742,15 +1547,8 @@ subdf[, sample.type.year := factor(sample.type.year, levels = c("Soil", "Soilwat
 #                            perc.dna, ncol = 2, labels = "auto", widths = c(2,1.1),
 #                            legend.grob = get_legend(perc.cont.dna.rna), legend = "bottom"))
 
-ggsave("./Figures/Submission/Figure5.tiff", 
-       perc.cont.col, width = 25, height = 15, units = "cm", dpi = 300)
-
-ggsave("./Figures/Final/first.observed.contribution.thresbins_n.png", 
-       perc.cont.col, width = 25, height = 15, units = "cm", dpi = 300)
-ggsave("./Figures/Final/first.observed.contribution.thresbins_n.tiff", 
-       perc.cont.col, width = 25, height = 15, units = "cm", dpi = 300)
-
-subdf[, .(sum = sum(perc.dna)), by = .(quan.bin)]
+ggsave("./Figures/Submission/Figure5_new.tiff", 
+       perc.cont.col, width = 26, height = 15, units = "cm", dpi = 300)
 
 # Calculate % OTU for supplementary -------------------------------------------------------------------------
 
@@ -1794,15 +1592,153 @@ ggsave("./Figures/Final/reactive.unreative.pies_n.png",
 (unreac.bar <- ggplot(group.count, aes(y = perc.otu, fill = un.reactive)) +
   theme_cust("pubr") +
   facet_grid(.~Season, scale = "free_x", space = "free") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 9),
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 9),
         strip.background = element_rect(fill = "gray20"),
         strip.text = element_text(colour = "white", size = 9)) +
   geom_col(aes(x = sample.type.year),colour = "gray20", size = 0.3) +
   scale_fill_viridis_d(direction = -1, option = "cividis", name = "Fraction", labels = c("Reactive","Unreactive")) +
-  labs(y = "% of bacterial OTUs", x = "Habitat type"))
+  labs(y = "Proportion of bacterial OTUs (%)", x = "Habitat type"))
 
 ggsave("./Figures/Final/reactive.unreative.barplot_n.png", 
        unreac.bar, width = 12, height = 6, units = "cm", dpi = 300)
+
+# In terms of reads? -----------------------------------------------------------------------------------------
+# get the sum of reads for each DNA and RNA pool
+sums.dna <- subdf[DNA > 0,
+             .(sum.reads = sum(DNA, na.rm = T)), by = .(sample.type.year, Season)] #dr_match_name
+sums.rna <- subdf[RNA > 0,
+                  .(sum.reads = sum(RNA, na.rm = T)), by = .(sample.type.year, Season)] #dr_match_name
+
+# count sums for each group
+sum.group.dna <- subdf[DNA > 0,.(reads.reactive = sum(DNA, na.rm = T)), by = .(sample.type.year, Season, un.reactive)]
+sum.group.rna <- subdf[RNA > 0,.(reads.reactive = sum(RNA, na.rm = T)), by = .(sample.type.year, Season, un.reactive)]
+
+# calculate percentage
+sum.group.dna[sums.dna, "sum.reads" := i.sum.reads, on = .(sample.type.year, Season)]
+sum.group.rna[sums.rna, "sum.reads" := i.sum.reads, on = .(sample.type.year, Season)]
+
+sum.group.dna[, perc.reads := reads.reactive * 100 / sum.reads]
+sum.group.rna[, perc.reads := reads.reactive * 100 / sum.reads]
+
+
+# sanity check
+sum.group.dna[, .(sum = sum(perc.reads)), by = .(sample.type.year, Season)]
+sum.group.rna[, .(sum = sum(perc.reads)), by = .(sample.type.year, Season)]
+
+# Merge
+sum.group.dna[, dna_type := "DNA"]; sum.group.rna[, dna_type := "RNA"]
+group.reads <- bind_rows(sum.group.dna, sum.group.rna)
+
+
+(unreac.bar.reads <- ggplot(group.reads, aes(y = perc.reads, fill = un.reactive)) +
+    theme_cust("pubr") +
+    facet_grid(dna_type~Season, scale = "free_x", space = "free") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 9),
+          strip.background = element_rect(fill = "gray20"),
+          strip.text = element_text(colour = "white", size = 9)) +
+    geom_col(aes(x = sample.type.year),colour = "gray20", size = 0.3) +
+    scale_fill_viridis_d(direction = -1, option = "cividis", name = "Fraction", labels = c("Reactive","Unreactive")) +
+    labs(y = "Proportion of reads (%)", x = "Habitat type"))
+
+merge.props <- ggarrange(unreac.bar, unreac.bar.reads, nrow = 2, align = "hv", heights = c(0.7,1),
+          common.legend = T)
+
+ggsave("./Figures/Final/reactive.unreative.barplot_reads&otus.png", 
+       merge.props, width = 12, height = 16, units = "cm", dpi = 300)
+
+# Calculate delta distance and regressions for supplementary --------------------------------------------------------------------
+# get OTU list
+# cast so that we can calculate difference between DNA and RNA of each OTU
+temp <- dcast(commat, dr_match_name + sample.type.year + Season + OTU ~ dna_type, value.var = c("reads"))
+
+temp <- temp[!is.na(diff),]
+
+
+# calculate some metrics
+temp[DNA > 0 & RNA == 0, n.uni.dna := .N, .(dr_match_name)] # how many OTUs are unique to DNA?
+temp[, diff := DNA - RNA] # abundance difference
+
+# extract single values per sample
+mets <- temp[, .(n.uni.dna = unique(.SD[!is.na(n.uni.dna),]$n.uni.dna),
+                   mean.ab.diff = mean(diff, na.rm = T)), by = .(dr_match_name, sample.type.year, Season)]
+
+# merge with delta
+mets[diff.df[Metric == "delta",], delta := i.dist, on = .(dr_match_name)]
+
+# calculate means
+# mean.df <- mets[,.(n.uni.dna = mean(n.uni.dna, na.rm = T),
+#         mean.ab.diff = mean(mean.ab.diff, na.rm = T),
+#         delta = mean(delta, na.rm = T)), by = .(sample.type.year, Season)]
+
+# Unique OTUs
+uni.lm <- lm(log(n.uni.dna) ~ delta, data = mets)
+summary(uni.lm)
+#plot(uni.lm)
+# Re-level
+levels(mets$sample.type.year)[levels(mets$sample.type.year) == "Riverine Lakes"] <- "Riv. Lakes"
+levels(mean.df$sample.type.year)[levels(mean.df$sample.type.year) == "Riverine Lakes"] <- "Riv. Lakes"
+
+# Plot
+a <- ggplot(mets, aes(x = delta, y = log(n.uni.dna))) +
+  theme_pubr() +
+  geom_smooth(method = 'lm', colour = "black", size = 0.5) +
+  annotate(geom = "text",
+           y = 3,
+           x = 0,
+           label = lm.eq(uni.lm)[1],
+           parse = T) +
+  annotate(geom = "text",
+           y = 2.5,
+           x = 0,
+           label = lm.eq(uni.lm)[2],
+           parse = T) +
+  geom_point(aes(fill = sample.type.year, shape = Season)) +
+  scale_fill_manual(values = colvec[names(colvec) %in% levels(mets$sample.type.year)], name = "Habitat Type") +
+  scale_shape_manual(values = c(21,23,25), name = "Season") +
+  theme(legend.position = "right") +
+  labs(x = expression(paste(Delta, " Distance")),
+       y = "Number of OTUs not in RNA\n(= unreactive OTUs, log-scale)") +
+  guides(fill = guide_legend(order = 2, override.aes=list(shape = 21)),
+         shape = guide_legend(order = 1))
+
+# Abundance
+outly <- mets %>%
+  rstatix::identify_outliers(mean.ab.diff) %>%
+  filter(is.outlier == T) %>%
+  select(dr_match_name)
+cor.mean <- mets[!(dr_match_name %in% outly$dr_match_name),]
+
+ab.lm <- lm(mean.ab.diff ~ delta, data = cor.mean)
+#plot(ab.lm)
+summary(ab.lm)
+
+b <- ggplot(cor.mean, aes(x = delta, y =mean.ab.diff)) +
+  theme_pubr() +
+  geom_smooth(method = 'lm', colour = "black", size = 0.5) +
+  annotate(geom = "text",
+           y = 1.3,
+           x = 0.6,
+           label = lm.eq(ab.lm)[1],
+           parse = T) +
+  annotate(geom = "text",
+           y = 1.1,
+           x = 0.6,
+           label = lm.eq(ab.lm)[2],
+           parse = T) +
+  geom_point(aes(fill = sample.type.year, shape = Season)) +
+  scale_fill_manual(values = colvec[names(colvec) %in% levels(mets$sample.type.year)], name = "Habitat type") +
+  scale_shape_manual(values = c(21,23,25)) +
+  theme(legend.position = "right") +
+  labs(x = expression(paste(Delta, " Distance")),
+       y = "Mean reads difference\nbetween DNA and RNA") +
+  guides(fill = guide_legend(order = 2, override.aes=list(shape = 21)),
+         shape = guide_legend(order = 1))
+
+out <- ggarrange(a,b, ncol = 2, align = 'hv', common.legend = T, labels = "auto")
+
+saveRDS(a, "./Objects/deltareg_nonRNA_plot.rds")
+saveRDS(b, "./Objects/deltareg_abund_plot.rds")
+
 
 #---------------------#
 #------- Done! -------#

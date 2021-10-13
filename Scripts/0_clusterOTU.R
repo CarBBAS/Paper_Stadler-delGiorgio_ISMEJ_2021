@@ -1,6 +1,8 @@
 #-- Script for the publication:
-#-- Title
-#-- Responsible author: Masumi Stadler
+#-- Terrestrial connectivity, upstream aquatic history and seasonality shape bacterial
+#-- community assembly within a large boreal aquatic network. The ISME Journal.
+#-- Authors: Masumi Stadler & Paul A. del Giorgio
+#-- Responsible code author: Masumi Stadler
 
 # This script is the first of a series of scripts that were used to analyse the data
 # used in the publication.

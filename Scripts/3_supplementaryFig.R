@@ -1,8 +1,10 @@
 #-- Script for the publication:
-#-- Title
-#-- Responsible author: Masumi Stadler
+#-- Terrestrial connectivity, upstream aquatic history and seasonality shape bacterial
+#-- community assembly within a large boreal aquatic network. The ISME Journal.
+#-- Authors: Masumi Stadler & Paul A. del Giorgio
+#-- Responsible code author: Masumi Stadler
 
-# This script is the last of a series of scripts that were used to analyse the data
+# This script is the fourth of a series of scripts that were used to analyse the data
 # used in the publication.
 
 # In this script we create additional supplementary figures
@@ -103,7 +105,7 @@ met.df$sample.type.year <- factor(met.df$sample.type.year, levels = c("Soil","Se
                                   labels = c("Soil","Sediment",
                                              "Soilwater","Soilwater", 
                                              "Groundwater","Stream", "Tributary",
-                                             "Riverine \nLakes", "Headwater \nPonds", "Lake", "Lake",
+                                             "Riverine Lakes", "Headwater Ponds", "Lake", "Lake",
                                              "Upriver",# "RO3", "RO2", "RO1","Deep",
                                              "Reservoirs","Reservoirs", "Reservoirs","Reservoirs",
                                              "Downriver",
@@ -152,7 +154,7 @@ names(colvec) <- as.character(sample.factors) # assign names for later easy sele
 theme_set(theme_bw())
 
 
-# Rarefaction richness comparison -------------------------------------------------------------------
+# Fig. S2: Rarefaction richness comparison -------------------------------------------------------------------
 # Do not run this code if you have a slow computer, or if you want to go quickly through the script
 # Read in intermediate data frame in line 214 onwards
 df <- sample_df(pb)
@@ -221,8 +223,6 @@ write.table(alpha.df, paste0("./Output/alpha_div_otu99_summary_", Sys.Date(),".c
 # Do not run above code again, takes time
 # read in processed data frame
 
-# Fig. S2 -------------------------------------------------------------------------------------
-
 alpha.df <- select_newest("./Output/", "alpha_div_otu99_summary_")
 alpha.df <- read.csv(paste0("./Output/", alpha.df), sep = ",", stringsAsFactors = F)
 
@@ -278,8 +278,7 @@ p <- ggarrange(rar.box, rar.lin, nrow = 2, labels = "auto", common.legend = T, l
 ggsave("./Figures/Final/alphadiv_comp.png", p,
        width = 26, height = 30, unit = "cm")
 
-# Fig. S5 -------------------------------------------------------------------------------------
-# Abundance classification
+# Fig. S7: Abundance classification ---------------------------------------------------------------------------------
 rel.df <- select_newest("./Objects", "201520162017_css_otu99_paper1_")
 rel.df <- readRDS(
   paste0("./Objects/", rel.df))
@@ -360,8 +359,7 @@ ggsave("./Figures/Final/abundance_class_ex_otu99.png", p,
 
 
 
-# Fig. S6 -------------------------------------------------------------------------------------
-# Taxonomic composition
+# Fig. S8: Taxonomic composition ----------------------------------------------------------------------------------
 # We want to show the taxonomic composition of our samples plus the abundance
 # As we have too many samples, best would probably be to calcualte the mean abundance for each group
 # Groups are: sample.type.year + dna_type + Season
@@ -602,8 +600,7 @@ ggsave("./Figures/Final/Tax_LibSiz_Phyla_otus_gtdb.png", combo,
        width = 300, height = 203, unit = "mm", dpi = 400)
 
 
-# Fig. S7 -------------------------------------------------------------------------------------
-# Only terrestrial PCoA
+# Fig. S9: Only terrestrial PCoA -------------------------------------------------------------------------------------
 
 ter <- subset_samples(pb, sample.type.year == "Soil" |
                         sample.type.year == "Sediment" |
@@ -632,28 +629,36 @@ pb.bray.pcoa <- ape::pcoa(pb.bray)
 dna.pcoa <- plot_pcoa(pb.bray.pcoa, 
                       physeq = ter, colours = colvec, output = T)
 
-leg1 <- get_legend(dna.pcoa$plot + theme(legend.key = element_rect(fill = "gray50")) +
-                     guides(colour = guide_legend(order = 3, size = 2.5,
-                                                  override.aes = list(fill = "grey20",
-                                                                      shape = 21)),
-                            fill = F, shape = F))
-leg2 <- get_legend(dna.pcoa$plot + guides(colour = F) +
-                     theme(legend.margin = margin(3,5.5,3,5.5)))
-# change layout to remove gap between legends
-legs <- gtable_rbind(leg2, leg1)
-legs$layout[4,c(1,3)] <- c(9,9)
+# Make hulls around DNA and RNA
+find_hull <- function(x, axes){x[chull(x[,paste0("Axis.",axes[1])], x[,paste0("Axis.",axes[2])]),]}
+hulls <- ddply(dna.pcoa$df, "dna_type", find_hull, axes = c(1,2))
 
-(p <- ggarrange(dna.pcoa$plot + guides(alpha = "none"),
-                legend.grob = legs,
-                legend = "right"))
+p <- ggplot(dna.pcoa$df, aes(x = Axis.1, 
+                                     y = Axis.2)) +
+  theme_cust(base_theme = "pubr",
+             border = T) +
+  geom_hline(yintercept =  0, colour = "grey80", size = 0.4) +
+  geom_vline(xintercept = 0, colour = "grey80", size = 0.4) +
+  scale_fill_manual(values = colvec[names(colvec) %in% as.character(levels(dna.pcoa$df$sample.type.year))],
+                    name = "Habitat Type") +
+  geom_point(aes(fill = sample.type.year, shape = Season), size=2.5) + #colour = dna_type,
+  geom_polygon(data = hulls, alpha = 0, aes(linetype = dna_type), fill = "white", colour = "black") +
+  scale_linetype_manual(values = c("solid","dotted"), name = "Nucleic Acid Type") +
+  coord_fixed(1) + # ensure aspect ratio
+  scale_shape_manual(values = c(21,23,25)) +
+  #scale_size_manual(values = c(2.5, 2.6), name = "Nucleic Acid \nType") +
+  labs(x = paste0("PC1 (", round(dna.pcoa$var[1,"var"],
+                                 digits = 1),"%)"), 
+       y = paste0("PC2 (", round(dna.pcoa$var[2,"var"],
+                                 digits = 1),"%)")) +
+  guides(shape = guide_legend(order = 2, override.aes=list(size = 2)),
+         fill = guide_legend(order = 1, override.aes=list(shape=21, size = 2)),
+         size = FALSE)
 
-
-ggsave("./Figures/Final/terr_PCoA_gtdb.png", p,
+ggsave("./Figures/Final/terr_PCoA_gtdb_hulls.png", p,
        width = 12, height = 10, unit = "cm")
 
-# Fig. S8 -------------------------------------------------------------------------------------
-# RNA PCoA
-
+# Fig. S10: RNA PCoA -------------------------------------------------------------------------------------
 # subset only RNA samples
 rna <- subset_samples(pb, dna_type == "RNA")
 
@@ -685,61 +690,8 @@ p <- rna.pcoa$plot
 ggsave(paste0("./Figures/Final/PCoA_RNA_SampleType_gtdb.png"),  p,
        width = 12, height = 10, unit = "cm")
 
-
 # Extra --------------------------------------------------------------------------------------------
 # Fig. Sx -------------------------------------------------------------------------------------
-abio <- met.df %>%
-  select(sample.type.year, Season, DR.names,
-         distance.from.mouth,DOC,TN,TP, chla, temp.water.ysi, do.conc.ysi, ph.ysi, bact.abundance) %>%
-  distinct()
-
-# make abundance log
-abio <- abio %>% mutate(bact.abundance = log(bact.abundance))
-
-setDT(abio)
-abio <- melt(abio, id.vars = c("sample.type.year", "Season","DR.names", "distance.from.mouth"),
-             measure.vars = c("DOC","TN","TP", "chla", "temp.water.ysi", "do.conc.ysi", "ph.ysi",
-                              "bact.abundance"), variable.name = "Parameter")
-
-# rename parameters
-abio$Parameter <- factor(abio$Parameter, levels = c("temp.water.ysi", "do.conc.ysi", "ph.ysi",
-                                                    "DOC", "TN", "TP",
-                                                    "chla", "bact.abundance"),
-                         labels = c("Temperature~('°C')",
-                                    "DO~(mgL^{-1})",
-                                    "pH",
-                                    "DOC~(mgL^{-1})",
-                                    "TN~(µgL^{-1})",
-                                    "TP~(µgL^{-1})",
-                                    "Chl~a~(µg^{-1})",
-                                    "Bact.~Abundance~(cells~mL^{-1})"))
-
-abio[,sample.type.year := as.character(sample.type.year)]
-abio[sample.type.year == "Riverine \nLakes", sample.type.year := "Riverine Lakes"]
-abio[sample.type.year == "Headwater \nPonds", sample.type.year := "Headwater Ponds"]
-
-abio$sample.type.year <- factor(abio$sample.type.year, levels = c("Soil", "Sediment",
-                                                                  "Soilwater", "Groundwater",
-                                                                  "Stream", "Tributary",
-                                                                  "Riverine Lakes", "Headwater Ponds",
-                                                                  "Lake",
-                                                                  "Upriver", "Reservoirs",
-                                                                  "Downriver", "Estuary"))
-
-(p <- ggplot(abio, aes(x = sample.type.year, y = value, fill = Season)) +
-    facet_wrap(~Parameter, scales = "free_y", labeller = label_parsed) +
-    scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
-    geom_boxplot(outlier.size = 0.5) +
-    theme(strip.background = element_rect(fill = "white"),
-          panel.grid = element_blank(),
-          axis.title.y = element_blank(),
-          axis.text.x = element_text(angle = 45, hjust = 1)) +
-    labs(x = "Habitat type")
-)
-ggsave("./Figures/Final/abiotic_vars.png", p,
-       width = 25, height = 15, unit = "cm")
-
-# Fig. Sx2 -------------------------------------------------------------------------------------
 # DNA ~ RNA richness
 alpha.df <- select_newest("./Output/", "alpha_div_otu99_summary_")
 alpha.df <- read.csv(paste0("./Output/", alpha.df), sep = ",", stringsAsFactors = F)
