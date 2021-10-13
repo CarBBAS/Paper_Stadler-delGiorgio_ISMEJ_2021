@@ -2,7 +2,7 @@
 
 ---
 
-### Reactive bacterioplankton reveal assembly dynamics along a boreal terrestrial-aquatic continuum :microbe::national_park:
+### Terrestrial connectivity, upstream aquatic history and seasonality shape bacterial community assembly within a large boreal aquatic network :microbe::national_park:
 
 Authored by: Masumi Stadler and Paul A. del Giorgio
 
@@ -10,7 +10,7 @@ Affiliation: Groupe de Recherche Interuniversitaire en Limnologie (GRIL), Dépar
 
 ---
 
-**This work is in the making **
+**This work has been accepted by The ISME Journal **
 
 ---
 
@@ -20,15 +20,12 @@ xxx
 ---
 
 ## Data availability:
-Raw sequences are available on the public NCBI Sequence Read Archive (SRA) under the accession number SRxxxxx part of the BioProject PRJNA69302.
+Raw sequences are available on the public NCBI Sequence Read Archive (SRA) as part of the BioProject PRJNA69302.
 
 ---
 
-## Description
-In this study we have investigated a natural river in the North-East of Québec (Canada) that was dammed with 3 reservoirs over 3 years.
-This unique setting allows us to investigate how microbial communities respond to shifts in residence time in their DNA and RNA.
-Furthermore, we have sampled a continuum from soil, soilwater, streams, river, reservoirs until the estuary.
-By covering a large spatial and ecological gradient we are able to decipher how microbial communities move and respond along a landscape.
+## Abstract
+During transit from soils to the ocean, microbial communities are modified and re-assembled, generating complex patterns of ecological succession. The potential effect of upstream assembly on downstream microbial community composition is seldom considered within aquatic networks. Here, we reconstructed the microbial succession along a land-freshwater-estuary continuum within La Romaine river watershed in Northeastern Canada. We captured hydrological seasonality and differentiated the total and reactive community by sequencing both 16S rRNA genes and transcripts. By examining how DNA- and RNA-based assemblages diverge and converge along the continuum, we inferred temporal shifts in the relative importance of assembly processes, with mass effects dominant in spring, and species selection becoming stronger in summer. The location of strongest selection within the network differed between seasons, suggesting that selection hotspots shift depending on hydrological conditions. The unreactive fraction (no/minor RNA contribution) was composed of taxa with diverse potential origins along the whole aquatic network, while the majority of the reactive pool (major RNA contribution) could be traced to soil/soilwater taxa, which were distributed along the entire rank-abundance curve. Overall, our findings highlight the importance of considering upstream history, hydrological seasonality and the reactive microbial fraction to fully understand microbial community assembly on a network scale.
 
 ---
 
