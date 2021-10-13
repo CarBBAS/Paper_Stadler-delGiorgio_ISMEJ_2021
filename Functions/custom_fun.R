@@ -137,6 +137,24 @@ abbrev.p <- function(x){
   return(out)
 }
 
+# Extract linear regression formula and statistics
+lm.eq <- function(x){
+  lm_coef <- list(a = as.numeric(round(summary(x)$coefficients[1], digits = 2)),
+                  b = as.numeric(round(summary(x)$coefficients[2], digits = 2)),
+                  r2 = round(summary(x)$r.squared, digits = 2),
+                  pval = abbrev.p(anova(x)$`Pr(>F)`[1])[1]);
+  if(lm_coef$b < 0){
+    lm_coef$b <- abs(lm_coef$b)
+    lm_eq <- c(substitute(italic(y) == a - b %.% italic(x), lm_coef),
+               substitute(~~italic(R)^2~"="~r2*","~~italic(p)~pval, lm_coef))
+  } else{
+    lm_eq <- c(substitute(italic(y) == a + b %.% italic(x), lm_coef),
+               substitute(~~italic(R)^2~"="~r2*","~~italic(p)~pval, lm_coef))
+  }
+  
+  return(as.character(as.expression(lm_eq)))
+}
+
 
 #####################
 ## Curve functions ##
