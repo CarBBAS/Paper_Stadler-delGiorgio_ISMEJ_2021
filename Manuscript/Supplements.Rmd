@@ -1,24 +1,39 @@
 ---
 title: |
   | Supplementary information:
-  | Reactive bacterioplankton reveal assembly dynamics along a boreal terrestrial-aquatic continuum
+  | Terrestrial connectivity, upstream aquatic history and
+  | \vspace{-.6cm} seasonality shape bacterial community assembly within
+  | \vspace{-.6cm} a large boreal aquatic network
 
 author: "Stadler, Masumi & del Giorgio, Paul A."
 output:
-  pdf_document:
-    toc: yes
-    toc_depth: '3'
+    bookdown::pdf_document2:
+      toc: yes
+      toc_depth: '3'
+      number_sections: false
 header-includes:
     - \usepackage{setspace}\doublespacing
+    - \usepackage[labelfont=bf]{caption} % change figure caption to bold
+    - \renewcommand{\thefigure}{S\arabic{figure}}
+    - \usepackage{float}
+    - \floatplacement{figure}{H}
+    - \usepackage[nottoc]{tocbibind}
+    - \usepackage{lmodern} %load modern fonts
+    - \usepackage{helvet} % lead helvetica font
+    - \renewcommand{\familydefault}{\sfdefault} % without this helvetica does not work on linux
 bibliography: ./LaTeX/LR_miccom_paper.bib
 biblio-style: apalike
 ---
 
+\newpage
+
+The following document contains the supplementary material for the publication "Terrestrial connectivity, upstream aquatic history and seasonality shape bacterial community assembly within a large boreal aquatic network". The corresponding R code for the supplementary material can be found on the publication's Github repository: https://github.com/CarBBAS/Paper_Stadler&delGiorgio_ISMEJ_2021.
+
+24 Pages, 13 Figures, 2 Tables
+
 ---
 
-The following document contains the supplementary material for the publication "Reactive bacterioplankton reveal assembly dynamics along a boreal terrestrial-aquatic continuum" (DOI: xx). The corresponding R code for the supplementary material can be found on the publication's Github repository: https://github.com/CarBBAS/xxx.
-
-16 Pages, 11 Figures, 1 Table
+\listoffigures
 
 \newpage
 
@@ -36,138 +51,133 @@ source("../Functions/custom_fun.R")
 
 The river springs between the Atlantic and Saint Lawrence watersheds (52\textdegree{}52'20"N 63\textdegree{}36'55"W; elevation: 702 masl), and consequently flows through a series of lakes (hereafter riverine lakes) including the biggest lake in the catchment – Lake Brûlé (\textit{A}: 127.11 km\textsuperscript{2}, elevation: 470 masl). The river mainly flows towards the South with a maximum distance from the northern headwaters to the river mouth expanding to approximately 475.1 km. 
 
-The catchment was glaciated 7 000 – 10 000 years ago and left mostly a till blanket and veneer as surficial material. It is mainly dominated by acid rocks (e.g. granodiorite, granite, quart diorite) with granitised sedimentary and volcanic rock, and has isolated patches of permafrost (0-10\%)(Natural Resources Canada). The soil is composed of roughly 61.4\% sand, 31.9\% silt, 6.7\% clay and stores approximately 140.4 t ha\textsuperscript{-1} of organic carbon (in top 5 cm; given are catchment averages) (@Lehner2013, @Hengl2014).
+The catchment was glaciated 7 000 – 10 000 years ago and left mostly a till blanket and veneer as surficial material. It is mainly dominated by acid rocks (e.g. granodiorite, granite, quart diorite) with granitized sedimentary and volcanic rock, and has isolated patches of permafrost (0-10\%)(Natural Resources Canada). The soil is composed of roughly 61.4\% sand, 31.9\% silt, 6.7\% clay and stores approximately 140.4 t ha\textsuperscript{-1} of organic carbon (in top 5 cm; given are catchment averages) (@Lehner2013, @Hengl2014).
 
-The northern part of the catchment is characterised by a flat open black spruce (\textit{Picea mariana})-lichen forest with shrubs and moss-lichen (Fig. S1a). As one follows the river downstream, the relief changes drastically to a steep mountainous stretch that forms sections of canyons (Fig. S1b). The river looses 330 m of elevation from the mountainous section until it makes a sharp turn to the west into the lower coastal plain. The coastal plain is characterised by peatland areas with swamps and shallow waters that are completely permafrost free (Fig. S1c). There are two larger tributaries in the coastal plain that flow through the lakes Puyjalon (\textit{A}: 13.10 km\textsuperscript{2}) and Allard (\textit{A}: 19.24 km\textsuperscript{2}). Nearly half of the catchment is covered by coniferous forests (\textit{P.mariana}-moss), with mixed forests being rather minor (11\%) and deciduous stands with white birch (\textit{Betula papyrifera}) and trembling aspen (\textit{Populus tremuloides}) are even more rare (2\%)(@HQreport2009).
+The northern part of the catchment is characterised by a flat open black spruce (\textit{Picea mariana})-lichen forest with shrubs and moss-lichen (Fig. \@ref(fig:collage)a). As one follows the river downstream, the relief changes drastically to a steep mountainous stretch that forms sections of canyons (Fig. \@ref(fig:collage)b). The river looses 330 m of elevation from the mountainous section until it makes a sharp turn to the west into the lower coastal plain. The coastal plain is characterised by peatland areas with swamps and shallow waters that are completely permafrost free (Fig. \@ref(fig:collage)c). There are two larger tributaries in the coastal plain that flow through the lakes Puyjalon (\textit{A}: 13.10 km\textsuperscript{2}) and Allard (\textit{A}: 19.24 km\textsuperscript{2}). Nearly half of the catchment is covered by coniferous forests (\textit{P.mariana}-moss), with mixed forests being rather minor (11\%) and deciduous stands with white birch (\textit{Betula papyrifera}) and trembling aspen (\textit{Populus tremuloides}) are even more rare (2\%)(@HQreport2009).
 
 The Romaine river was dammed during the sampling period, forming a reservoir cascade complex with 4 reservoirs by 2020 after the sampling period. The reservoirs Romaine 2 (RO2, \textit{A}: 81.15 km\textsuperscript{2}, mean depth: 61 m), Romaine 1 (RO1, \textit{A}: 13.22 km\textsuperscript{2}, mean depth: 22 m) and Romaine 3 (RO3, \textit{A}: 35.18 km\textsuperscript{2}, mean depth: 66 m) were flooded in the years 2014 (winter), 2015 (winter), and 2017 (spring), respectively.
 
 A weather station located in the lower coastal plain (50\textdegree{} 16'55.000" N, 63\textdegree{} 36'41.000" W, Havre-Saint-Pierre Airport, Natural Resources Canada) recorded an annual precipitation of 810.77 $\pm$ 35.25 mm and 1.18 $\pm$ 0.73 \textdegree{}C, -32.63 $\pm$ 1.36 \textdegree{}C, and 25.8 $\pm$ 0.66 \textdegree{}C for mean, minimum and maximum temperature over the sampled years.
 
+```{r collage, echo=FALSE, fig.show='hold',fig.align='center', out.width = "70%", fig.cap = "\\textbf{Landscape within the Romaine catchment.} (a) Northern area with shrubs and moss-lichen, (b) Mountainous section close to Reservoir 3, (c) Lower coastal plain with peatland areas, (d) Example of a sampled stream."}
+knitr::include_graphics("./Figures/LR_photo_collage.png")
+``` 
+
 ## SM2: Sample processing and sequencing
 
-Surface water samples were directly collected into a pre-rinsed carboy bottle at a depth of 0.5 m, close to the shore for stream samples and diverse locations within the river and reservoirs. Surface soil samples were collected by mixing three randomly selected cores (30 cm) that were taken in proximity of installed piezometers to sample soilwater. The upper 5 cm including surface vegetation were removed before the soil was transferred into a sterile plastic bag. Three piezometers were randomly installed in proximity (30-100 cm) to a sampled stream with an average depth of 50 $\pm$ 20 cm. However, if the piezometers were installed too close to the stream main channel, hyporheic water was sampled instead. Piezometers were emptied 3 times (1-2 h) with a peristaltic pump before sample water was collected. The water from the piezometers was pooled for each site. Groundwater was directly collected from constructed wells with submersible pumps. Lake sediment samples were collected with sediment cores (1-2 m depth), and the upper 10 cm were collected and mixed for subsequent processing. All samples were stored at 4 \textdegree{}C upon arrival at the laboratory until further processing on the same day of sampling. A minimum of 25 mL and 250 mL of soil-/hyporheic-water and surface water, respectively, were filtered through 0.22 µm polycarbonate membrane filters (Merck Millipore, Darmstadt, Germany). Homogenized soil and sediment samples were transferred to aliquots of 0.25 g. After filtration, samples for RNA extraction were submerged in RNAlater\textsuperscript{\textregistered} and LifeGuard\textsuperscript{\textregistered} Soil Preservation solution (QIAGEN\textsuperscript{\textregistered}, Hilden, Germany) for water and humic samples (soil, soilwater, hyporheic water), respectively. To allow stabilisation in the buffer, samples were left at 4 \textdegree{}C overnight and were subsequently stored frozen. All DNA and RNA samples were frozen at -20 \textdegree{}C at the field station and further stored at -80 \textdegree{}C at the university laboratory until extraction.
+Surface water samples were directly collected into a pre-rinsed carboy bottle at a depth of 0.5 m, close to the shore for stream samples and diverse locations within the river and reservoirs. Surface soil samples were collected by mixing three randomly selected cores (30 cm) that were taken in proximity of installed piezometers to sample soilwater. The upper 5 cm including surface vegetation were removed before the soil was transferred into a sterile plastic bag. Three piezometers were randomly installed in proximity (30-100 cm) to a sampled stream with an average depth of 50 $\pm$ 20 cm. However, if the piezometers were installed too close to the stream main channel, hyporheic water was sampled instead. Piezometers were emptied 3 times (1-2 h) with a peristaltic pump before sample water was collected. The water from the piezometers was pooled for each site. Groundwater was directly collected from constructed wells with submersible pumps. Lake sediment samples were collected with sediment cores (1-2 m depth), and the upper 10 cm were collected and mixed for subsequent processing. All samples were stored in cooler boxes until return to the laboratory (maximum duration 7h), and were subsequently stored at 4 \textdegree{}C upon arrival at the laboratory until further processing on the same day of sampling. A minimum of 25 mL and 250 mL of soil-/hyporheic-water and surface water, respectively, were filtered through 0.22 µm polycarbonate membrane filters (Merck Millipore, Darmstadt, Germany). Homogenized soil and sediment samples were transferred to aliquots of 0.25 g. After filtration, samples for RNA extraction were submerged in RNAlater and LifeGuard Soil Preservation solution (QIAGEN, Hilden, Germany) for water and humic samples (soil, soilwater, hyporheic water), respectively. To allow stabilisation in the buffer, samples were left at 4 \textdegree{}C overnight and were subsequently stored frozen. All DNA and RNA samples were frozen at -20 \textdegree{}C at the field station and further stored at -80 \textdegree{}C at the university laboratory until extraction.
 
-For extractions, PowerWater\textsuperscript{\textregistered} and PowerSoil\textsuperscript{\textregistered} DNA and RNA extraction kits (MoBio, Carlsbad, CA, USA) were used to extract water and soil/soil-/hyporheic-water/sediment samples, respectively. In 2017, the equivalent DNeasy\textsuperscript{\textregistered} and RNeasy\textsuperscript{\textregistered} PowerWater\textsuperscript{\textregistered} Kits (QIAGEN\textsuperscript{\textregistered}, Hilden, Germany) were used for DNA and RNA samples, respectively, due to discontinuation of the MoBio kit series.
+For extractions, PowerWater and PowerSoil DNA and RNA extraction kits (MoBio, Carlsbad, CA, USA) were used to extract water and soil/soil-/hyporheic-water/sediment samples, respectively. In 2017, the equivalent DNeasy and RNeasy PowerWater Kits (QIAGEN, Hilden, Germany) were used for DNA and RNA samples, respectively, due to discontinuation of the MoBio kit series.
 
-Prior to cDNA reverse transcription, RNA extracts were checked for DNA contamination with a negative PCR test. Subsequently, cDNA was synthesised with a high capacity cDNA Reverse Transcription Kit (Applied Biosystems\textsuperscript{\texttrademark}, Foster City, CA, USA). Successful DNA extraction and cDNA synthesis was evaluated via PCR amplification of the 515F-806R primers (IDT Technologies, Coralville, IA, USA) and DNA concentration was measured with a NanoDrop 2000c (Thermo Fisher Scientific Inc., Waltham, MA, USA).
+Prior to cDNA reverse transcription, RNA extracts were checked for DNA contamination with a negative PCR test. Subsequently, cDNA was synthesised with a high capacity cDNA Reverse Transcription Kit (Applied Biosystems, Foster City, CA, USA). Successful DNA extraction and cDNA synthesis was evaluated via PCR amplification of the 515F-806R primers (IDT Technologies, Coralville, IA, USA) and DNA concentration was measured with a NanoDrop 2000c (Thermo Fisher Scientific Inc., Waltham, MA, USA).
 
 ## SM3: Bioinformatic analysis
 Primers were removed from 16S rRNA DNA and cDNA (hereafter RNA) data sets using the software \textit{cutadapt} (Version 1.18, @Martin2013), which allows for the removal of the primer sequence and its variants in their true and complement orientations. Additionally, all reads shorter than 125 nucleotides were removed as they cannot achieve a minimum overlap necessary for paired-end merging in downstream processing.
 
-To identify amplicon sequence variants (ASVs), 16S rRNA amplicon reads were analysed through the DADA2 (Divisive Amplicon Denoising Algorithm 2) pipeline (Version 1.14.1, @Callahan2017) on R Version 3.6.3 @RCoreTeam2017). Read qualities were evaluated for each sequencing plate separately and read length was trimmed according to their quality scores. The most conservative trimming criteria still allowed for an overlap of forward and reverse reads by 60 bp. Samples were pooled by plate, season and sequencing depth for learning the error rates. DADA2 runs on a sample by sample basis, and thus removes observed singletons by sample to avoid inclusion of false-positive sequencing errors. To retain more rare taxa within a sampling campaign (year-season combinations) along the continuum, samples were 'pseudo'-pooled for the \textit{dada()} step.  This step enables the removal of singletons by pool but retains singletons within a sample. Paired-ends were merged after successful inference of amplicon variants. Subsequently, all ASVs that are identical in sequence but differ only by length were merged together with \textit{collapseNoMismatch()}, leading to ASVs that represent a unit similar to 100\% similarity operational taxonomic units (OTUs) and chimeras were removed (\textit{removeBimeraDenovo()}). Finally, taxonomy was assigned with the \textit{DECIPHER} package (Version 2.14.0, @Wright2016) implementing the increased accuracy IDTAXA algorithm @Murali2018 and the provided trained classifier of the SILVA database (Version 138, @Pruesse2007). Only ASVs that were classified as Bacteria and not as Mitochondria or Chloroplast were evaluated in this study. Even after merging ASVs into 100\% OTUs, several ASVs were found to be highly abundant only in RNA. To account for slight differences that may have emerged between DNA and RNA ASVs and also to merge potential differences among 16S rRNA copies within a single genome, ASVs were merged into OTUs by a 99\% similarity threshold @Vetrovsky2013 with the \textit{DECIPHER} package (\textit{AlignSeqs(), DistanceMatrix(), IdClusters()}, @Wright2016). To keep computational power low due to the size of the data set, OTU clustering was conducted within taxonomical pools. Such that ASVs classified only as "Bacteria" without any classification in further ranks were pooled for clustering, while any ASV with a classification in any higher rank was clustered with other ASVs that had the same highest assigned taxonomical rank (e.g. "Bacteria-Proteobacteria-Gammaproteobacteria-Burkholderiales-Burkholderiaceae-Limnobacter" pool).
+To identify amplicon sequence variants (ASVs), 16S rRNA amplicon reads were analysed through the DADA2 (Divisive Amplicon Denoising Algorithm 2) pipeline (Version 1.14.1, @Callahan2017) on R Version 3.6.3 @RCoreTeam2017). Read qualities were evaluated for each sequencing plate separately and read length was trimmed according to their quality scores. Samples were pooled by plate, season and sequencing depth for learning the error rates. DADA2 runs on a sample by sample basis, and thus removes observed singletons by sample to avoid inclusion of false-positive sequencing errors. To retain more rare taxa within a sampling campaign (year-season combinations) along the continuum, samples were 'pseudo'-pooled for the \textit{dada()} step.  This step enables the removal of singletons by pool but retains singletons within a sample. Paired-ends were merged after successful inference of amplicon variants. Chimeras were removed (\textit{removeBimeraDenovo()}) and, finally, taxonomy was assigned with the \textit{DECIPHER} package (Version 2.14.0, @Wright2016) implementing the increased accuracy IDTAXA algorithm @Murali2018 and the provided trained classifier of the GTDB database (Release 95, @Parks2018). Only ASVs that were classified as Bacteria and not as Mitochondria or Chloroplast were evaluated in this study. Several ASVs were found to be highly abundant only in RNA. To account for slight differences that may have emerged between DNA and RNA ASVs and also to merge potential differences among 16S rRNA copies within a single genome, ASVs were merged into OTUs by a 99\% similarity threshold @Vetrovsky2013 with the \textit{DECIPHER} package (\textit{AlignSeqs(), DistanceMatrix(), IdClusters()}, @Wright2016). The sequence of the most abundant ASV within a OTU cluster was kept as a reference sequence if it was classified as at least at the domain level as "Bacteria". If the most abundant ASV within a cluster did not have any taxonomic classification, the ASV that had a taxonomic classification was chosen to represent the OTU cluster.
 
-CSS results were compared with results achieved with various rarefaction thresholds. To account for random sampling effects, rarefaction was conducted with 100 random iterations. Similarly to the CSS data treatments, the mean of all iterations was rounded to its integer to be used for subsequent analysis. There were no substantial differences in the results between CSS and various rarefaction thresholds on $\alpha$ diversity estimates, which is believed to be most susceptible to library size differences (Fig. S2). Consequently, CSS results were used for downstream analyses.
 
-## SM4: Data exploration and statistical analyses
-To explore differences in microbial community composition across habitat types and seasons, a Principal Coordinates Analysis (PCoA) was conducted with Bray-Curtis dissimilarities ($D_{BC}$) (@Bray1957, @Legendre1998) based on all DNA samples with the function \textit{pcoa} in the \textit{ape} package (@Paradis2018) (n = 372, 20182 OTUs). The community matrix was Hellinger transformed to resolve a horse-shoe effect (@Legendre2001). To correct any negative eigenvalues problematic for PERMANOVA analysis, the $D_{BC}$ matrix was square-root transformed to Euclidean distance (@Legendre1998, @Borcard2011). To evaluate statistical differences in habitat type and season a PERMANOVA was computed with 9999 permutations with the \textit{adonis} function. A PERMANOVA cannot distinguish among-group from within-group variation if data dispersion is variable among groups (@Anderson2013), therefore, an analysis of multivariate homogeneity was computed with \textit{betadisper}. Using \textit{permutest}, we finally tested whether dispersion differs between groups.
+## SM4: Effects of rarefaction
+Cumulative sum scaling (CSS) results were compared with results achieved with various rarefaction thresholds. There were no substantial differences in the results between CSS and various rarefaction thresholds on $\alpha$ diversity estimates, which is believed to be most susceptible to library size differences (Fig. \@ref(fig:alpha-plot)).
 
-Secondly, to evaluate whether sampled RNA-based assemblages were different from the DNA-based assemblages, we performed a second PCoA ($D_{BC}$ with square-root transformation) with both DNA and RNA samples (n = 572, 20185 OTUs). Again, statistically different groups were investigated with a PERMANOVA (9999 permutations), where habitat type, season and nucleic acid type (DNA vs. RNA) formed the groups. The same framework explained above to check for dispersions was applied. To quantify how different DNA-/RNA-based assemblages of the same sample are, the Bray-Curtis distance (m\textsubscript{BC}) of each DNA-RNA sample pair within the PCoA ordination space was computed across \textit{n}-dimensional space (@Tabak2004):
+We further re-run all analyses in the manuscript with the examined rarefaction thresholds. Both PCoAs showed negligible differences while the patterns in S\o rensen and Bray-Curtis distances showed variation across rarefaction thresholds. Depending on the rarefaction threshold used, we observed different patterns in when incidence and when abundance-based distances were greater than the other, which was likely introduced by the random sampling procedure imposed by rarefaction affecting both incidences as well as abundances. As the threshold becomes higher (e.g. 10000), all patterns in the absolute numbers of S\o rensen and Bray-Curtis distances approach our originally observed patterns with CSS. We mainly use the $\Delta$-distances to interpret shifts in mass effects and selection, and while the absolute numbers in $\Delta$-distances changed, the patterns across habitat types and seasons remained fairly consistent across rarefaction thresholds with the highest rarefaction threshold resembling the original results the most. Hence, these results showed that the absolute numbers in $\Delta$-distances do not hold meaning per se, it is the spatio-temporal relative change that gives our analysis meaning. Rarefaction does change the DNA-RNA distances themselves likely due to the loss of rare taxa and making abundance differences among OTUs smaller, however, the final interpretations remain the same.
+
+Finally, we explored the effects of rarefaction on how reactive and unreactive OTUs were identified. Across all rarefaction thresholds, we could observe a clear differentiation between OTUs that were classified within each habitat as 'unreactive'. Firstly, due to their absence in any RNA and secondly, by the absence in a DNA to RNA contribution relationship. OTUs that were categorized by these two 'unreactive' categories were clearly different from those that were named 'reactive' due to the presence of a linear relationship in their DNA and RNA contribution. Within each rarefaction threshold, unreactive OTUs were characterized by diverse origins, and reactive taxa were mainly dominated by soil and soilwater taxa. We could also observe that with lower rarefaction thresholds (e.g. 1470), more taxa from 'aquatic' habitats seemed to be reactive (i.e. taxa first detected in streams and upriver), however, as the rarefaction threshold increases, their proportion reduces (e.g. 10000). These results point to the fact that rare taxa are important contributors to our observed patterns, and hence we strongly believe that rarefaction does rather bias our observations by removing taxa essential to natural processes in microbial assembly (e.g. seed banks, @Lennon2011). Rarefaction does not affect our observation that there were taxa that have a decoupled DNA-RNA relationship (below potential activity threshold), and those that do (above potential activity threshold). Consequently, CSS results were used for our manuscript.
+
+```{r alpha-plot, echo=FALSE, fig.show='hold',fig.align='center', out.width = "70%", fig.cap = "\\textbf{Comparing the effect of rarefaction on $\\alpha$ diversity patterns.} Three different $\\alpha$ diversity indices were investigated: Shannon-Wiener index (H'), Simpson's index ($\\lambda$) and Pielou's evenness (\\textit{J}). CSS = cumulative sum scaling. Rarefied datasets with the applied minimum library size threshold are indicated as 'Lib[threshold]'."}
+knitr::include_graphics("../Figures/Final/alphadiv_comp.png")
+``` 
+
+
+## SM5: Data exploration and statistical analyses
+To explore differences in microbial community composition across habitat types and seasons, a Principal Coordinates Analysis (PCoA) was conducted with Bray-Curtis dissimilarities ($D_{BC}$) (@Bray1957, @Legendre1998) based on all DNA samples with the function \textit{pcoa} in the \textit{ape} package (@Paradis2018). The community matrix was Hellinger transformed to resolve a horse-shoe effect (@Legendre2001). To correct any negative eigenvalues problematic for PERMANOVA analysis, the $D_{BC}$ matrix was square-root transformed to Euclidean distance (@Legendre1998, @Borcard2011). To evaluate statistical differences in habitat type and season a PERMANOVA was computed with 9999 permutations with the \textit{adonis} function. A PERMANOVA cannot distinguish among-group from within-group variation if data dispersion is variable among groups (@Anderson2013), therefore, an analysis of multivariate homogeneity was computed with \textit{betadisper}. Using \textit{permutest}, we finally tested whether dispersion differs between groups.
+
+Secondly, to evaluate whether sampled RNA-based assemblages were different from the DNA-based assemblages, we performed a second PCoA ($D_{BC}$ with square-root transformation) with both DNA and RNA samples. Again, statistically different groups were investigated with a PERMANOVA (9999 permutations), where habitat type, season and nucleic acid type (DNA vs. RNA) formed the groups. The same framework explained above to check for dispersions was applied. To quantify how different DNA-/RNA-based assemblages of the same sample are, the Bray-Curtis distance (m\textsubscript{BC}) of each DNA-RNA sample pair within the PCoA ordination space was computed across \textit{n}-dimensional space (@Tabak2004):
 
 
 \[ m(p,q) = \sqrt{(\mid p_{1} - q_{1} \mid)^2 + (\mid p_{2} - q_{2} \mid)^2 + \cdots + (\mid p_{n} - q_{n} \mid)^2}\]
 
 
-where $p$ and $q$ represent DNA and RNA site scores, respectively, of each sample and $n$ is the used maximum number of dimensions. We focused on the first axes that cumulatively explain 75\% of the variation for each ordination (n\textsubscript{75\%}), similar to (@Osterholz2016). This approach was implemented as it was evident from the PCoA that essential variation within non-aquatic samples was captured outside the first three axes. The distance across all PCoA axes equals the initial pair-wise dissimilarity on which the PCoA is based on (Fig. S3). As such, the distance across n\textsubscript{75\%} axes extracts the proportion of the initial pair-wise dissimilarity that is captured by the axes cumulatively explaining 75\% of the PCoA.
+where $p$ and $q$ represent DNA and RNA site scores, respectively, of each sample and $n$ is the used maximum number of dimensions. We focused on the first axes that cumulatively explain 75\% of the variation for each ordination (n\textsubscript{75\%}), similar to (@Osterholz2016). This approach was implemented as it was evident from the PCoA that essential variation within non-aquatic samples was captured outside the first three axes. The distance across all PCoA axes equals the initial pair-wise dissimilarity on which the PCoA is based on (Fig. \@ref(fig:equal-plot)). As such, the distance across n\textsubscript{75\%} axes extracts the proportion of the initial pair-wise dissimilarity that is captured by the axes cumulatively explaining 75\% of the PCoA.
 
-To gain further insight into the processes shaping assemblage dissimilarities, we computed a PCoA with the S{\o}rensen dissimilarity ($D_{S}$), which is the incidence based equivalent of $D_{BC}$ (square-root transformed to achieve Euclidean space) (@Legendre1998, @Sorensen1948)(Fig. S4). By comparing incidence and abundance based dissimilarities, we can further distinguish in which samples DNA-/RNA-based assemblages diverge primarily due to different present taxa or their abundances, respectively. We further applied the same framework of calculating the distance among DNA and RNA pairs across n\textsubscript{75\%} (236 of 571) axes resulting the S{\o}rensen-based distance (m\textsubscript{S}). 
+```{r equal-plot, echo=FALSE,fig.show='hold',fig.align='center', out.width = "60%", fig.cap = "\\textbf{Distance along all PCoA axes equal pair-wise dissimilarity.} As a proof of concept, the computed distance (e.g. m\\textsubscript{BC}) extracts a proportion of the individual pair-wise dissimilarities, summation of the distances across all PCoA dimensions equals the initial pair-wise Bray-Curtis dissimilarities, which is the input matrix into the PCoA. Thus, computing the pair-wise distance among a sub-selection of axes of the PCoA captures a proportion of the overall pair-wise dissimilarity that is explained by the variation and drivers of the selected axes."}
+knitr::include_graphics("../Figures/Final/allaxesdist_dissim_cor.png")
+``` 
 
-## SM5: Abundance classification
-Traditionally, abundance groups (AGs) such as "abundant" and "rare" have been defined by various relative abundance thresholds ranging from 0.1 to 1 \% within the literature. While inconsistencies hinder comparisons among studies, we additionally are working with variance stabilised read numbers, thus traditional thresholds based on relative abundances are not applicable. In order to classify OTUs into AGs, we developed a new framework to classify OTUs into AGs based on the shape of rank abundance curves of each habitat. We initiate the framework by calculating the mean abundance of each OTU by habitat type. Subsequently, for each habitat type a smoothed rank abundance curve was generated with the function \textit{smooth.spline} with the smoothing parameter set to 0.7 in base R (Fig. S5a). Ranks that correspond to moments of acceleration along the curve were identified by taking the second derivative of the log(x + 1) transformed abundance curve (Fig. S5c). All OTUs ranked below the second maximum acceleration were defined as rare. OTUs falling above the first maximum acceleration were defined as abundant, while the section in between the two maxima represents moderately abundant OTUs (Fig. S5a). The CSS reads corresponding to the ranks identified for the AGs were extracted for each habitat type separately. Subsequently, the average CSS reads for each abundance threshold was calculated. This approach classified all OTUs with >= 47 CSS reads as abundant, < 47 and >= 5 CSS reads as moderate, and < 5 CSS reads as rare.
+To gain further insight into the processes shaping assemblage dissimilarities, we computed a PCoA with the S\o rensen dissimilarity ($D_{S}$), which is the incidence based equivalent of $D_{BC}$ (square-root transformed to achieve Euclidean space) (@Legendre1998, @Sorensen1948)(Fig. \@ref(fig:n-dist)). By comparing incidence and abundance based dissimilarities, we can further distinguish in which samples DNA-/RNA-based assemblages diverge primarily due to different present taxa or their abundances, respectively. We further applied the same framework of calculating the distance among DNA and RNA pairs across n\textsubscript{75\%} axes resulting the S\o rensen-based distance (m\textsubscript{S}). 
 
-## SM6: Software details
+```{r n-dist, echo=FALSE,fig.show='hold',fig.align='center', out.width = "70%", fig.cap = "Schematic representation of n-distance calculation"}
+knitr::include_graphics(c("Figures/N-distance concept.png"))
+``` 
+
+## SM6: Simulation of theoretical communities to understand underlying patterns of $\Delta$-distances
+In order to support our approach to examine assembly processes using the $\Delta$-distances approach between S\o rensen and Bray-Curtis dissimilarity based PCoAs, we simulated different scenarios and calculated the $\Delta$-distances on these theoretical communities.
+
+We used four different species abundance distributions (SADs) of varying evenness (Pielou's *J*) to mimic the DNA assemblages of different habitat types. We hypothesized that the degree of selection increases with lower evenness (higher $\Delta$-distance), as only a few taxa are selected for and dominate the community. Each SAD was composed of 10000 OTUs (@Lennon2018), which is close to our overall OTU pool of 16322 OTUs found across the dataset. We used lognormal distributions to create SADs and modified the evenness by changing the scale parameter between 0.9 and 2.7. The higher the parameter is, the steeper and less even the community becomes. To create the DNA assemblages, we randomly sampled 25000 times from each SAD, which was based on our average library size across the dataset (mean: 24687.21).
+
+As a second step, we duplicated the randomly sampled DNA assemblages to retrieve a base community for the corresponding RNA assemblages. To introduce additional mass effects, we implemented a gradient of OTU removal from the created DNA assemblages. The number of OTUs removed from the RNA assemblages were either 1/2, 1/3, 1/6 or 1/9 of all sampled OTUs in a site (hereafter, replacement). We hypothesized that the higher the replacement, the stronger the mass effect will be (lower $\Delta$-distance). The number of reads that were removed as a result of the random OTU removal were re-sampled from the OTUs that were not present in the DNA assemblage of a particular site, leading to equal library sizes across sites. We further corrected for phantom taxa (RNA > 0, DNA = 0) with DNA = 1, following the analysis of our empirical dataset. Overall, we implemented 4 SAD and 4 replacement treatments that were run 9 times to avoid random sampling biases and compute standard deviations of the resulting metrics (overall n = 288).
+
+Once the OTU matrix with all sites were set-up, we re-ran our analysis by calculating the PCoAs for both S\o rensen and Bray-Curtis based dissimilarities, extracted the axes that cumulatively explain 75\% of the variation and calculated the $\Delta$-distances. Furthermore, two metrics were calculated for each site: 1) the number of OTUs that do not have any RNA, which were classified as "unreactive" taxa in our study, and 2) the mean read difference between individual OTU's DNA and RNA, which indicates the discrepancy between the DNA and RNA. We hypothesized that higher DNA-RNA discrepancies indicate stronger selection.
+
+```{r sim-delta, echo=FALSE, fig.show='hold',fig.align='center', out.width = "50%", fig.cap = "\\textbf{Simulated $\\Delta$-distances.} Points represent the arithmetic mean of 9 independent simulations of SAD and replacement categorical combinations. Error bars indicate the standard deviation from the arithmetic mean."}
+knitr::include_graphics("../Figures/Final/sim_delta.png")
+``` 
+
+Our simulation results indicate that there is indeed a clear trend in our evenness and replacement treatment on $\Delta$-distances with lower $\Delta$-distances observed in even communities (i.e. stronger mass effect) and higher $\Delta$-distances in uneven communities (i.e. stronger selection) (Fig. \@ref(fig:sim-delta)). Additionally, higher replacement values lower the $\Delta$-distances within each SAD treatment indicating stronger mass effects.
+
+```{r sim-reg, echo=FALSE, fig.show='hold',fig.align='center', out.width = "90%", fig.cap = "\\textbf{Linear regressions of $\\Delta$-distances and computed metrics.} Points are arithmetic means for simulations (a-b) and individual samples for empirical data (c-d) (simulation: n = 16, empirical data: n = 193). Assumptions of normality and homogeneity were checked for each linear regression. Lines and grey areas represent regression slope and confidence intervals, respectively. Regression formulae and statistics are given within the individual plots."}
+knitr::include_graphics("../Figures/Final/sim_reg.png")
+``` 
+
+We also regressed the two above mentioned metrics with the $\Delta$-distances (Fig. \@ref(fig:sim-reg)), and we found a negative relationship of the number of "unreactive" OTUs with $\Delta$-distances in line with our interpretation of mass effects and its dependency on a higher proportion of unreactive taxa. Furthermore, mean abundance differences were positively related to $\Delta$-distances indicating stronger selection with higher abundance differences between DNA and RNA. Although our empirical relationships (Fig. \@ref(fig:sim-reg) c-d) are less stronger than the simulation based estimates (Fig. \@ref(fig:sim-reg) a-b), the overall trends are the same.
+
+We would like to end this simulation section by highlighting that the absolute number of $\Delta$-distances is likely to hold little meaning. Absolute $\Delta$-distance values are not interpretable on their own, it is the comparison across habitats or gradients that create patterns and gives this approach room for interpretation.
+
+## SM7: Abundance classification
+Traditionally, abundance groups (AGs) such as "abundant" and "rare" have been defined by various relative abundance thresholds ranging from 0.1 to 1 \% within the literature. While inconsistencies hinder comparisons among studies, we additionally are working with variance stabilised read numbers, thus traditional thresholds based on relative abundances are not applicable. In order to classify OTUs into AGs, we developed a new framework to classify OTUs into AGs based on the shape of rank abundance curves of each habitat. We initiate the framework by calculating the mean abundance of each OTU by habitat type. Subsequently, for each habitat type a smoothed rank abundance curve was generated with the function \textit{smooth.spline} with the smoothing parameter set to 0.7 in base R (Fig. \@ref(fig:abgroup)). Ranks that correspond to moments of acceleration along the curve were identified by taking the second derivative of the log(x + 1) transformed abundance curve (Fig. \@ref(fig:abgroup)c). All OTUs ranked below the second maximum acceleration were defined as rare. OTUs falling above the first maximum acceleration were defined as abundant, while the section in between the two maxima represents moderately abundant OTUs (Fig. \@ref(fig:abgroup)a). The CSS reads corresponding to the ranks identified for the AGs were extracted for each habitat type separately. Subsequently, the average CSS reads for each abundance threshold was calculated. This approach classified all OTUs with >= 72 CSS reads as abundant, < 72 and >= 10 CSS reads as moderate, and < 10 CSS reads as rare.
+
+```{r abgroup, echo=FALSE,fig.show='hold',fig.align='center', out.width = "90%", fig.cap="\\textbf{Classification of abundance groups.} Schematic representation of the used approach to classify abundance groups based on derivative approximation of the log-transformed rank abundance curve by habitat type, where a) represents the original rank abundance curve and b) the log-transformed equivalent to derive points of maximum and minimum acceleration. The blue point represents the first minimum of the second derivative, red points are the first and second maxima of the second derivative. Pink, green and blue ranges visualise abundant, medium and rare classifications, respectively."}
+knitr::include_graphics(c("../Figures/Final/abundance_class_ex_otu99.png"))
+``` 
+
+## SM8: Software details
 The packages \textit{phyloseq}, \textit{tidyverse}, \textit{plyr} and \textit{data.table} were used for data wrangling and transformation (@McMurdie2013,@Wickham2019, @Wickham2011, @Dowle2019), and \textit{doMC} and \textit{parallel} enabled parallel processing (@Analytics2019, @RCoreTeam2017). \textit{ggplot2}, \textit{ggpubr}, \textit{ggnewscale} and \textit{cowplot} were used to visualize the results (@Wickham2016, @Kassambara2018, @Campitelli2020, @Wilke2019). For statistical analyses, \textit{vegan} and \textit{rstatix} were used (@Oksanen2017, @Kassambara2020). 
 
 Maps were created with QGIS (version 3.12) and a digital elevation model provided by Natural Resources Canada. Watersheds were delineated with ArcMap (version 10.5.1, ESRI Inc., Redland, CA) and the Spatial Analyst Toolbox.
 
----
+# Additional supplementary figures
 
-# Supplementary figures
-
-### Figure S1: Landscape within the Romaine catchment
-```{r, echo=FALSE, fig.show='hold',fig.align='center', out.width = "70%"}
-knitr::include_graphics("./Figures/LR_photo_collage.png")
+```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "100%", fig.cap = "\\textbf{Taxonomic composition of habitat types.} Given are averages of phyla found across habitat types. Upper panel shows average library sizes across habitat types. Error bars indicate the standard deviation from the mean."}
+knitr::include_graphics("../Figures/Final/Tax_LibSiz_Phyla_otus_gtdb.png")
 ``` 
 
-(a) Northern area with shrubs and moss-lichen, (b) Mountainous section close to Reservoir 3, (c) Lower coastal plain with peatland areas, (d) Example of a sampled stream.
-
-### Figure S2: No substantial effect of data transformation methods on $\alpha$-diversity estimations
-
-![](../Figures/Final/alphadiv_rar_comp_boxplots.png){ width=55% } ![](../Figures/Final/alphadiv_rar_comp_scatter.png){ width=58% }
-
-Comparing the effect of rarefaction on $\alpha$ diversity patterns. Four different $\alpha$ diversity indices were investigated: Shannon-Wiener index (H'), Simpson's index ($\lambda$), Pielou's evenness (J) and Chao1 richness estimator. CSS = cumulative sum scaling. Rarefied datasets with the applied minimum library size threshold are indicated as "Lib[threshold]". 
-
-### Figure S3: Distance along all PCoA axes equal pair-wise dissimilarity
-
-```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "70%"}
-knitr::include_graphics(c("../Figures/Final/allaxesdist_dissim_cor.png"))
-``` 
-As a proof of concept, the computed distance (e.g. m\textsubscript{BC}) extracts a proportion of the individual pair-wise dissimilarities, summation of the distances across all PCoA dimensions (n = 100%) equals the initial pair-wise Bray-Curtis dissimilarities, which is the input matrix into the PCoA. Thus, computing the pair-wise distance among a sub-selection of axes of the PCoA captures a proportion of the overall pair-wise dissimilarity that is explained by the variation and drivers of the selected axes.
-
-### Figure S4: Schematic representation of n-distance calculation
-```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "90%"}
-knitr::include_graphics(c("Figures/N-distance concept.png"))
-``` 
-
-### Figure S5: Statistical support for residual interpretations
-```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "90%"}
-knitr::include_graphics(c("../Figures/Final/resid_krusk_tests.png"))
-``` 
-
-Samples were grouped into two distinct categories of residuals > 0 and < 0, respectively. No samples had residuals = 0. Extreme outliers (values above the third quartile plus 3 times the inter-quartile range (IQR) or below the first quartile minus 3 times the IQR) were removed prior to the testing of ANOVA assumptions. For all three variables, normality assumptions were not fulfilled and thus a non-parametric Kruskal-Wallis test was conducted. Depicted are boxplots where the middle line represents the median, lower and upper hinges correspond to the 25th and 75th percentiles. Upper and lower whiskers expand to the largest and smallest value, respectively, but no further than 1.5 times the IQR from the hinge. **** and ** indicate *p*-values < 0.0001 and < 0.01, respectively (based on Kruskal-Wallis tests).
-
-### Figure S6: Classification of abundance groups
-```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "90%"}
-knitr::include_graphics(c("../Figures/Final/abundance_class_ex_otu99.png"))
-``` 
-
-Classification of abundance groups based on derivative approximation of the log transformed rank abundance curve by habitat type, where a) represents the original rank abundance curve and b) the log transformed equivalent to derive points of maximum and minimum acceleration. The blue point represents the first minimum of the second derivative, red points are the first and second maxima of the second derivative. Pink, green and blue ranges visualise abundant, medium and rare classifications, respectively.
-
-### Figure S7: Taxonomic composition of habitat types
-
-```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "100%"}
-knitr::include_graphics(c("../Figures/Final/Tax_LibSiz_Phyla_otus.png"))
-``` 
-
-Given are averages of phyla found across habitat types. Upper panel shows average library sizes across habitat types. Error bars indicate the standard deviation from the mean.
-
-### Figure S8: $\alpha$-diversity decreases along the continuum
-```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "80%"}
-knitr::include_graphics("../Figures/Final/continuum_alpha.png")
+```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "100%", fig.cap = "\\textbf{No clear seasonal clustering within terrestrial samples.} PCoA analysis with square rooted Bray-Curtis dissimilarity on Hellinger transformed community matrix with only terrestrial samples (n = 156, 11 047 OTUs). Habitat types are distinguished by colour, seasons are indicated by shapes and nucleic acid type are visualised by different line colour."}
+knitr::include_graphics("../Figures/Final/terr_PCoA_gtdb_hulls.png")
 ```
 
-Autumn data not shown due to low coverage of habitat types. Depicted are boxplots where the middle line represents the median, lower and upper hinges correspond to the 25th and 75th percentiles. Upper and lower whiskers expand to the largest and smallest value, respectively, but no further than 1.5 times the IQR from the hinge.
-
-### Figure S9: No clear clustering within terrestrial samples
-
-```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "100%"}
-knitr::include_graphics("../Figures/General/terr_PCoA.png")
+```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "100%", fig.cap = "\\textbf{Habitat type and seasonal separation of RNA.} PCoA analysis with square rooted Bray-Curtis dissimilarity on Hellinger transformed community matrix of all RNA samples (n = 201, 7 549 OTUs). Habitat types are distinguished by colour and seasons are indicated by shapes."}
+knitr::include_graphics("../Figures/Final/PCoA_RNA_SampleType_gtdb.png")
 ```
 
-PCoA analysis with square rooted Bray-Curtis dissimilarity on log\textsubscript{2}(x + 1) transformed community matrix with only terrestrial samples (n = 158, 13201 OTUs). Habitat types are distinguished by colour, seasons are indicated by shapes and nucleic acid type are visualised by differences in opacity.
-
-### Figure S10: Habitat type and seasonal separation of RNA
-
-```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "100%"}
-knitr::include_graphics("../Figures/Final/PCoA_log_RNA_SampleType.png")
+```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "100%", fig.cap = "\\textbf{Unreactive and reactive fractions of OTUs.} Proportion of bacterial OTUs (\\%) within each habitat type and season that can be attributed to the unreactive (RNA = 0 and < Median) and reactive (> Median) fraction."}
+knitr::include_graphics("../Figures/Final/reactive.unreative.barplot_reads&otus.png")
 ```
 
-PCoA analysis with square rooted Bray-Curtis dissimilarity on log\textsubscript{2}(x + 1) transformed community matrix of all RNA samples (n = 200, 10036 OTUs). Habitat types are distinguished by colour and seasons are indicated by shapes.
+(ref:caption) **Modelled and measured discharge across the watershed.** Discharge was continuously measured at point locations at various stream orders by Hydro-Québec. A model was created to model the discharge of all streams and rivers within the watershed using mean monthly air temperatures (weather station at Havre-Saint-Pierre airport), monthly difference in snow melt (retrieved from @Brown2010) and flow accumulation (derived via GIS). This model is part of a separate manuscript in preparation, hence, the script and data are not available on Github.
 
-### Figure S11: Only summer indicates consistent relationship between DNA and RNA $\alpha$-diversity
-```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "100%"}
-knitr::include_graphics("../Figures/Final/alpha.div.dna.rna.lm.png")
+```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "100%", fig.cap = "(ref:caption)"}
+knitr::include_graphics("../Figures/lme_predictedvsmeasured_miccom.png")
 ```
 
-Linear regressions between $\alpha$ diversity indices of DNA and RNA. Regression lines are only given for significant models. Colours correspond to seasons, regression formulae and statistics are given in the respective seasonal colours.
+```{r, echo=FALSE,fig.show='hold',fig.align='center', out.width = "100%", fig.cap = "\\textbf{Seasonal differences in discharge across the watershed.} Given are predicted discharges of all lotic systems within the watershed for the years 2015-2017. Spring, Summer and Autumn correspond to the months June, August and October, during which the field campaigns were carried out. Lines represent polynomial linear regressions. These results are part of a separate manuscript in preparation, hence, the script and data are not available on Github."}
+knitr::include_graphics("../Figures/tribs_streamorder_relationship_miccompaper.png")
+```
 
 # Suppplementary Tables
 
-### Table S1: Number of samples per habitat type.
-Number of samples are given per habitat type. 
 ```{r, echo = F}
 met.df <-
-  select_newest(path = "../Output", file.pattern = "201520162017_meta_otu99_data_")
+  select_newest(path = "../Output", file.pattern = "201520162017_meta_otu99_paper1_")
 met.df <-
   read.csv(
     paste0("../Output/", met.df),
@@ -179,7 +189,7 @@ met.df <-
 # get number of samples for methods
 setDT(met.df)
 met.df$sample.type.year <- factor(met.df$sample.type.year, levels = c("Soil","Sediment",
-                                                                      "Soilwater","Hyporheicwater", 
+                                                                      "Soilwater","Hyporheic", 
                                                                       "Wellwater","Stream", "Tributary",
                                                                       "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
                                                                       "Upriver", "Downriver","RO3", "RO2", "RO1","Deep",
@@ -192,14 +202,12 @@ met.df$sample.type.year <- factor(met.df$sample.type.year, levels = c("Soil","Se
                                              "Reservoirs","Reservoirs", "Reservoirs","Reservoirs",
                                              "Estuary"))
 
-met.df$Season <- factor(met.df$Season, levels = c("spring","summer","autumn"),
-                        labels = c("Spring","Summer","Autumn"))
-
-met.df$DnaType <- factor(met.df$DnaType, levels = c("DNA","cDNA"),
+met.df <- met.df[!is.na(met.df$sample.type.year),]
+met.df$dna_type <- factor(met.df$dna_type, levels = c("DNA","cDNA"),
                          labels = c("DNA","RNA"))
 
-n.table <- met.df[, .(n = .N), by = .(sample.type.year, DnaType)][order(sample.type.year, DnaType)]
-n.table <- dcast(n.table, DnaType ~ sample.type.year, value.var = "n", fill = 0)
+n.table <- met.df[, .(n = .N), by = .(sample.type.year, dna_type)][order(sample.type.year, dna_type)]
+n.table <- dcast(n.table, dna_type ~ sample.type.year, value.var = "n", fill = 0)
 colnames(n.table)[1] <- "Nucleic Acid Type"
 n.table[, Sum := sum(.SD, na.rm = T), .SDcols = c("Soil","Sediment",
                                              "Soilwater", 
@@ -209,11 +217,26 @@ n.table[, Sum := sum(.SD, na.rm = T), .SDcols = c("Soil","Sediment",
                                              "Reservoirs",
                                              "Estuary"), by = 1:nrow(n.table)]
 
-knitr::kable(n.table, "latex", booktabs = T) %>%
+knitr::kable(n.table, "latex", booktabs = T,
+             caption = "Number of samples per habitat type.") %>%
   column_spec(1:ncol(n.table), width = "0.5cm") %>%
-  row_spec(0, angle = 45)
+  row_spec(0, angle = 45) %>%
+  kable_styling(latex_options = "HOLD_position")
 ```
 
----
+
+```{r , echo = F}
+wrt <- data.frame(Reservoir = rep(c("RO2","RO1","RO3"), each = 3),
+                  month = rep(c(6,8,10), times = 3),
+                  mean.wrt_d = c(90.8,144.2, 190.5,3.9,6.5,7.4,43.8,86.4,115.6)) %>% setDT()
+wrt[, Season := factor(as.character(month), levels = c("6","8","10"), labels = c("Spring","Summer","Autumn"))]
+wrt <- dcast(wrt, Reservoir ~ Season, value.var = "mean.wrt_d")
+
+knitr::kable(wrt, "latex", booktabs = T,
+             caption = "\\textbf{Estimated seasonal variation in water residence time (d) across reservoirs.}
+             Water residence time is given in days. Water residence time was estimated from reservoir volume and continously measured discharge data at the reservoir outflow by Hydro-Québec. Monthly reservoir volume was estimated from a water level to volume relationship derived by Hydro-Québec. The underlying data are part of a separate manuscript in preparation, hence, the script and data are not available on Github.") %>%
+  kable_styling(latex_options = "HOLD_position")
+```
+
 
 # References
