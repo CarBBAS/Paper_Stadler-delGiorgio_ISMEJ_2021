@@ -21,6 +21,7 @@ xxx
 
 ## Data availability:
 Raw sequences are available on the public NCBI Sequence Read Archive (SRA) as part of the BioProject PRJNA69302.
+The intermediate data files are too big to be stored on Github and are hence published separetely on Zenodo (DOI: 10.5281/zenodo.4611421).
 
 ---
 
