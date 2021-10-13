@@ -27,7 +27,7 @@ biblio-style: apalike
 
 \newpage
 
-The following document contains the supplementary material for the publication "Terrestrial connectivity, upstream aquatic history and seasonality shape bacterial community assembly within a large boreal aquatic network". The corresponding R code for the supplementary material can be found on the publication's Github repository: https://github.com/CarBBAS/Paper_Stadler&delGiorgio_ISMEJ_2021.
+The following document contains the supplementary material for the publication "Terrestrial connectivity, upstream aquatic history and seasonality shape bacterial community assembly within a large boreal aquatic network". The corresponding R code for the supplementary material can be found on the publication's Github repository: https://github.com/CarBBAS/Paper_Stadler-delGiorgio_ISMEJ_2021.
 
 24 Pages, 13 Figures, 2 Tables
 
