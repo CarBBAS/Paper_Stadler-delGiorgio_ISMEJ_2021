@@ -6,9 +6,15 @@ MotherData
 Output
 Objects
 Manuscript/Figures
+Manuscript/LaTeX
+Manuscript/Reviews
+Manuscript/Tables
 Figures/General
 Manuscript/*.docx
 Manuscript/*.pdf
+Manuscript/*.txt
+Figures/Final
+Figures/Submission
 Robertmail
 Misc
 Raw/Upload
