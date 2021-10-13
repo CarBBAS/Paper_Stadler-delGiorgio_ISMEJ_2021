@@ -16,15 +16,15 @@ Affiliation: Groupe de Recherche Interuniversitaire en Limnologie (GRIL), Dépar
 
 ## Data availability:
 Raw sequences are available on the public NCBI Sequence Read Archive (SRA) as part of the BioProject PRJNA69302.
-The intermediate data files are too big to be stored on Github and are hence published separetely on Zenodo (DOI: [10.5281/zenodo.4611421]()).
+The intermediate data files are too big to be stored on Github and are hence published separetely on Zenodo (see separate repository locations below).
 
 ---
 
 ## To cite this work or code
 
-- Publication:
-- Code:
-- Processed microbial data: [10.5281/zenodo.4611421]()
+- **Publication:**
+- **Code:** Masumi Stadler. (2021). CarBBAS/Paper_Stadler-delGiorgio_ISMEJ_2021: v1.0-beta. In The ISME Journal (beta). Zenodo. https://doi.org/10.5281/zenodo.5567270
+- **Processed microbial data:** Stadler, Masumi, Ruiz-González, Clara, Vick-Majors, Trista J, & del Giorgio, Paul A. (2021). Microbial 16S rRNA gene (DNA) and transcripts (cDNA) along a boreal soil-freshwater-estuary continuum (v1.0) [Data set]. Zenodo. https://doi.org/10.5281/zenodo.4611420
 
 ---
 
