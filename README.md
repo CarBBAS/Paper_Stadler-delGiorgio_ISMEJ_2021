@@ -10,7 +10,7 @@ Affiliation: Groupe de Recherche Interuniversitaire en Limnologie (GRIL), Dépar
 
 ---
 
-**This work has been accepted by The ISME Journal**
+**This work has been published**
 
 ---
 
