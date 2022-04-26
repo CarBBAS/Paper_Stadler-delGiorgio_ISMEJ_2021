@@ -125,6 +125,10 @@ met.df$Season <- factor(met.df$Season, levels = c("Spring","Summer","Autumn"),
 met.df$dna_type <- factor(met.df$dna_type, levels = c("DNA","cDNA"),
                         labels = c("DNA","RNA"))
 
+#setDT(met.df)
+#met.df[, .(N = levels(Season)), by = .(year)]
+#met.df %>% select(Season, year) %>% unique()
+
 # Construct phyloseq object
 pb <- phyloseq(otu_table(otu.tab, taxa_are_rows = F),
                sample_data(met.df),

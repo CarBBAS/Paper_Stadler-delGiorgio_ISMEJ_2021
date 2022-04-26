@@ -700,30 +700,30 @@ alpha.df <- read.csv(paste0("./Output/", alpha.df), sep = ",", stringsAsFactors 
 setDT(alpha.df)
 
 # keep CSS results only
-temp <- alpha.df[DR.names %in% unique(alpha.df[dna_type == "cDNA",]$DR.names),][Data == "css",]
+temp <- alpha.df[dr_match_name %in% unique(alpha.df[dna_type == "RNA",]$dr_match_name),][Data == "orig",]
 
 # keep Shannon and Pielou, we're not very interested in the other alpha indices
 cast.alpha <- dcast(temp,
-                    DR.names + Season + sample.type.year ~ dna_type,
+                    dr_match_name + Season + sample.type.year ~ dna_type,
                     value.var = c("Shannon", "Pielou"))
 
 # and melt
-melt.alpha <- melt(cast.alpha, id.vars = c("DR.names"),
+melt.alpha <- melt(cast.alpha, id.vars = c("dr_match_name"),
                    measure.vars = c("Shannon_DNA",
-                                    "Shannon_cDNA",
+                                    "Shannon_RNA",
                                     "Pielou_DNA",
-                                    "Pielou_cDNA"),
+                                    "Pielou_RNA"),
                    value.name = "Index") %>%
   separate(col = "variable", into = c("Diversity","dna_type"), sep = "_") %>%
   drop_na() %>%
-  dcast(DR.names + Diversity ~ dna_type, value.var = "Index")
+  dcast(dr_match_name + Diversity ~ dna_type, value.var = "Index")
 
 melt.alpha[cast.alpha, c("sample.type.year", "Season") :=
-             list(i.sample.type.year, Season), on = .(DR.names)]
+             list(i.sample.type.year, i.Season), on = .(dr_match_name)]
 
 # Visual inspection
 ggscatter(
-  melt.alpha, x = "cDNA", y = "DNA",
+  melt.alpha, x = "RNA", y = "DNA",
   color = "Season", add = "reg.line"
 )+
   facet_wrap("Diversity", scales = "free") +
@@ -736,7 +736,7 @@ ggscatter(
 # calculate linear models for alpha diversity indices
 alpha.mod <- dlply(melt.alpha, ~ paste(Diversity, Season, sep = "_"), function(df) {
   setDF(df)
-  lm(DNA ~ sqrt(cDNA), data = df, na.action = na.omit)
+  lm(DNA ~ sqrt(RNA), data = df, na.action = na.omit)
 })
 
 # check model assumptions
@@ -757,27 +757,29 @@ alpha.mod <- dlply(melt.alpha, ~ paste(Diversity, Season, sep = "_"), function(d
 (val <- val[!is.na(val$`Pr(>F)`),]) # keep only the rows that have the P-value
 colnames(val)[c(1,6)] <- c("Div_Season","Pval") # rename P-value column
 
+
 # Pielou autumn significant, BUT assumptions not fulfilled.
 # Transformations are not helping.... We include it in the results but interpret with caution
 
-melt.alpha[, show := F][Diversity == "Pielou" & (Season == "summer" | Season == "autumn"), show := T]
-melt.alpha[Diversity == "Shannon" & Season == "summer", show := T]
+melt.alpha[, show := F][Diversity == "Pielou" & (Season == "Summer" | Season == "Autumn"), show := T]
+melt.alpha[Diversity == "Shannon" & Season == "Summer", show := T]
 
-melt.alpha$Season <- factor(melt.alpha$Season, levels = c("spring","summer","autumn"),
-                            labels = c("Spring","Summer","Autumn"))
+melt.alpha$Season <- factor(melt.alpha$Season, levels = c("Spring","Summer","Autumn"))
 melt.alpha$Diversity <- factor(melt.alpha$Diversity, levels = c("Shannon","Pielou"))
+
+library(ggpmisc)
 
 (alpha.p <- ggplot() +
     theme_pubr() +
-    geom_point(data = melt.alpha, aes(x = cDNA, y = DNA, fill = Season), shape = 21) +
+    geom_point(data = melt.alpha, aes(x = RNA, y = DNA, fill = Season), shape = 21) +
     scale_fill_manual(values = c("#009E73", "#F0E442", "#D55E00")) + # colour-blind friendly
     geom_smooth(data = melt.alpha[show == T,] %>% drop_na(), 
-                mapping = aes(x = cDNA, y = DNA,
+                mapping = aes(x = RNA, y = DNA,
                               colour = Season), method = "lm", se = F) +
     facet_wrap("Diversity", scales = "free") +
     stat_poly_eq(formula = y ~ x,
                  data = melt.alpha[show == T,] %>% drop_na(), 
-                 mapping = aes(x = cDNA, y = DNA,
+                 mapping = aes(x = RNA, y = DNA,
                                label = paste(..eq.label.., ..rr.label.., ..p.value.label.., sep = "*`,`~"),
                                colour = Season), 
                  parse = TRUE,
@@ -798,23 +800,22 @@ ggsave("./Figures/Final/alpha.div.dna.rna.lm.png", alpha.p,
 
 # merge some sample types
 melt.alpha$sample.type.year <- factor(melt.alpha$sample.type.year, levels = c("Soil","Sediment",
-                                                                              "Soilwater","Hyporheicwater", 
-                                                                              "Wellwater","Stream", "Tributary",
-                                                                              "HeadwaterLakes", "PRLake", "Lake", "IslandLake",
-                                                                              "Upriver", "RO3", "RO2", "RO1","Deep", "Downriver",
-                                                                              "Marine"),
+                                                                              "Soilwater",
+                                                                              "Stream", "Tributary",
+                                                                              "Riverine \nLakes", "Lake", 
+                                                                              "Upriver", "Reservoirs", "Downriver",
+                                                                              "Estuary"),
                                       labels = c("Soil","Sediment",
-                                                 "Soilwater","Soilwater", 
-                                                 "Groundwater","Stream", "Tributary",
-                                                 "Riverine \nLakes", "Headwater \nPonds", "Lake", "Lake",
-                                                 "Upriver",
-                                                 "Reservoirs","Reservoirs", "Reservoirs","Reservoirs","Downriver",
+                                                 "Soilwater",
+                                                 "Stream", "Tributary",
+                                                 "Riverine Lakes", "Lake", 
+                                                 "Upriver", "Reservoirs", "Downriver",
                                                  "Estuary"))
 
-melt.alpha <- melt(melt.alpha, id.vars = c("sample.type.year","Season","Diversity","DR.names"),
-                   measure.vars = c("DNA","cDNA"), variable.name = "dna_type", value.name = "Values")
+melt.alpha <- melt(melt.alpha, id.vars = c("sample.type.year","Season","Diversity","dr_match_name"),
+                   measure.vars = c("DNA","RNA"), variable.name = "dna_type", value.name = "Values")
 
-melt.alpha$dna_type <- factor(melt.alpha$dna_type, levels = c("DNA","cDNA"),
+melt.alpha$dna_type <- factor(melt.alpha$dna_type, levels = c("DNA","RNA"),
                               labels = c("DNA", "RNA"))
 
 
